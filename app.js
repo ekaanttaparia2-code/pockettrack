@@ -1010,7 +1010,7 @@ function celebrateEntryLogged(btnId){
 }
 
 function setTab(t){
-  ['log','entries','report','events','rewards','upi','language','pro','ledger','aicoach'].forEach((x)=>{
+  ['log','entries','report','events','rewards','upi','language','pro','ledger'].forEach((x)=>{
     const el=document.getElementById('tab-'+x);
     if(el){
       if(x===t){
@@ -1050,9 +1050,6 @@ function setTab(t){
   }
   if(t==='pro'){
     if(typeof renderProTab === 'function') renderProTab();
-  }
-  if(t==='aicoach'){
-    if(typeof renderAICoachTab === 'function') renderAICoachTab();
   }
   if(t==='rewards')renderRewards();
   if(t==='language')updateLanguageTabUI();

@@ -115,20 +115,21 @@
     }
     .whatsapp-btn:active { transform: scale(0.95); background: #1ebc59; }
 
-    /* Dedicated Mobile Bottom Sheet */
+    /* Dedicated Mobile & Desktop Modal System */
     .pt-sheet-backdrop {
       position: fixed;
       inset: 0;
       background: rgba(0, 0, 0, 0.78);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      z-index: 10005;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      z-index: 100000 !important;
       display: flex;
-      align-items: flex-end;
+      align-items: center;
       justify-content: center;
+      padding: 16px;
       opacity: 0;
       visibility: hidden;
-      transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.28s;
+      transition: opacity 0.25s ease, visibility 0.25s;
     }
     .pt-sheet-backdrop.active {
       opacity: 1;
@@ -136,18 +137,20 @@
     }
     .pt-sheet-panel {
       width: 100%;
-      max-width: 500px;
+      max-width: 460px;
       background: linear-gradient(175deg, #1f1a3a 0%, #120e24 100%);
       border: 1px solid rgba(139, 92, 246, 0.4);
-      border-radius: 28px 28px 0 0;
-      padding: 24px 20px calc(24px + env(safe-area-inset-bottom, 0px));
-      box-shadow: 0 -12px 48px rgba(0, 0, 0, 0.6);
-      transform: translateY(100%);
-      transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+      border-radius: 28px;
+      padding: 26px 22px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+      transform: scale(0.92);
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
       box-sizing: border-box;
+      max-height: 90vh;
+      overflow-y: auto;
     }
     .pt-sheet-backdrop.active .pt-sheet-panel {
-      transform: translateY(0);
+      transform: scale(1);
     }
     .pt-sheet-handle {
       width: 44px;
@@ -155,6 +158,24 @@
       border-radius: 3px;
       background: rgba(255, 255, 255, 0.25);
       margin: -10px auto 18px;
+      display: none;
+    }
+    @media (max-width: 600px) {
+      .pt-sheet-backdrop {
+        align-items: flex-end;
+        padding: 0;
+      }
+      .pt-sheet-panel {
+        border-radius: 28px 28px 0 0;
+        padding: 24px 20px calc(24px + env(safe-area-inset-bottom, 0px));
+        transform: translateY(100%);
+      }
+      .pt-sheet-backdrop.active .pt-sheet-panel {
+        transform: translateY(0);
+      }
+      .pt-sheet-handle {
+        display: block;
+      }
     }
   `;
   document.head.appendChild(s);

@@ -5,7 +5,7 @@
     s.textContent = `
         #wrapped-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh;
-            z-index: 10000; background: #000; display: none;
+            z-index: 100000 !important; background: #000; display: none;
             font-family: 'Space Grotesk', 'Inter', sans-serif;
             color: #fff; overflow: hidden;
         }

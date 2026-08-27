@@ -1990,13 +1990,17 @@ html.keyboard-open .floating-add{
   display:none !important;
 }
 
-/* Full-screen modals should also clear the fixed bottom bar. */
+/* All Modals sit cleanly on top of the fixed bottom navigation */
 .modal-backdrop,
 #app-modal-backdrop,
 #manage-modal-backdrop,
 #manage-participants-backdrop,
-#pro-checkout-backdrop{
-  padding-bottom:calc(88px + env(safe-area-inset-bottom,0px)) !important;
+#pro-checkout-backdrop,
+.pt-sheet-backdrop,
+.upi-qr-backdrop,
+.goal-modal-backdrop,
+.voice-modal-backdrop {
+  z-index: 100000 !important;
 }
 
 /* Mobile-friendly form controls / tappable elements. */
