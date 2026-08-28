@@ -282,8 +282,9 @@ function parseVoiceDate(text){
     const out=validDate(year,month,day); if(out) return out;
   }
 
-  // "on the 5th" / "on 5th" / "5th". If that day has not happened this month,
-  // treat it as the most recent occurrence.
+  // "on the 5th" / "on 5th" / "5th".
+  // Differentiates between past intent ("paid on the 5th") and future/upcoming intent ("due on the 5th")
+  const isFutureIntent = /\b(?:will|due|next|remind|schedule|upcoming|देना है|करना है)\b/i.test(t);
   const onThe = t.match(/\b(?:on\s+)?the\s+(\d{1,2})(?:st|nd|rd|th)?\b/) ||
                 t.match(/\bon\s+(\d{1,2})(?:st|nd|rd|th)?\b/) ||
                 t.match(/\b(\d{1,2})\s*(?:tarikh|tareekh|taareekh)\b/) ||
@@ -292,7 +293,8 @@ function parseVoiceDate(text){
     const day=Number(onThe[1]);
     if(day>=1 && day<=31){
       let target=new Date(now.getFullYear(), now.getMonth(), day, 12,0,0,0);
-      if(target > now) target.setMonth(target.getMonth()-1);
+      if(!isFutureIntent && target > now) target.setMonth(target.getMonth()-1);
+      if(isFutureIntent && target < now) target.setMonth(target.getMonth()+1);
       const out=validDate(target.getFullYear(), target.getMonth()+1, target.getDate());
       if(out) return out;
     }

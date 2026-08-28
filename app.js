@@ -1392,10 +1392,15 @@ function openMenu(){}
 function closeMenu(){}
 
 // ============ EVENTS MINI-APP ============
-let events = [];
+var events = [];
+window.events = events;
 let unsubscribeEvents = null;
-let currentEventId = null;
-let currentEventName = null;
+var currentEventId = null;
+window.currentEventId = currentEventId;
+var currentEventName = null;
+window.currentEventName = currentEventName;
+var eventParticipants = {};
+window.eventParticipants = eventParticipants;
 const EVENT_ICONS = {Birthday:'🎂',Wedding:'💍',Trip:'✈️',Festival:'🎆',Party:'🎉',Other:'📌'};
 
 function listenToEvents(){
@@ -1537,9 +1542,10 @@ function showEventsListView(){
 
 function openEventDetail(id){
   const ev = events.find(e=>e._id===id);
-  if(!ev)return;
+  if(!ev) return;
   currentEventId=id;
   currentEventName=ev.name;
+  if(ev.participants) eventParticipants[id] = ev.participants;
   document.getElementById('events-list-view').style.display='none';
   document.getElementById('event-detail-view').style.display='block';
   document.getElementById('event-detail-title').innerHTML=`${EVENT_ICONS[ev.type]||'📌'} ${escapeHTML(ev.name)}`;
@@ -1547,36 +1553,22 @@ function openEventDetail(id){
   document.getElementById('ev-inc-date').value = todayStr();
   document.getElementById('ev-exp-date').value = todayStr();
   resetEventEntryEditState();
+  currentExpenseType = 'personal';
+  currentIncomeType = 'personal';
+  if(typeof setExpenseType==='function') setExpenseType('personal');
+  if(typeof setIncomeType==='function') setIncomeType('personal');
   renderEventDetail();
 }
+window.openEventDetail = openEventDetail;
 
 function backToEventsList(){
+  currentExpenseType = 'personal';
+  currentIncomeType = 'personal';
   resetEventEntryEditState();
   showEventsListView();
   renderEventsList();
 }
-
-function renderEventDetail(){
-  if(!currentEventName)return;
-  const stats = eventStats(currentEventName, currentEventId);
-  document.getElementById('ev-income').textContent='₹'+stats.income;
-  document.getElementById('ev-spent').textContent='₹'+stats.spent;
-  document.getElementById('ev-balance').textContent='₹'+stats.balance;
-  document.getElementById('ev-count').textContent=stats.count;
-
-  const sorted=[...stats.list].sort((a,b)=>b.date.localeCompare(a.date));
-  document.getElementById('event-entries-list').innerHTML = sorted.length ? sorted.map(e=>`
-    <div class="entry-row">
-      <span class="date-chip">${fmtDate(e.date)}</span>
-      ${e.type==='expense'?`<span class="badge ${e.cat}">${escapeHTML(displayCatLabel(e))}</span>`:''}
-      <span style="flex:1;color:var(--text)">${escapeHTML(e.label)}${e.note?' — '+escapeHTML(e.note):''}</span>
-      <span style="font-weight:600;color:${e.type==='income'?'var(--green)':'var(--red)'}">${e.type==='income'?'+':'-'}₹${e.amt}</span>
-      <div class="row-actions">
-        <button class="icon-btn" onclick="startEditEventEntry('${e._id}')" aria-label="edit">✏️</button>
-        <button class="icon-btn" onclick="deleteEntry('${e._id}')" aria-label="delete">🗑️</button>
-      </div>
-    </div>`).join('') : `<p class="empty">${TT('no_entries_event')}</p>`;
-}
+window.backToEventsList = backToEventsList;
 
 let editingEventEntryId=null;
 
@@ -1632,7 +1624,7 @@ function resetEventEntryEditState(){
   document.getElementById('ev-exp-submit-btn').textContent=TT('btn_add_expense');
 }
 
-async function addEventIncome(){
+async function savePersonalEventIncome(){
   if(!currentEventName){toast('No event selected','error');return;}
   let src=document.getElementById('ev-inc-src').value;
   let isNewCustom=false;
@@ -1665,7 +1657,16 @@ async function addEventIncome(){
   }catch(e){toast('Could not save: '+e.message,'error');}
 }
 
-async function addEventExpense(){
+async function addEventIncome(){
+  if(currentIncomeType === 'shared'){
+    await addSharedIncome();
+  } else {
+    await savePersonalEventIncome();
+  }
+}
+window.addEventIncome = addEventIncome;
+
+async function savePersonalEventExpense(){
   if(!currentEventName){toast('No event selected','error');return;}
   let cat=document.getElementById('ev-exp-cat').value;
   let customCat='';
@@ -1702,6 +1703,15 @@ async function addEventExpense(){
   }catch(e){toast('Could not save: '+e.message,'error');}
 }
 
+async function addEventExpense(){
+  if(currentExpenseType === 'shared'){
+    await addSharedExpense();
+  } else {
+    await savePersonalEventExpense();
+  }
+}
+window.addEventExpense = addEventExpense;
+
 function editCurrentEventFromDetail(){
   const idToEdit = currentEventId;
   setTab('events');
@@ -1722,9 +1732,8 @@ async function deleteCurrentEvent(){
 
 // ============ SPLITWISE KILLER: Bill Splitting Engine ============
 
-let eventParticipants = {}; // {eventId: ['Broo', 'Priya', 'Rahul']}
-let sharedExpenses = {};   // {eventId: [{id, desc, amt, paidBy, splitAmong: [], date}]}
-let currentExpenseType = 'personal';
+var sharedExpenses = {};   // {eventId: [{id, desc, amt, paidBy, splitAmong: [], date}]}
+var currentExpenseType = 'personal';
 
 // --- Participants Management ---
 function addParticipant(){
@@ -1885,11 +1894,19 @@ function renderIncSplitAmongChips(){
   if(!wrap) return;
   const list = eventParticipants[currentEventId] || [];
   wrap.innerHTML = list.map(name => `
-    <label class="split-chip selected" onclick="toggleSplitAmong(this, '${escapeHTML(name).replace(/'/g,"\'")}')">
+    <label class="split-chip selected" onclick="toggleSplitChip(this)">
       <input type="checkbox" checked value="${escapeHTML(name)}" style="display:none"/> ${escapeHTML(name)}
     </label>
   `).join('');
 }
+
+function toggleSplitChip(chip){
+  if(!chip) return;
+  chip.classList.toggle('selected');
+  const inp = chip.querySelector('input');
+  if(inp) inp.checked = chip.classList.contains('selected');
+}
+window.toggleSplitChip = toggleSplitChip;
 
 async function addSharedIncome(){
   if(!currentEventName || !currentEventId){ toast('No event selected','error'); return; }
@@ -1920,7 +1937,7 @@ async function addSharedIncome(){
 
   try{
     await db.collection('users').doc(currentUser.uid).collection('events').doc(currentEventId).update({
-      sharedExpenses: firebase.firestore.FieldValue.arrayUnion(sharedInc)
+      sharedIncomes: firebase.firestore.FieldValue.arrayUnion(sharedInc)
     });
     toast(TT('income_added_event'),'success');
 
@@ -1928,10 +1945,9 @@ async function addSharedIncome(){
     document.getElementById('ev-inc-note').value = '';
     document.getElementById('ev-inc-custom').value = '';
     document.getElementById('ev-inc-custom-wrap').style.display = 'none';
-    if(isNewCustom) saveCustomIncomeSource(src);
+    if(isNewCustom && typeof saveCustomIncomeSource === 'function') saveCustomIncomeSource(src);
 
     renderEventDetail();
-    renderSettlement();
   }catch(e){ toast('Could not save: '+e.message,'error'); }
 }
 
@@ -1966,26 +1982,10 @@ function renderSplitAmongChips(){
   if(!wrap) return;
   const list = eventParticipants[currentEventId] || [];
   wrap.innerHTML = list.map(name => `
-    <label class="split-chip selected" onclick="toggleSplitAmong(this, '${escapeHTML(name).replace(/'/g,"\'")}')">
+    <label class="split-chip selected" onclick="toggleSplitChip(this)">
       <input type="checkbox" checked value="${escapeHTML(name)}" style="display:none"/> ${escapeHTML(name)}
     </label>
   `).join('');
-}
-
-function toggleSplitAmong(chip, name){
-  // Prevent the label from double-toggling the checkbox
-  event.preventDefault();
-  event.stopPropagation();
-  chip.classList.toggle('selected');
-  const isSelected = chip.classList.contains('selected');
-  // Uncheck all checkboxes first, then check only selected ones
-  const wrap = chip.parentElement;
-  if(wrap) {
-    wrap.querySelectorAll('.split-chip').forEach(c => {
-      const inp = c.querySelector('input');
-      if(inp) inp.checked = c.classList.contains('selected');
-    });
-  }
 }
 
 function getSelectedSplitAmong(){
@@ -1994,9 +1994,6 @@ function getSelectedSplitAmong(){
   const checked = wrap.querySelectorAll('.split-chip.selected input');
   return [...checked].map(inp => inp.value);
 }
-
-// --- Override addEventExpense to handle shared expenses ---
-// We store shared expenses in a separate field on the event document
 
 async function addSharedExpense(){
   if(!currentEventName || !currentEventId){ toast('No event selected','error'); return; }
@@ -2026,77 +2023,75 @@ async function addSharedExpense(){
 
   const sharedExp = {
     id: Date.now().toString(36) + Math.random().toString(36).slice(2,6),
-    desc, amt: Math.round(amt*100)/100, cat, customCat, paidBy, splitAmong, date, isShared: true
+    desc, amt: Math.round(amt*100)/100, cat, customCat, paidBy, splitAmong, date, isShared: true, type: 'expense'
   };
 
   try{
-    // Save to event's sharedExpenses array
     await db.collection('users').doc(currentUser.uid).collection('events').doc(currentEventId).update({
       sharedExpenses: firebase.firestore.FieldValue.arrayUnion(sharedExp)
     });
 
     toast(TT('expense_added_event'),'success');
 
-    // Clear form
     document.getElementById('ev-exp-amt').value = '';
     document.getElementById('ev-exp-desc').value = '';
     document.getElementById('ev-exp-custom').value = '';
     document.getElementById('ev-exp-custom-wrap').style.display = 'none';
-    if(isNewCustom) saveCustomExpenseCategory(customCat);
+    if(isNewCustom && typeof saveCustomExpenseCategory === 'function') saveCustomExpenseCategory(customCat);
 
-    // Recalculate settlement
     renderEventDetail();
-    renderSettlement();
   }catch(e){ toast('Could not save: '+e.message,'error'); }
 }
 
-// --- Settlement Calculator ---
-// Calculates net balance for each participant and minimizes transactions
-
 function calculateSettlement(){
-  const participants = eventParticipants[currentEventId] || [];
-  const ev = events.find(e=>e._id===currentEventId);
+  const curEvId = (typeof currentEventId !== 'undefined' && currentEventId) ? currentEventId : (typeof window !== 'undefined' ? window.currentEventId : null);
+  const allEvents = (typeof window !== 'undefined' && Array.isArray(window.events) && window.events.length) ? window.events : (typeof events !== 'undefined' ? events : []);
+  const ev = allEvents.find(e=>e._id===curEvId);
+  const pMap = (typeof eventParticipants !== 'undefined' && eventParticipants && eventParticipants[curEvId]) ? eventParticipants : (typeof window !== 'undefined' ? window.eventParticipants : {});
+  const participants = (curEvId && pMap && pMap[curEvId]) ? pMap[curEvId] : (ev?.participants || []);
   if(!ev || !participants.length || participants.length < 2) return null;
 
-  const sharedExps = ev.sharedExpenses || [];
-  if(!sharedExps.length) return null;
+  const sharedExps = (ev.sharedExpenses || []).filter(x => x.type !== 'income');
+  const sharedIncs = [
+    ...(ev.sharedIncomes || []),
+    ...(ev.sharedExpenses || []).filter(x => x.type === 'income')
+  ];
+  if(!sharedExps.length && !sharedIncs.length) return null;
 
-  // Calculate net balance: positive = person is owed money, negative = person owes
   const balances = {};
   participants.forEach(p => balances[p] = 0);
 
+  // 1. Shared Expenses
   sharedExps.forEach(exp => {
+    if (!exp.splitAmong || !exp.splitAmong.length) return;
     const share = exp.amt / exp.splitAmong.length;
-    const payer = exp.paidBy || exp.receivedBy;
-    if(exp.type === 'income'){
-      // Shared income: each person in split gets their share (credited)
-      // The receiver holds everyone's money so they owe it back
-      exp.splitAmong.forEach(person => {
-        if(balances[person] !== undefined) balances[person] += share;
-      });
-      if(balances[payer] !== undefined) balances[payer] -= exp.amt;
-    } else {
-      // Shared expense: paidBy gets credited the full amount, each person debited their share
-      if(balances[payer] !== undefined) balances[payer] += exp.amt;
-      exp.splitAmong.forEach(person => {
-        if(balances[person] !== undefined) balances[person] -= share;
-      });
-    }
+    const payer = exp.paidBy;
+    if(balances[payer] !== undefined) balances[payer] += exp.amt;
+    exp.splitAmong.forEach(person => {
+      if(balances[person] !== undefined) balances[person] -= share;
+    });
   });
 
-  // Round to 2 decimal places
+  // 2. Shared Incomes
+  sharedIncs.forEach(inc => {
+    if (!inc.splitAmong || !inc.splitAmong.length) return;
+    const share = inc.amt / inc.splitAmong.length;
+    const receiver = inc.receivedBy || inc.paidBy;
+    inc.splitAmong.forEach(person => {
+      if(balances[person] !== undefined) balances[person] += share;
+    });
+    if(balances[receiver] !== undefined) balances[receiver] -= inc.amt;
+  });
+
   Object.keys(balances).forEach(p => balances[p] = Math.round(balances[p] * 100) / 100);
 
-  // Greedy settlement algorithm: minimize number of transactions
-  const creditors = []; // people who are owed money (positive balance)
-  const debtors = [];   // people who owe money (negative balance)
-
+  const creditors = [];
+  const debtors = [];
   Object.entries(balances).forEach(([name, balance]) => {
     if(balance > 0.01) creditors.push({name, amount: balance});
-    else if(balance < -0.01) debtors.push({name, amount: -balance}); // store as positive
+    else if(balance < -0.01) debtors.push({name, amount: -balance});
   });
 
-  // Sort descending by amount
   creditors.sort((a,b) => b.amount - a.amount);
   debtors.sort((a,b) => b.amount - a.amount);
 
@@ -2119,6 +2114,8 @@ function calculateSettlement(){
 
   return { balances, transfers };
 }
+window.calculateSettlement = calculateSettlement;
+window.renderSettlement = renderSettlement;
 
 function renderSettlement(){
   const section = document.getElementById('settlement-section');
@@ -2179,61 +2176,63 @@ function renderSettlement(){
   }
 }
 
-// --- Override renderEventDetail to load participants and shared expenses ---
-const _originalRenderEventDetail = typeof renderEventDetail === 'function' ? renderEventDetail : null;
-
-function renderEventDetailWithSplitwise(){
-  // Call original rendering logic (stats, entries list etc.)
-  if(!currentEventName) return;
+function renderEventDetail(){
+  if(!currentEventName || !currentEventId) return;
 
   const stats = eventStats(currentEventName, currentEventId);
   const ev = events.find(e=>e._id===currentEventId);
   const participants = ev?.participants || [];
-  const sharedExps = ev?.sharedExpenses || [];
+  const sharedExps = (ev?.sharedExpenses || []).filter(x => x.type !== 'income');
+  const sharedIncs = [
+    ...(ev?.sharedIncomes || []),
+    ...(ev?.sharedExpenses || []).filter(x => x.type === 'income')
+  ];
 
-  const sharedInc = sharedExps.filter(x=>x.type==='income').reduce((s,e)=>s+e.amt,0);
-  const sharedSpent = sharedExps.filter(x=>x.type!=='income').reduce((s,e)=>s+e.amt,0);
-  document.getElementById('ev-income').textContent = '₹' + (stats.income + sharedInc);
-  document.getElementById('ev-spent').textContent = '₹' + (stats.spent + sharedSpent);
-  document.getElementById('ev-balance').textContent = '₹' + (stats.income + sharedInc - stats.spent - sharedSpent);
-  document.getElementById('ev-count').textContent = stats.count + sharedExps.length;
+  const totalInc = stats.income + sharedIncs.reduce((s,e)=>s+e.amt, 0);
+  const totalSpent = stats.spent + sharedExps.reduce((s,e)=>s+e.amt, 0);
+  const totalCount = stats.count + sharedExps.length + sharedIncs.length;
 
-  // Load participants into memory
+  document.getElementById('ev-income').textContent = '₹' + totalInc;
+  document.getElementById('ev-spent').textContent = '₹' + totalSpent;
+  document.getElementById('ev-balance').textContent = '₹' + (totalInc - totalSpent);
+  document.getElementById('ev-count').textContent = totalCount;
+
   if(!eventParticipants[currentEventId]) eventParticipants[currentEventId] = participants;
-
   renderParticipants();
 
-  // Render entries (personal)
   const sorted = [...stats.list].sort((a,b) => b.date.localeCompare(a.date));
-
-  // Render shared expenses too
   const allEntries = [
     ...sorted.map(e => ({...e, isShared: false})),
-    ...sharedExps.map(e => ({...e, isShared: true}))
+    ...sharedExps.map(e => ({...e, isShared: true, type: 'expense'})),
+    ...sharedIncs.map(e => ({...e, isShared: true, type: 'income'}))
   ].sort((a,b) => b.date.localeCompare(a.date));
 
-  document.getElementById('event-entries-list').innerHTML = allEntries.length ? allEntries.map(e => {
-    const isShared = e.isShared;
-    const sharedBadge = isShared ? `<span class="shared-expense-badge">👥 ${escapeHTML(e.paidBy || '')}</span>` : '';
-    const splitInfo = isShared ? `<span style="font-size:10.5px;color:var(--text-faint);margin-left:4px">${currentLang==='hi'?'बांटा गया':'split'} ${e.splitAmong?.length || 0} ${currentLang==='hi'?'लोगों में':'ways'}</span>` : '';
+  const listEl = document.getElementById('event-entries-list');
+  if (listEl) {
+    listEl.innerHTML = allEntries.length ? allEntries.map(e => {
+      const isShared = e.isShared;
+      const personLabel = e.type === 'income' ? (e.receivedBy || e.paidBy || '') : (e.paidBy || '');
+      const sharedBadge = isShared ? `<span class="shared-expense-badge">👥 ${escapeHTML(personLabel)}</span>` : '';
+      const splitInfo = isShared ? `<span style="font-size:10.5px;color:var(--text-faint);margin-left:4px">${currentLang==='hi'?'बांटा गया':'split'} ${e.splitAmong?.length || 0} ${currentLang==='hi'?'लोगों में':'ways'}</span>` : '';
 
-    return `
-    <div class="entry-row">
-      <span class="date-chip">${fmtDate(e.date)}</span>
-      ${e.type==='expense' && e.cat ? `<span class="badge ${e.cat}">${escapeHTML(isShared ? (e.customCat || CAT_LABEL(e.cat)) : displayCatLabel(e))}</span>` : ''}
-      <span style="flex:1;color:var(--text)">${escapeHTML(e.label || e.desc || '')}${e.note ? ' — '+escapeHTML(e.note) : ''}${sharedBadge}${splitInfo}</span>
-      <span style="font-weight:600;color:${e.type==='income'?'var(--green)':'var(--red)'}">${e.type==='income'?'+':'-'}₹${e.amt}</span>
-      <div class="row-actions">
-        ${isShared ? `<button class="icon-btn" onclick="deleteSharedExpense('${e.id}')" aria-label="delete">🗑️</button>` :
-          `<button class="icon-btn" onclick="startEditEventEntry('${e._id}')" aria-label="edit">✏️</button>
-           <button class="icon-btn" onclick="deleteEntry('${e._id}')" aria-label="delete">🗑️</button>`}
-      </div>
-    </div>`;
-  }).join('') : `<p class="empty">${TT('no_entries_event')}</p>`;
+      return `
+      <div class="entry-row">
+        <span class="date-chip">${fmtDate(e.date)}</span>
+        ${e.type==='expense' && e.cat ? `<span class="badge ${e.cat}">${escapeHTML(isShared ? (e.customCat || CAT_LABEL(e.cat)) : displayCatLabel(e))}</span>` : ''}
+        <span style="flex:1;color:var(--text)">${escapeHTML(e.label || e.desc || '')}${e.note ? ' — '+escapeHTML(e.note) : ''}${sharedBadge}${splitInfo}</span>
+        <span style="font-weight:600;color:${e.type==='income'?'var(--green)':'var(--red)'}">${e.type==='income'?'+':'-'}₹${e.amt}</span>
+        <div class="row-actions">
+          ${isShared ? (e.type==='income' ? `<button class="icon-btn" onclick="deleteSharedIncome('${e.id}')" aria-label="delete">🗑️</button>` : `<button class="icon-btn" onclick="deleteSharedExpense('${e.id}')" aria-label="delete">🗑️</button>`) :
+            `<button class="icon-btn" onclick="startEditEventEntry('${e._id}')" aria-label="edit">✏️</button>
+             <button class="icon-btn" onclick="deleteEntry('${e._id}')" aria-label="delete">🗑️</button>`}
+        </div>
+      </div>`;
+    }).join('') : `<p class="empty">${TT('no_entries_event')}</p>`;
+  }
 
-  // Render settlement
   renderSettlement();
 }
+window.renderEventDetail = renderEventDetail;
 
 async function deleteSharedExpense(expId){
   if(!currentUser || !currentEventId) return;
@@ -2249,9 +2248,26 @@ async function deleteSharedExpense(expId){
     renderEventDetail();
   }catch(e){ toast('Could not delete: '+e.message,'error'); }
 }
+window.deleteSharedExpense = deleteSharedExpense;
 
-// --- Override openEventDetail to also load participants ---
-const _originalOpenEventDetail = typeof openEventDetail === 'function' ? openEventDetail : null;
+async function deleteSharedIncome(incId){
+  if(!currentUser || !currentEventId) return;
+  const ev = events.find(e=>e._id===currentEventId);
+  if(!ev) return;
+  const sharedIncs = ev.sharedIncomes || [];
+  const updatedIncs = sharedIncs.filter(e => e.id !== incId);
+  const legacyShared = (ev.sharedExpenses || []).filter(e => !(e.type === 'income' && e.id === incId));
+  
+  try{
+    await db.collection('users').doc(currentUser.uid).collection('events').doc(currentEventId).update({
+      sharedIncomes: updatedIncs,
+      sharedExpenses: legacyShared
+    });
+    toast(TT('entry_deleted'),'success');
+    renderEventDetail();
+  }catch(e){ toast('Could not delete: '+e.message,'error'); }
+}
+window.deleteSharedIncome = deleteSharedIncome;
 
 // We patch the functions after they're defined by wrapping them
 // This is done at the bottom of the script
@@ -2457,57 +2473,6 @@ function clearAll(){
     toast(TT('all_cleared'),'success');
   });
 }
-
-// --- Override original event functions with Splitwise-enhanced versions ---
-(function patchSplitwise(){
-  // Patch openEventDetail to load participants from Firestore
-  const origOpen = openEventDetail;
-  if(typeof origOpen === 'function'){
-    const patchedOpen = function(id){
-      origOpen(id);
-      const ev = events.find(e=>e._id===id);
-      if(ev && ev.participants) eventParticipants[id] = ev.participants;
-      renderEventDetailWithSplitwise();
-    };
-    // Replace all references
-    window.openEventDetail = patchedOpen;
-    // Update onclick handlers in rendered HTML
-    document.querySelectorAll('[onclick*="openEventDetail"]').forEach(el => {
-      el.setAttribute('onclick', el.getAttribute('onclick').replace('openEventDetail', 'window.openEventDetail'));
-    });
-  }
-
-  // Patch renderEventDetail to use our enhanced version
-  window.renderEventDetail = renderEventDetailWithSplitwise;
-
-  // Patch addEventIncome to handle shared income
-  const origAddInc = addEventIncome;
-  window.addEventIncome = async function(){
-    if(currentIncomeType === 'shared'){
-      await addSharedIncome();
-    } else {
-      await origAddInc();
-    }
-  };
-
-  // Patch addEventExpense to handle shared expenses
-  const origAddExp = addEventExpense;
-  window.addEventExpense = async function(){
-    if(currentExpenseType === 'shared'){
-      await addSharedExpense();
-    } else {
-      await origAddExp();
-    }
-  };
-
-  // Patch backToEventsList to reset expense/income type
-  const origBack = backToEventsList;
-  window.backToEventsList = function(){
-    currentExpenseType = 'personal';
-    currentIncomeType = 'personal';
-    origBack();
-  };
-})();
 
 if (typeof renderReport === 'function') renderReport();
 applyLanguage();
