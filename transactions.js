@@ -88,6 +88,7 @@ function renderHomeSnapshot(){
 }
 window.renderHomeSnapshot = renderHomeSnapshot;
 
+let editingId=null;
 let composerMode='expense';
 let composerSelection='food';
 let composerWallet='cash';
@@ -99,14 +100,39 @@ function selectComposerWallet(btn, value){
   btn.classList.add('active');
 }
 
-function openQuickComposer(mode='expense'){
-  composerMode=mode==='income'?'income':'expense';
+function openQuickComposer(mode='expense', editEntry=null){
   const backdrop=document.getElementById('transaction-composer-backdrop');
   if(!backdrop)return;
-  document.getElementById('composer-amount').value='';
-  document.getElementById('composer-date').value=todayStr();
-  document.getElementById('composer-note').value='';
-  composerWallet = (typeof activeWalletId !== 'undefined' && activeWalletId !== 'all') ? activeWalletId : (mode === 'income' ? 'bank' : 'cash');
+
+  if (editEntry) {
+    editingId = editEntry._id;
+    composerMode = editEntry.type === 'income' ? 'income' : 'expense';
+    document.getElementById('composer-amount').value = editEntry.amt || '';
+    document.getElementById('composer-date').value = editEntry.date || todayStr();
+    document.getElementById('composer-note').value = editEntry.note || editEntry.label || '';
+    composerWallet = editEntry.walletId || ((typeof resolveEntryWalletId === 'function') ? resolveEntryWalletId(editEntry) : 'cash');
+    composerSelection = (composerMode === 'expense') ? (editEntry.cat || 'other') : (editEntry.label || 'Salary');
+    
+    const titleEl = document.getElementById('composer-title');
+    const subEl = document.getElementById('composer-subtitle');
+    const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
+    if (titleEl) titleEl.textContent = isHi ? 'एंट्री संपादित करें ✏️' : 'Edit Entry ✏️';
+    if (subEl) subEl.textContent = isHi ? 'राशि, श्रेणी, खाता या नोट अपडेट करें।' : 'Update amount, category, account or note.';
+  } else {
+    editingId = null;
+    composerMode = mode === 'income' ? 'income' : 'expense';
+    document.getElementById('composer-amount').value = '';
+    document.getElementById('composer-date').value = todayStr();
+    document.getElementById('composer-note').value = '';
+    composerWallet = (typeof activeWalletId !== 'undefined' && activeWalletId !== 'all') ? activeWalletId : (mode === 'income' ? 'bank' : 'cash');
+    composerSelection = composerMode === 'expense' ? 'food' : 'Salary';
+    
+    const titleEl = document.getElementById('composer-title');
+    const subEl = document.getElementById('composer-subtitle');
+    const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
+    if (titleEl) titleEl.textContent = isHi ? 'आपने क्या किया? 💜' : 'What did you do? 💜';
+    if (subEl) subEl.textContent = isHi ? (composerMode === 'expense' ? 'कुछ ही टैप में खर्च जोड़ें।' : 'आसानी से आय जोड़ें।') : (composerMode === 'expense' ? 'Add it in a few taps.' : 'Capture money coming in just as quickly.');
+  }
   
   const wChipsEl = document.getElementById('composer-wallet-chips');
   if (wChipsEl) {
@@ -132,6 +158,7 @@ function closeTransactionComposer(){
   const backdrop=document.getElementById('transaction-composer-backdrop');
   if(backdrop)backdrop.style.display='none';
   document.body.classList.remove('composer-open');
+  editingId=null;
 }
 
 function setComposerMode(mode){
@@ -142,14 +169,32 @@ function setComposerMode(mode){
   const incomeFields=document.getElementById('composer-income-fields');
   const save=document.getElementById('composer-save');
   const sub=document.getElementById('composer-subtitle');
+  const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
+
   expenseTab?.classList.toggle('active',composerMode==='expense');
   incomeTab?.classList.toggle('active',composerMode==='income');
   if(expenseFields)expenseFields.style.display=composerMode==='expense'?'block':'none';
   if(incomeFields)incomeFields.style.display=composerMode==='income'?'block':'none';
-  if(save)save.innerHTML=(composerMode==='expense'?'Save expense':'Save income')+' <span>→</span>';
-  if(sub)sub.textContent=composerMode==='expense'?'Add it in a few taps.':'Capture money coming in just as quickly.';
-  composerSelection=composerMode==='expense'?'food':'Salary';
-  document.querySelectorAll('#composer-expense-fields .composer-chip, #composer-income-fields .composer-chip').forEach(btn=>btn.classList.toggle('active', (composerMode==='expense'&&btn.dataset.cat===composerSelection)||(composerMode==='income'&&btn.dataset.source===composerSelection)));
+  
+  if(save){
+    if (editingId) {
+      save.innerHTML = (isHi ? 'एंट्री अपडेट करें' : 'Update Entry') + ' <span>✓</span>';
+    } else {
+      save.innerHTML = (composerMode==='expense' ? (isHi ? 'खर्च सहेजें' : 'Save expense') : (isHi ? 'आय सहेजें' : 'Save income')) + ' <span>→</span>';
+    }
+  }
+
+  if(sub && !editingId){
+    sub.textContent = composerMode==='expense'
+      ? (isHi ? 'कुछ ही टैप में खर्च जोड़ें।' : 'Add it in a few taps.')
+      : (isHi ? 'आसानी से आय जोड़ें।' : 'Capture money coming in just as quickly.');
+  }
+
+  document.querySelectorAll('#composer-expense-fields .composer-chip, #composer-income-fields .composer-chip').forEach(btn => {
+    const isCatMatch = (composerMode === 'expense' && btn.dataset.cat === composerSelection);
+    const isSrcMatch = (composerMode === 'income' && btn.dataset.source === composerSelection);
+    btn.classList.toggle('active', isCatMatch || isSrcMatch);
+  });
 }
 
 function selectComposerChip(btn,value){
@@ -160,44 +205,62 @@ function selectComposerChip(btn,value){
 }
 
 async function submitTransactionComposer(){
-  if(!currentUser){toast(currentLang==='hi'?'पहले साइन इन करें':'Please sign in first','error');return;}
   const amt=parseFloat(document.getElementById('composer-amount')?.value);
   const date=document.getElementById('composer-date')?.value||todayStr();
   const note=(document.getElementById('composer-note')?.value||'').trim().slice(0,60);
-  if(!isValidAmount(amt)){toast(TT('enter_valid_amount'),'error');return;}
-  if(!isValidDate(date)){toast(TT('enter_valid_date'),'error');return;}
-  if(!currentUser.emailVerified && (!currentUser.providerData || currentUser.providerData[0].providerId !== 'google.com') && entries.length >= 10){
+  const checkAmt = (typeof isValidAmount === 'function') ? isValidAmount : ((typeof window !== 'undefined' && typeof window.isValidAmount === 'function') ? window.isValidAmount : ((a) => typeof a === 'number' && isFinite(a) && a > 0));
+  const checkDate = (typeof isValidDate === 'function') ? isValidDate : ((typeof window !== 'undefined' && typeof window.isValidDate === 'function') ? window.isValidDate : ((d) => !!d));
+  if(!checkAmt(amt)){toast(TT('enter_valid_amount'),'error');return;}
+  if(!checkDate(date)){toast(TT('enter_valid_date'),'error');return;}
+  
+  if(!editingId && currentUser && !currentUser.emailVerified && (!currentUser.providerData || currentUser.providerData[0].providerId !== 'google.com') && entries.length >= 10){
     showAppAlert(currentLang==='hi'?'सीमा पूरी हुई':'Limit Reached',currentLang==='hi'?'अपनी एंट्रीज़ जोड़ना जारी रखने के लिए अपना ईमेल सत्यापित करें।':"Verify your email to continue adding entries.");
     return;
   }
+  
   const btn=document.getElementById('composer-save');
   if(btn)btn.disabled=true;
   try{
-    let payload,offer;
+    let payload;
     const chosenWallet = composerWallet || ((typeof activeWalletId !== 'undefined' && activeWalletId !== 'all') ? activeWalletId : (composerMode === 'income' ? 'bank' : 'cash'));
     if(composerMode==='expense'){
       const labels={food:'Food & snacks',travel:'Travel/Convenience',friends:'Friends plan',home:'Household items',shopping:'Shopping',other:'Other'};
       const label=note||labels[composerSelection]||'Expense';
       payload={type:'expense',cat:composerSelection,label,note:note||label,amt:Math.round(amt*100)/100,walletId:chosenWallet,date};
-      offer={type:'expense',label,amt:payload.amt,cat:composerSelection};
     }else{
       const label=note||composerSelection||'Income';
       payload={type:'income',cat:'income',label,note:note||label,amt:Math.round(amt*100)/100,walletId:chosenWallet,date};
-      offer={type:'income',label,amt:payload.amt,cat:'income'};
     }
-    const guardFn = (typeof maybeGuardAndSaveWithSmartEngine === 'function') ? maybeGuardAndSaveWithSmartEngine : maybeGuardAndSave;
-    await guardFn(payload, async()=>{
-      await saveEntry(payload);
+
+    if (editingId) {
+      await updateEntry(editingId, payload);
+      if (typeof updateHeaderStats === 'function') updateHeaderStats();
+      if (typeof renderEntries === 'function') renderEntries();
       if (typeof renderWalletSwitcher === 'function') renderWalletSwitcher();
       if(composerMode==='expense'){
-        checkBudget();showSpendMoodToast(payload.amt);
-        toast(TT('expense_added'),'success');
+        if(typeof checkBudget==='function') checkBudget();
+        if(typeof showSpendMoodToast==='function') showSpendMoodToast(payload.amt);
+        toast(TT('expense_updated') || (currentLang==='hi'?'खर्च अपडेट किया गया':'Expense updated'),'success');
       }else{
-        toast(TT('income_added'),'success');
+        toast(TT('income_updated') || (currentLang==='hi'?'आय अपडेट की गई':'Income updated'),'success');
       }
-      if(typeof maybeOfferRecurring==='function') maybeOfferRecurring(offer);
       closeTransactionComposer();
-    }, note || composerSelection);
+    } else {
+      const guardFn = (typeof maybeGuardAndSaveWithSmartEngine === 'function') ? maybeGuardAndSaveWithSmartEngine : maybeGuardAndSave;
+      await guardFn(payload, async()=>{
+        await saveEntry(payload);
+        if (typeof renderWalletSwitcher === 'function') renderWalletSwitcher();
+        if(composerMode==='expense'){
+          if(typeof checkBudget==='function') checkBudget();
+          if(typeof showSpendMoodToast==='function') showSpendMoodToast(payload.amt);
+          toast(TT('expense_added'),'success');
+        }else{
+          toast(TT('income_added'),'success');
+        }
+        if(typeof maybeOfferRecurring==='function') maybeOfferRecurring({type:payload.type,label:payload.label,amt:payload.amt,cat:payload.cat});
+        closeTransactionComposer();
+      }, note || composerSelection);
+    }
   }catch(e){toast('Could not save: '+e.message,'error');}
   finally{if(btn)btn.disabled=false;}
 }
@@ -451,8 +514,32 @@ function maybeGuardAndSave(payload,doSave){
 }
 
 async function updateEntry(id, entry){
-  if(!currentUser){toast(TT('not_logged_in'),'error');return;}
-  await db.collection('users').doc(currentUser.uid).collection('entries').doc(id).update(entry);
+  const allList = (typeof window !== 'undefined' && Array.isArray(window.entries)) ? window.entries : entries;
+  const idx = allList.findIndex(e => e._id === id);
+  if (idx !== -1) {
+    allList[idx] = { ...allList[idx], ...entry, _id: id };
+    entries = allList;
+    if (typeof window !== 'undefined') window.entries = entries;
+  }
+  
+  if (currentUser && typeof db !== 'undefined') {
+    try {
+      await db.collection('users').doc(currentUser.uid).collection('entries').doc(id).update(entry);
+      try {
+        localStorage.setItem('pockettrack_entries_cache_' + currentUser.uid, JSON.stringify(entries));
+      } catch(e){}
+    } catch(e) {
+      console.warn('Firestore update warning:', e.message);
+    }
+  } else {
+    try {
+      localStorage.setItem('pockettrack_entries_cache', JSON.stringify(entries));
+    } catch(e) {}
+  }
+  if (typeof updateHeaderStats === 'function') updateHeaderStats();
+  if (typeof renderEntries === 'function') renderEntries();
+  if (typeof renderHomeSnapshot === 'function') renderHomeSnapshot();
+  if (typeof renderReport === 'function') renderReport();
 }
 
 async function removeEntry(id){
@@ -462,8 +549,6 @@ async function removeEntry(id){
 
 document.getElementById('inc-date').value=todayStr();
 document.getElementById('exp-date').value=todayStr();
-
-let editingId=null; // set when editing an existing entry instead of adding new
 
 async function addIncome(){
   await withButtonLoading('add-income-btn', async ()=>{
@@ -562,62 +647,17 @@ async function addExpense(){
 }
 
 function startEdit(id){
-  const entry=entries.find(e=>e._id===id);
-  if(!entry)return;
-  editingId=id;
-  setTab('log');
-
-  const segInc = document.getElementById('addmode-inc');
-  const segExp = document.getElementById('addmode-exp');
-
-  if(entry.type==='income'){
-    if(segInc) segInc.checked = true;
-    const srcSelect=document.getElementById('inc-src');
-    const knownValues=[...srcSelect.options].map(o=>o.value).filter(v=>v!=='__add_new__');
-    if(knownValues.includes(entry.label)){
-      srcSelect.value=entry.label;
-      document.getElementById('inc-custom-wrap').style.display='none';
-    } else {
-      srcSelect.value='__add_new__';
-      document.getElementById('inc-custom-wrap').style.display='block';
-      document.getElementById('inc-custom').value=entry.label;
-    }
-    document.getElementById('inc-amt').value=entry.amt;
-    document.getElementById('inc-date').value=entry.date;
-    document.getElementById('inc-note').value=entry.note||'';
-    const incW = document.getElementById('inc-wallet');
-    if(incW && entry.walletId) incW.value = entry.walletId;
-    document.getElementById('inc-btn-label').textContent=TT('btn_update_income');
-  } else {
-    if(segExp) segExp.checked = true;
-    if(entry.cat==='custom' && entry.customCat){
-      document.getElementById('exp-cat').value='__add_new__';
-      document.getElementById('exp-custom-wrap').style.display='block';
-      document.getElementById('exp-custom').value=entry.customCat;
-    } else {
-      document.getElementById('exp-cat').value=entry.cat;
-      document.getElementById('exp-custom-wrap').style.display='none';
-    }
-    document.getElementById('exp-amt').value=entry.amt;
-    document.getElementById('exp-date').value=entry.date;
-    document.getElementById('exp-desc').value=entry.label;
-    const expW = document.getElementById('exp-wallet');
-    if(expW && entry.walletId) expW.value = entry.walletId;
-    document.getElementById('exp-btn-label').textContent=TT('btn_update_expense');
-    document.getElementById('cancel-edit-btn').style.display='inline-flex';
-  }
-  toast(TT('editing_entry'),'info');
+  const allList = (typeof window !== 'undefined' && Array.isArray(window.entries) && window.entries.length) ? window.entries : entries;
+  const entry = allList.find(e => e._id === id);
+  if(!entry) return;
+  openQuickComposer(entry.type, entry);
+  const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
+  toast(isHi ? 'एंट्री संपादन मोड ✏️' : 'Editing entry ✏️', 'info');
 }
 
 function cancelEdit(){
   editingId=null;
-  document.getElementById('inc-btn-label').textContent=TT('btn_add_income');
-  document.getElementById('exp-btn-label').textContent=TT('btn_add_expense');
-  document.getElementById('cancel-edit-btn').style.display='none';
-  document.getElementById('inc-amt').value='';
-  document.getElementById('inc-note').value='';
-  document.getElementById('exp-amt').value='';
-  document.getElementById('exp-desc').value='';
+  closeTransactionComposer();
 }
 
 function deleteEntry(id){
@@ -785,4 +825,13 @@ function checkEntryLimit(){
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run, {once:true});
   else run();
 })();
+
+window.openQuickComposer = openQuickComposer;
+window.closeTransactionComposer = closeTransactionComposer;
+window.setComposerMode = setComposerMode;
+window.submitTransactionComposer = submitTransactionComposer;
+window.startEdit = startEdit;
+window.cancelEdit = cancelEdit;
+window.updateEntry = updateEntry;
+window.deleteEntry = deleteEntry;
 

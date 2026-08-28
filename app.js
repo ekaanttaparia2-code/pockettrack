@@ -426,6 +426,8 @@ function isValidDate(d){
   const max=new Date(today); max.setFullYear(max.getFullYear()+1);
   return dt>=min && dt<=max;
 }
+window.isValidAmount = isValidAmount;
+window.isValidDate = isValidDate;
 
 // --- Shows/hides the "type your own" field when "+ Add Source/Category" is picked ---
 // prefix: 'inc' -> inc-src, 'exp' -> exp-cat, 'ev-inc' -> ev-inc-src, 'ev-exp' -> ev-exp-cat, 'event-type' -> new-event-type
