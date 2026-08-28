@@ -252,7 +252,7 @@ window.computeWalletBalances = function() {
 window.renderWalletSwitcher = function() {
   window.loadWallets();
   const listEl = document.getElementById('wallet-pills-list');
-  if (!listEl) return;
+
 
   const balances = window.computeWalletBalances();
   let totalNetWorth = 0;

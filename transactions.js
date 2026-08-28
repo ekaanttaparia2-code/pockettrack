@@ -214,7 +214,7 @@ async function submitTransactionComposer(){
   if(!checkDate(date)){toast(TT('enter_valid_date'),'error');return;}
   
   if(!editingId && currentUser && !currentUser.emailVerified && (!currentUser.providerData || currentUser.providerData[0].providerId !== 'google.com') && entries.length >= 10){
-    showAppAlert(currentLang==='hi'?'सीमा पूरी हुई':'Limit Reached',currentLang==='hi'?'अपनी एंट्रीज़ जोड़ना जारी रखने के लिए अपना ईमेल सत्यापित करें।':"Verify your email to continue adding entries.");
+    showAppAlert(currentLang==='hi'?'अपनी एंट्रीज़ जोड़ना जारी रखने के लिए अपना ईमेल सत्यापित करें।':"Verify your email to continue adding entries.",currentLang==='hi'?'सीमा पूरी हुई':'Limit Reached');
     return;
   }
   
@@ -392,7 +392,7 @@ function listenToEntries(){
       updateHeaderStats();
       if(typeof renderHomeSnapshot === 'function') renderHomeSnapshot();
       if(typeof renderWalletSwitcher === 'function') renderWalletSwitcher();
-      checkBudget();
+      if(typeof checkBudget === 'function') checkBudget();
       refreshEventsViewsIfOpen();
       renderStreak();
       renderQuickAdd();
@@ -413,7 +413,7 @@ function renderQuickAdd(){
   if(list.length<3){ card.style.display='none'; return; }
   const counts={};
   list.forEach(e=>{
-    const key=e.cat+'|'+e.label.toLowerCase()+'|'+e.amt;
+    const key=e.cat+'|'+(e.label||'').toLowerCase()+'|'+e.amt;
     if(!counts[key]) counts[key]={count:0,cat:e.cat,label:e.label,amt:e.amt};
     counts[key].count++;
   });
@@ -432,10 +432,12 @@ function renderQuickAdd(){
 
 async function quickAddExpense(cat, label, amt){
   try{
-    await saveEntry({type:'expense',cat,label,amt,date:todayStr()});
+    const chosenWallet = (typeof activeWalletId !== 'undefined' && activeWalletId !== 'all') ? activeWalletId : 'cash';
+    await saveEntry({type:'expense',cat,label,amt,date:todayStr(),walletId:chosenWallet});
     toast(TT('expense_added'),'success');
-    checkBudget();
-    showSpendMoodToast(amt);
+    if(typeof checkBudget === 'function') checkBudget();
+    if(typeof showSpendMoodToast === 'function') showSpendMoodToast(amt);
+    if(typeof renderWalletSwitcher === 'function') renderWalletSwitcher();
     if(typeof maybeOfferRecurring==='function') maybeOfferRecurring({type:'expense',label:String(label||''),amt,cat});
   }catch(e){toast('Could not save: '+e.message,'error');}
 }
@@ -553,7 +555,7 @@ document.getElementById('exp-date').value=todayStr();
 async function addIncome(){
   await withButtonLoading('add-income-btn', async ()=>{
     if(!editingId && currentUser && !currentUser.emailVerified && (!currentUser.providerData || currentUser.providerData[0].providerId !== 'google.com') && entries.length >= 10){
-      showAppAlert(currentLang==='hi'?'सीमा पूरी हुई':'Limit Reached', currentLang==='hi'?'अपनी एंट्रीज़ जोड़ना जारी रखने के लिए अपना ईमेल सत्यापित करें। आपने अपनी सभी 10 मुफ़्त एंट्रीज़ का उपयोग कर लिया है।':"Verify your email to continue adding entries. You've used all 10 free entries.");
+      showAppAlert(currentLang==='hi'?'अपनी एंट्रीज़ जोड़ना जारी रखने के लिए अपना ईमेल सत्यापित करें। आपने अपनी सभी 10 मुफ़्त एंट्रीज़ का उपयोग कर लिया है।':"Verify your email to continue adding entries. You've used all 10 free entries.", currentLang==='hi'?'सीमा पूरी हुई':'Limit Reached');
       return;
     }
     let src=document.getElementById('inc-src').value;
@@ -598,7 +600,7 @@ async function addIncome(){
 async function addExpense(){
   await withButtonLoading('add-expense-btn', async ()=>{
     if(!editingId && currentUser && !currentUser.emailVerified && (!currentUser.providerData || currentUser.providerData[0].providerId !== 'google.com') && entries.length >= 10){
-      showAppAlert(currentLang==='hi'?'सीमा पूरी हुई':'Limit Reached', currentLang==='hi'?'अपनी एंट्रीज़ जोड़ना जारी रखने के लिए अपना ईमेल सत्यापित करें। आपने अपनी सभी 10 मुफ़्त एंट्रीज़ का उपयोग कर लिया है।':"Verify your email to continue adding entries. You've used all 10 free entries.");
+      showAppAlert(currentLang==='hi'?'अपनी एंट्रीज़ जोड़ना जारी रखने के लिए अपना ईमेल सत्यापित करें। आपने अपनी सभी 10 मुफ़्त एंट्रीज़ का उपयोग कर लिया है।':"Verify your email to continue adding entries. You've used all 10 free entries.", currentLang==='hi'?'सीमा पूरी हुई':'Limit Reached');
       return;
     }
     let cat=document.getElementById('exp-cat').value;
@@ -632,8 +634,8 @@ async function addExpense(){
           await saveEntry(payload);
           if (typeof renderWalletSwitcher === 'function') renderWalletSwitcher();
           toast(TT('expense_added'),'success');
-          checkBudget();
-          showSpendMoodToast(payload.amt);
+          if(typeof checkBudget === 'function') checkBudget();
+          if(typeof showSpendMoodToast === 'function') showSpendMoodToast(payload.amt);
           if(typeof maybeOfferRecurring==='function') maybeOfferRecurring({type:'expense',label:desc,amt,cat});
           if(isNewCustom) saveCustomExpenseCategory(customCat);
         }, desc);
@@ -834,4 +836,6 @@ window.startEdit = startEdit;
 window.cancelEdit = cancelEdit;
 window.updateEntry = updateEntry;
 window.deleteEntry = deleteEntry;
+window.quickAddExpense = quickAddExpense;
+window.renderQuickAdd = renderQuickAdd;
 

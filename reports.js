@@ -204,7 +204,7 @@ function copyReport(){
   let txt=`${periodTitle}\n${'─'.repeat(30)}\n${isHi?'कुल आय':'Total Income'}: ₹${income}\n${isHi?'कुल खर्च':'Total Spent'}: ₹${spent}\n${isHi?'बचा हुआ बैलेंस':'Balance Left'}: ₹${bal}\n\n${isHi?'खर्च का विवरण':'Spending Breakdown'}:\n`;
   Object.entries(cats).sort((a,b)=>b[1]-a[1]).forEach(([c,a])=>{txt+=`  ${CAT_LABELS[c]}: ₹${a}\n`;});
   txt+=isHi?`\nसभी एंट्रीज़:\n`:`\nAll Entries:\n`;
-  [...list].sort((a,b)=>a.date.localeCompare(b.date)).forEach(e=>{txt+=`  ${fmtDate(e.date)} | ${e.type==='income'?(isHi?'आय':'INCOME'):(isHi?'खर्च':'EXPENSE')} | ${displayCatLabel(e)} | ${e.label}${e.note?' ('+e.note+')':''} | ${e.type==='income'?'+':'-'}₹${e.amt}\n`;});
+  [...list].sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))).forEach(e=>{txt+=`  ${fmtDate(e.date)} | ${e.type==='income'?(isHi?'आय':'INCOME'):(isHi?'खर्च':'EXPENSE')} | ${displayCatLabel(e)} | ${e.label||''}${e.note?' ('+e.note+')':''} | ${e.type==='income'?'+':'-'}₹${e.amt}\n`;});
   navigator.clipboard.writeText(txt).then(()=>toast(TT('report_copied'),'success')).catch(()=>{
     const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
     toast(TT('report_copied'),'success');
@@ -381,7 +381,7 @@ async function exportPDF(){
   doc.setTextColor(...DARK);
   doc.text('All Entries',marginL,y);
   y+=8;
-  const sorted=[...list].sort((a,b)=>a.date.localeCompare(b.date));
+  const sorted=[...list].sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
   sorted.forEach((e,i)=>{
     if(y>280){doc.addPage();y=20;}
     if(i%2===0){doc.setFillColor(247,246,252);doc.rect(marginL,y-4,marginR-marginL,6,'F');}

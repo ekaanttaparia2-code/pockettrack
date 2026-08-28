@@ -1224,6 +1224,7 @@ function checkBudget(){
   }
   if(!overCats.length) window._budgetAlertShown=false;
 }
+window.checkBudget = checkBudget;
 
 // --- Local notifications (works while app is open/backgrounded — no server needed) ---
 let notifPermissionAsked=false;
@@ -2277,12 +2278,12 @@ function renderEventDetail(){
   if(!eventParticipants[currentEventId]) eventParticipants[currentEventId] = participants;
   renderParticipants();
 
-  const sorted = [...stats.list].sort((a,b) => b.date.localeCompare(a.date));
+  const sorted = [...stats.list].sort((a,b) => String(b.date||'').localeCompare(String(a.date||'')));
   const allEntries = [
     ...sorted.map(e => ({...e, isShared: false})),
     ...sharedExps.map(e => ({...e, isShared: true, type: 'expense'})),
     ...sharedIncs.map(e => ({...e, isShared: true, type: 'income'}))
-  ].sort((a,b) => b.date.localeCompare(a.date));
+  ].sort((a,b) => String(b.date||'').localeCompare(String(a.date||'')));
 
   const listEl = document.getElementById('event-entries-list');
   if (listEl) {
@@ -2532,7 +2533,7 @@ async function confirmSmartLog() {
 function dismissSmartLog() { document.getElementById('smart-log-parsed').style.display = 'none'; document.getElementById('smart-log-input').value = ''; document.getElementById('smart-log-parse-btn').style.display = 'none'; }
 function renderSmartLogHistory() {
   const el = document.getElementById('smart-log-history'); if (!el) return;
-  const logs = mainEntries().filter(e => e.note && e.note.includes('Smart Logger')).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 10);
+  const logs = mainEntries().filter(e => e.note && e.note.includes('Smart Logger')).sort((a, b) => String(b.date||'').localeCompare(String(a.date||''))).slice(0, 10);
   if (!logs.length) { el.innerHTML = '<p class="empty">No smart logs yet.</p>'; return; }
   el.innerHTML = logs.map(e => '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px"><span class="smart-log-badge '+(e.type==='income'?'received':'sent')+'">'+(e.type==='income'?'📥 +':'📤 -')+'₹'+e.amt+'</span><span style="flex:1;color:var(--text)">'+escapeHTML(e.label)+'</span><span style="font-size:11px;color:var(--text-faint)">'+fmtDate(e.date)+'</span></div>').join('');
 }
