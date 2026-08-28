@@ -210,8 +210,11 @@ window.renderWalletSwitcher = function() {
 window.switchActiveWallet = function(walletId) {
   window.activeWalletId = walletId;
   window.renderWalletSwitcher();
+  if (typeof updateHeaderStats === 'function') updateHeaderStats();
   if (typeof renderHomeSnapshot === 'function') renderHomeSnapshot();
   if (typeof renderEntries === 'function') renderEntries();
+  if (typeof renderBudgetEditor === 'function') renderBudgetEditor();
+  if (typeof renderReport === 'function') renderReport();
   if (typeof toast === 'function') {
     const w = userWallets.find(x => x.id === walletId);
     const label = w ? `${w.icon} ${w.name}` : 'All Wallets';
@@ -418,7 +421,7 @@ window.openTransferModal = function() {
   });
 };
 
-window.submitWalletTransfer = function() {
+window.submitWalletTransfer = async function() {
   const fromId = document.getElementById('transfer-from-wallet')?.value;
   const toId = document.getElementById('transfer-to-wallet')?.value;
   const amt = parseFloat(document.getElementById('transfer-amt')?.value);
@@ -437,9 +440,8 @@ window.submitWalletTransfer = function() {
 
   const dateStr = (typeof todayStr === 'function') ? todayStr() : new Date().toISOString().split('T')[0];
 
-  // 1. Log debit from source wallet
-  if (typeof addEntry === 'function') {
-    addEntry({
+  try {
+    const debitPayload = {
       type: 'expense',
       amt: amt,
       label: `Transfer to ${toWallet ? toWallet.name : 'Wallet'}`,
@@ -447,9 +449,8 @@ window.submitWalletTransfer = function() {
       cat: 'other',
       walletId: fromId,
       date: dateStr
-    });
-    // 2. Log credit to destination wallet
-    addEntry({
+    };
+    const creditPayload = {
       type: 'income',
       amt: amt,
       label: `Transfer from ${fromWallet ? fromWallet.name : 'Wallet'}`,
@@ -457,12 +458,28 @@ window.submitWalletTransfer = function() {
       cat: 'income',
       walletId: toId,
       date: dateStr
-    });
-  }
+    };
 
-  if (typeof window.closeCustomSheet === 'function') window.closeCustomSheet();
-  window.renderWalletSwitcher();
-  if (typeof toast === 'function') toast(`Transferred ₹${amt} from ${fromWallet?.name} to ${toWallet?.name}! 🔁`, 'success');
+    if (typeof saveEntry === 'function') {
+      await saveEntry(debitPayload);
+      await saveEntry(creditPayload);
+    } else if (typeof entries !== 'undefined') {
+      debitPayload._id = 'local_' + Date.now() + '_deb';
+      creditPayload._id = 'local_' + (Date.now() + 1) + '_cred';
+      entries.unshift(debitPayload);
+      entries.unshift(creditPayload);
+    }
+
+    if (typeof window.closeCustomSheet === 'function') window.closeCustomSheet();
+    window.renderWalletSwitcher();
+    if (typeof updateHeaderStats === 'function') updateHeaderStats();
+    if (typeof renderHomeSnapshot === 'function') renderHomeSnapshot();
+    if (typeof renderEntries === 'function') renderEntries();
+    if (typeof renderReport === 'function') renderReport();
+    if (typeof toast === 'function') toast(`Transferred ₹${amt} from ${fromWallet?.name} to ${toWallet?.name}! 🔁`, 'success');
+  } catch (e) {
+    if (typeof toast === 'function') toast('Transfer failed: ' + e.message, 'error');
+  }
 };
 
 // Firestore Cloud Sync listener

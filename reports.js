@@ -693,23 +693,49 @@ window.renderWalletDistributionCard = function() {
 // =====================================================================
 // ACTIONABLE SMART INSIGHTS & SIMPLE BUDGET MODE
 // =====================================================================
-window.getSavedTotalBudget = function(period) {
+window.getSavedTotalBudget = function(period, wId) {
   const p = period || window.budgetPeriod || 'monthly';
+  const w = wId !== undefined ? wId : (typeof activeWalletId !== 'undefined' ? activeWalletId : 'all');
+  if (w && w !== 'all') {
+    const customKey = `pockettrack_budget_${p}_` + w;
+    const val = localStorage.getItem(customKey);
+    if (val) return parseFloat(val) || 0;
+    if (p === 'weekly') {
+      if (w === 'cash') return 1500;
+      if (w === 'bank') return 5000;
+      if (w === 'card') return 3000;
+      return 2500;
+    } else {
+      if (w === 'cash') return 5000;
+      if (w === 'bank') return 20000;
+      if (w === 'card') return 10000;
+      return 10000;
+    }
+  }
   if (p === 'weekly') {
     return parseFloat(localStorage.getItem('pockettrack_total_weekly_budget')) || 3500;
   }
   return parseFloat(localStorage.getItem('pockettrack_total_monthly_budget')) || 15000;
 };
 
-window.setSavedTotalBudget = function(amt, period) {
+window.setSavedTotalBudget = function(amt, period, wId) {
   const p = period || window.budgetPeriod || 'monthly';
+  const w = wId !== undefined ? wId : (typeof activeWalletId !== 'undefined' ? activeWalletId : 'all');
   if (amt > 0) {
-    if (p === 'weekly') {
-      localStorage.setItem('pockettrack_total_weekly_budget', amt);
-      if (typeof toast === 'function') toast(`Weekly budget set to ₹${amt.toLocaleString('en-IN')}`, 'success');
+    if (w && w !== 'all') {
+      const key = `pockettrack_budget_${p}_${w}`;
+      localStorage.setItem(key, amt);
+      const wObj = (typeof userWallets !== 'undefined') ? userWallets.find(x => x.id === w) : null;
+      const wLabel = wObj ? `${wObj.icon} ${wObj.name}` : w;
+      if (typeof toast === 'function') toast(`${wLabel} ${p} budget set to ₹${amt.toLocaleString('en-IN')}`, 'success');
     } else {
-      localStorage.setItem('pockettrack_total_monthly_budget', amt);
-      if (typeof toast === 'function') toast(`Monthly budget set to ₹${amt.toLocaleString('en-IN')}`, 'success');
+      if (p === 'weekly') {
+        localStorage.setItem('pockettrack_total_weekly_budget', amt);
+        if (typeof toast === 'function') toast(`Weekly budget set to ₹${amt.toLocaleString('en-IN')}`, 'success');
+      } else {
+        localStorage.setItem('pockettrack_total_monthly_budget', amt);
+        if (typeof toast === 'function') toast(`Monthly budget set to ₹${amt.toLocaleString('en-IN')}`, 'success');
+      }
     }
     if (typeof renderBudgetEditor === 'function') renderBudgetEditor();
     renderReport();

@@ -2523,4 +2523,16 @@ button:active,
   --card: #200f38;
 }
 
+/* =====================================================================
+   POWER MODE ONLY FEATURES (HIDDEN IN SENIOR 40+ SIMPLE MODE)
+   ===================================================================== */
+.app-mode-simple .wallet-switcher-bar,
+.app-mode-simple #wallet-switcher-bar,
+.app-mode-simple #wallet-distribution-slot,
+.app-mode-simple #composer-wallet-chips,
+.app-mode-simple .wallet-badge-tag {
+  display: none !important;
+}
+
+
 
