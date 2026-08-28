@@ -557,12 +557,6 @@ async function deleteLedgerPerson(personId) {
       }
       toast(isHi ? 'संपर्क हटाया गया' : 'Contact deleted', 'success');
     });
-  } else if (confirm(msg)) {
-    ledgerPeople = ledgerPeople.filter(p => p._id !== personId);
-    saveLocalLedgerCache();
-    closeLedgerModal();
-    renderLedger();
-    toast(isHi ? 'संपर्क हटाया गया' : 'Contact deleted', 'success');
   }
 }
 

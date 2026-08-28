@@ -390,12 +390,10 @@ window.shareFinancialDNA = function() {
         navigator.clipboard.writeText(text).then(() => {
             if (typeof toast === 'function') {
                 toast('Copied to clipboard!', 'success');
-            } else {
-                alert('Copied to clipboard!');
             }
         }).catch(err => {
             console.error('Failed to copy text: ', err);
-            alert('Could not copy to clipboard.');
+            if (typeof toast === 'function') toast('Could not copy to clipboard', 'error');
         });
     }
 };

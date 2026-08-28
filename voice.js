@@ -98,9 +98,17 @@ function stopVoiceRecognition() {
 }
 
 function promptManualVoiceInput() {
-  const input = prompt(TT('voice_entry_title') + '\ne.g. "Spent 350 on petrol" or "Got 15000 salary"');
-  if (input && input.trim()) {
-    parseVoiceInput(input.trim());
+  if (typeof showAppPrompt === 'function') {
+    showAppPrompt(
+      TT('voice_entry_title') + '<br><span style="font-size:12px;color:var(--text-dim);">e.g. "Spent 350 on petrol" or "Got 15000 salary"</span>',
+      '',
+      (input) => {
+        if (input && input.trim()) {
+          parseVoiceInput(input.trim());
+        }
+      },
+      '🎙️ Voice Input (Type / Speak)'
+    );
   }
 }
 

@@ -153,7 +153,6 @@ window.shareWrapped = async function() {
         navigator.clipboard.writeText(text).then(() => {
             const toastFn = getSafeFn('toast');
             if (toastFn) toastFn('Copied to clipboard!', 'success');
-            else alert('Copied to clipboard!');
         });
     }
 }
@@ -194,7 +193,6 @@ window.openMoneyWrapped = function(monthOffset = 0) {
     if (monthEntries.length < 3) {
         const toastFn = getSafeFn('toast');
         if (toastFn) toastFn("Not enough data for Wrapped yet. Keep logging!", 'info');
-        else alert("Not enough data for Wrapped yet. Keep logging!");
         return;
     }
     

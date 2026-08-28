@@ -779,12 +779,8 @@ window.renderSmartInsights = function() {
 };
 
 window.promptEditTotalBudget = function() {
-  const current = window.getSavedTotalBudget();
-  const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
-  const val = prompt(isHi ? 'अपना कुल मासिक बजट दर्ज करें (₹):' : 'Enter your total monthly budget target (₹):', current);
-  if (val && !isNaN(parseFloat(val))) {
-    window.setSavedTotalBudget(parseFloat(val));
-    window.renderSmartInsights();
+  if (typeof window.openSetBudgetModal === 'function') {
+    window.openSetBudgetModal();
   }
 };
 
