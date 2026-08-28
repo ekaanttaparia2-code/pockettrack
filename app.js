@@ -360,15 +360,26 @@ function showNextTip(){
 
 const CAT_COLORS = {food:'#4ade80',travel:'#60a5fa',friends:'#ffb84d',home:'#ff7eb3',shopping:'#c084fc',entertainment:'#f472b6',health:'#fb7185',education:'#fbbf24',work:'#22d3ee',other:'#9b95c2',custom:'#c4a8ff'};
 window.CAT_COLORS = CAT_COLORS;
-var entries = [];
+var entries = (function() {
+  try {
+    const cached = localStorage.getItem('pockettrack_entries_cache');
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (Array.isArray(parsed) && parsed.length) return parsed;
+    }
+  } catch(e){}
+  return [];
+})();
 window.entries = entries;
+
 function mainEntries(){
   const list = (typeof window !== 'undefined' && Array.isArray(window.entries)) ? window.entries : (typeof entries !== 'undefined' && Array.isArray(entries) ? entries : []);
   const base = list.filter(e=>!e.event);
-  if (typeof activeWalletId !== 'undefined' && activeWalletId && activeWalletId !== 'all') {
+  const activeW = (typeof window !== 'undefined' && window.activeWalletId) ? window.activeWalletId : (typeof activeWalletId !== 'undefined' ? activeWalletId : 'all');
+  if (activeW && activeW !== 'all') {
     return base.filter(e => {
       const wId = (typeof resolveEntryWalletId === 'function') ? resolveEntryWalletId(e) : (e.walletId || (e.type === 'income' ? 'bank' : 'cash'));
-      return wId === activeWalletId;
+      return wId === activeW;
     });
   }
   return base;
@@ -2571,13 +2582,18 @@ window.triggerManualSync = async function() {
   
   try {
     if (typeof currentUser !== 'undefined' && currentUser && typeof db !== 'undefined') {
-      const snap = await db.collection('users').doc(currentUser.uid).collection('entries').orderBy('date', 'desc').limit(250).get();
+      const snap = await db.collection('users').doc(currentUser.uid).collection('entries').limit(500).get();
       if (!snap.empty) {
-        entries = snap.docs.map(d => ({ _id: d.id, ...d.data() }));
+        entries = snap.docs.map(d => ({ _id: d.id, ...d.data() })).sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
         if (typeof window !== 'undefined') window.entries = entries;
+        try {
+          localStorage.setItem('pockettrack_entries_cache_' + currentUser.uid, JSON.stringify(entries));
+          localStorage.setItem('pockettrack_entries_cache', JSON.stringify(entries));
+        } catch(e){}
         if (typeof updateHeaderStats === 'function') updateHeaderStats();
         if (typeof renderEntries === 'function') renderEntries();
         if (typeof renderHomeSnapshot === 'function') renderHomeSnapshot();
+        if (typeof renderReport === 'function') renderReport();
       }
       if (typeof loadWallets === 'function') loadWallets();
       if (typeof renderWalletSwitcher === 'function') renderWalletSwitcher();

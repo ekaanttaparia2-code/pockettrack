@@ -277,16 +277,40 @@ function selectHubTool(tabName){
 
 function listenToEntries(){
   if(!currentUser) return;
+
+  // 1. Instantly hydrate from local cache if memory array is empty
+  try {
+    const userCache = localStorage.getItem('pockettrack_entries_cache_' + currentUser.uid) || localStorage.getItem('pockettrack_entries_cache');
+    if (userCache) {
+      const parsed = JSON.parse(userCache);
+      if (Array.isArray(parsed) && parsed.length && (!entries || !entries.length)) {
+        entries = parsed;
+        if (typeof window !== 'undefined') window.entries = entries;
+        renderEntries();
+        renderReport();
+        updateHeaderStats();
+        if(typeof renderHomeSnapshot === 'function') renderHomeSnapshot();
+      }
+    }
+  } catch(e){}
+
+  // 2. Real-time Firestore sync
   unsubscribeEntries = db.collection('users').doc(currentUser.uid).collection('entries')
     .onSnapshot({includeMetadataChanges:true}, snap=>{
-      entries = snap.docs.map(d=>({...d.data(), _id:d.id}));
+      entries = snap.docs.map(d=>({...d.data(), _id:d.id})).sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
       if (typeof window !== 'undefined') window.entries = entries;
+      try {
+        localStorage.setItem('pockettrack_entries_cache_' + currentUser.uid, JSON.stringify(entries));
+        localStorage.setItem('pockettrack_entries_cache', JSON.stringify(entries));
+      } catch(e){}
       if(typeof pendingWriteState!=='undefined') pendingWriteState.entries = !!snap.metadata && snap.metadata.hasPendingWrites;
       if(typeof updateSyncIndicator==='function') updateSyncIndicator();
       renderEntries();
       renderReport();
       if(typeof renderSubscriptionRadar==='function') renderSubscriptionRadar();
       updateHeaderStats();
+      if(typeof renderHomeSnapshot === 'function') renderHomeSnapshot();
+      if(typeof renderWalletSwitcher === 'function') renderWalletSwitcher();
       checkBudget();
       refreshEventsViewsIfOpen();
       renderStreak();
@@ -294,7 +318,8 @@ function listenToEntries(){
       if(typeof checkEntryLimit !== 'undefined') checkEntryLimit();
     }, err=>{
       console.error(err);
-      document.getElementById('sync-status').textContent = (typeof currentLang!=='undefined' && currentLang==='hi') ? 'सिंक त्रुटि — कनेक्शन जांचें' : 'Sync error — check connection';
+      const sEl = document.getElementById('sync-status');
+      if (sEl) sEl.textContent = (typeof currentLang!=='undefined' && currentLang==='hi') ? 'सिंक त्रुटि — कनेक्शन जांचें' : 'Sync error — check connection';
     });
 }
 
