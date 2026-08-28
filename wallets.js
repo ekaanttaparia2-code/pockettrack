@@ -279,16 +279,26 @@ window.renderWalletSwitcher = function() {
     `;
   }).join('');
 
-  listEl.innerHTML = `
-    ${allBtn}
-    ${walletPills}
-    <button class="wallet-pill" onclick="openTransferModal()" style="background:rgba(139,92,246,0.12);border-color:rgba(139,92,246,0.4);color:var(--accent-bright,#c4b5fd);">
-      <span>🔁 ${typeof currentLang !== 'undefined' && currentLang === 'hi' ? 'ट्रांसफर' : 'Transfer'}</span>
-    </button>
-    <button class="wallet-pill" onclick="openWalletManagerModal()" style="background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.15);" title="Manage & Delete Wallets">
-      <span>⚙️ ${typeof currentLang !== 'undefined' && currentLang === 'hi' ? 'प्रबंधन' : 'Manage'}</span>
-    </button>
-  `;
+  if (listEl) {
+    listEl.innerHTML = `
+      ${allBtn}
+      ${walletPills}
+      <button class="wallet-pill" onclick="openTransferModal()" style="background:rgba(139,92,246,0.12);border-color:rgba(139,92,246,0.4);color:var(--accent-bright,#c4b5fd);">
+        <span>🔁 ${typeof currentLang !== 'undefined' && currentLang === 'hi' ? 'ट्रांसफर' : 'Transfer'}</span>
+      </button>
+      <button class="wallet-pill" onclick="openWalletManagerModal()" style="background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.15);" title="Manage & Delete Wallets">
+        <span>⚙️ ${typeof currentLang !== 'undefined' && currentLang === 'hi' ? 'प्रबंधन' : 'Manage'}</span>
+      </button>
+    `;
+  }
+
+  const insightsListEl = document.getElementById('insights-wallet-pills-list');
+  if (insightsListEl) {
+    insightsListEl.innerHTML = `
+      ${allBtn}
+      ${walletPills}
+    `;
+  }
 
   // Synchronize form dropdowns
   const incSel = document.getElementById('inc-wallet');

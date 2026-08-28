@@ -99,15 +99,15 @@ body::before{
 .blob2{width:340px;height:340px;background:linear-gradient(135deg,#ff7eb3,#8b5cf6);bottom:-90px;right:-90px;animation:blobFloat 11s ease-in-out infinite alternate-reverse;}
 .blob3{width:260px;height:260px;background:linear-gradient(135deg,#22d3ee,#8b5cf6);top:46%;left:52%;opacity:0.28;animation:blobFloat 13s ease-in-out infinite alternate;}
 @keyframes blobFloat{0%{transform:translate(0,0) scale(1)}50%{transform:translate(30px,-20px) scale(1.05)}100%{transform:translate(-20px,30px) scale(0.95)}}
-.tab-enter{animation:tabEnter 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;will-change:transform,opacity;}
+.tab-enter{animation:tabEnter 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;will-change:opacity,transform;}
 .pie-slice{cursor:pointer;transition:transform 0.15s ease}
 @keyframes hintPulse{
   0%,100%{box-shadow:0 0 0 0 rgba(255,107,107,0.6)}
   50%{box-shadow:0 0 0 6px rgba(255,107,107,0)}
 }
 @keyframes tabEnter{
-  0%{opacity:0;transform:translateY(14px) scale(0.988)}
-  100%{opacity:1;transform:translateY(0) scale(1)}
+  0%{opacity:0;transform:translateY(8px)}
+  100%{opacity:1;transform:translateY(0)}
 }
 
 .shell{position:relative;z-index:1;max-width:780px;margin:0 auto;padding:0.85rem 1rem 0}
@@ -2523,5 +2523,129 @@ body.auth-active .voice-fab {
   display: none !important;
 }
 
+/* =====================================================================
+   INSIGHTS TOP CONTROL BAR — Wallet + Period Unified
+   ===================================================================== */
+.insights-top-bar {
+  background: linear-gradient(160deg, rgba(22, 15, 51, 0.92), rgba(15, 9, 38, 0.96));
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 22px;
+  padding: 16px 14px 14px;
+  margin-bottom: 12px;
+}
+.insights-bar-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.insights-bar-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-dim, #b9aee3);
+}
+.insights-bar-icon {
+  font-size: 14px;
+}
+.insights-bar-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.3), transparent);
+  margin: 12px 0;
+}
+.insights-wallet-pills {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+.insights-wallet-pills::-webkit-scrollbar { display: none; }
+.insights-wallet-pills .wallet-pill {
+  padding: 5px 10px;
+  font-size: 11px;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.period-toggle-v2 {
+  border-radius: 14px !important;
+}
+.period-toggle-v2 button {
+  padding: 8px 10px !important;
+  font-size: 12px !important;
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+}
+.insights-custom-dates-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.insights-date-input-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.insights-date-input-wrap label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-faint);
+}
+.insights-date-input-wrap input[type="date"] {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+}
 
+/* =====================================================================
+   SMOOTHER GLOBAL TRANSITIONS
+   ===================================================================== */
 
+.card {
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 0.22s ease;
+}
+
+.bottom-tab {
+  transition: color 0.18s ease, transform 0.15s ease;
+}
+.bottom-tab:active {
+  transform: scale(0.92);
+}
+
+.wallet-pill {
+  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+.toggle-grp button {
+  transition: background 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+              color 0.18s ease,
+              box-shadow 0.2s ease !important;
+}
+
+.metric-val {
+  transition: color 0.3s ease;
+}
+
+@media(max-width:520px) {
+  .insights-top-bar {
+    padding: 12px 10px 10px;
+    border-radius: 18px;
+  }
+  .period-toggle-v2 button {
+    padding: 7px 6px !important;
+    font-size: 11px !important;
+  }
+}

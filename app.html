@@ -413,18 +413,41 @@
 
   <div id="tab-report" style="display:none">
     <div id="sub-radar"></div>
-    <div class="card period-card">
-      <div class="filter-bar" style="margin-bottom:0">
-        <span class="date-label" data-i18n="lbl_period">Period</span>
-        <div class="toggle-grp" id="period-toggle">
+    <!-- Insights Top Control Center: Account Selector + Period Timeframe -->
+    <div class="card insights-top-bar" id="insights-top-bar">
+      <div class="insights-bar-row">
+        <div class="insights-bar-label">
+          <span class="insights-bar-icon">💳</span>
+          <span data-i18n="lbl_account_filter">Wallet / Account</span>
+        </div>
+        <div class="insights-wallet-pills" id="insights-wallet-pills-list"></div>
+      </div>
+
+      <div class="insights-bar-divider"></div>
+
+      <div class="insights-bar-row">
+        <div class="insights-bar-label">
+          <span class="insights-bar-icon">📅</span>
+          <span data-i18n="lbl_period">Period</span>
+        </div>
+        <div class="toggle-grp period-toggle-v2" id="period-toggle">
           <button class="active" onclick="setPeriod('week')" data-i18n="period_week">This week</button>
           <button onclick="setPeriod('month')" data-i18n="period_month">This month</button>
           <button onclick="setPeriod('all')" data-i18n="period_all">All time</button>
           <button onclick="setPeriod('custom')" data-i18n="period_custom">Custom</button>
         </div>
-        <input type="date" id="rep-from" style="display:none" onchange="renderReport()"/>
+      </div>
+
+      <div id="insights-custom-dates-wrap" class="insights-custom-dates-wrap" style="display:none">
+        <div class="insights-date-input-wrap">
+          <label data-i18n="lbl_from">From</label>
+          <input type="date" id="rep-from" onchange="renderReport()"/>
+        </div>
         <span id="rep-to-label" class="date-label" style="display:none" data-i18n="lbl_to">To</span>
-        <input type="date" id="rep-to" style="display:none" onchange="renderReport()"/>
+        <div class="insights-date-input-wrap">
+          <label data-i18n="lbl_to">To</label>
+          <input type="date" id="rep-to" onchange="renderReport()"/>
+        </div>
       </div>
     </div>
 

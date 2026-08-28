@@ -11,12 +11,19 @@ function setPeriod(p){
       btns[idx].classList.add('active');
     }
     const showCustom = (p === 'custom');
+    const customWrap = document.getElementById('insights-custom-dates-wrap');
+    if (customWrap) {
+      customWrap.style.display = showCustom ? 'flex' : 'none';
+    }
+    // Fallback for legacy individual elements (in case old markup is still present)
     const repFrom = document.getElementById('rep-from');
     const repToLabel = document.getElementById('rep-to-label');
     const repTo = document.getElementById('rep-to');
-    if (repFrom) repFrom.style.display = showCustom ? 'block' : 'none';
-    if (repToLabel) repToLabel.style.display = showCustom ? 'block' : 'none';
-    if (repTo) repTo.style.display = showCustom ? 'block' : 'none';
+    if (!customWrap) {
+      if (repFrom) repFrom.style.display = showCustom ? 'block' : 'none';
+      if (repToLabel) repToLabel.style.display = showCustom ? 'block' : 'none';
+      if (repTo) repTo.style.display = showCustom ? 'block' : 'none';
+    }
     renderReport();
   } catch(e) {
     console.error('setPeriod error:', e);
