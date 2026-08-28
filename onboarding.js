@@ -183,6 +183,9 @@ function finishOnboarding() {
     screen.style.transform = 'scale(0.95)';
     setTimeout(() => {
       screen.style.display = 'none';
+      if (typeof window.openAgeModeModal === 'function') {
+        window.openAgeModeModal();
+      }
     }, 250);
   }
 }

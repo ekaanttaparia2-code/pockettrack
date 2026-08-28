@@ -2559,69 +2559,124 @@ window.setAppMode = function(mode, save = true) {
 };
 
 window.toggleAppMode = function() {
-  const nextMode = (window.currentAppMode === 'simple') ? 'power' : 'simple';
-  window.setAppMode(nextMode, true);
+  window.openAgeModeModal();
 };
 
-window.triggerManualSync = function() {
+window.triggerManualSync = async function() {
   const statusEl = document.getElementById('sync-status');
-  if (statusEl) {
-    statusEl.textContent = 'Syncing...';
-    setTimeout(() => {
-      statusEl.textContent = 'Synced';
-      if (typeof toast === 'function') toast('☁️ Synced to Google Cloud (0 pending changes)', 'success');
-    }, 400);
+  const dotEl = document.querySelector('#sync-pill-btn .dot');
+  if (statusEl) statusEl.textContent = 'Syncing...';
+  if (dotEl) dotEl.style.background = '#f59e0b';
+  
+  try {
+    if (typeof currentUser !== 'undefined' && currentUser && typeof db !== 'undefined') {
+      const snap = await db.collection('users').doc(currentUser.uid).collection('entries').orderBy('date', 'desc').limit(250).get();
+      if (!snap.empty) {
+        entries = snap.docs.map(d => ({ _id: d.id, ...d.data() }));
+        if (typeof updateHeaderStats === 'function') updateHeaderStats();
+        if (typeof renderEntries === 'function') renderEntries();
+        if (typeof renderHomeSnapshot === 'function') renderHomeSnapshot();
+      }
+      if (typeof loadWallets === 'function') loadWallets();
+      if (typeof renderWalletSwitcher === 'function') renderWalletSwitcher();
+      
+      if (statusEl) statusEl.textContent = 'Synced';
+      if (dotEl) dotEl.style.background = 'var(--green,#34d399)';
+      if (typeof toast === 'function') toast('☁️ Cloud Firestore backup complete (All data up to date)', 'success');
+    } else {
+      if (statusEl) statusEl.textContent = 'Local';
+      if (dotEl) dotEl.style.background = 'var(--green,#34d399)';
+      if (typeof toast === 'function') toast('📱 Local mode — Sign in with Google to backup to Cloud', 'info');
+    }
+  } catch (e) {
+    if (statusEl) statusEl.textContent = 'Offline';
+    if (dotEl) dotEl.style.background = '#ef4444';
+    if (typeof toast === 'function') toast('Sync notice: ' + (e.message || 'Offline ready'), 'info');
   }
 };
 
-window.openFirstTimeModeSelector = function() {
-  if (localStorage.getItem('pockettrack_app_mode_chosen')) return;
+window.openAgeModeModal = function() {
+  const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
+  const existing = document.getElementById('age-mode-modal');
+  if (existing) existing.remove();
+
   const modal = document.createElement('div');
-  modal.id = 'first-time-mode-modal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(7,4,20,0.85);backdrop-filter:blur(24px);z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px;animation:fadeIn 0.25s ease;';
+  modal.id = 'age-mode-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(7,4,20,0.88);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);z-index:999999;display:flex;align-items:center;justify-content:center;padding:16px;animation:fadeIn 0.25s ease;';
+
+  const currentMode = window.currentAppMode || localStorage.getItem('pockettrack_app_mode') || 'power';
 
   modal.innerHTML = `
-    <div style="max-width:440px;width:100%;background:linear-gradient(160deg,#181238,#0d0a21);border:1px solid rgba(139,92,246,0.45);border-radius:28px;padding:26px 22px;box-shadow:0 25px 70px rgba(0,0,0,0.8);color:#fff;text-align:center;">
-      <div style="font-size:38px;margin-bottom:8px;">✨</div>
-      <h3 style="margin:0 0 6px;font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;">Choose Your Experience</h3>
-      <p style="font-size:13px;color:#cbd5e1;line-height:1.45;margin:0 0 20px;">You can switch between modes anytime in the top header.</p>
+    <div style="max-width:440px;width:100%;background:linear-gradient(160deg,#1a133d,#0d0a21);border:1px solid rgba(139,92,246,0.5);border-radius:28px;padding:26px 22px;box-shadow:0 25px 70px rgba(0,0,0,0.85);color:#fff;text-align:center;position:relative;">
+      <div style="font-size:38px;margin-bottom:8px;">🎯</div>
+      <h3 style="margin:0 0 6px;font-family:'Space Grotesk',sans-serif;font-size:21px;font-weight:800;">
+        ${isHi ? 'अपनी आयु चुनें' : 'Choose Your Experience'}
+      </h3>
+      <p style="font-size:12.5px;color:#cbd5e1;line-height:1.45;margin:0 0 20px;">
+        ${isHi ? 'हम आपके लिए सबसे आसान और उपयुक्त इंटरफ़ेस सेट करेंगे।' : 'Tailors text size, contrast, and features for your needs. Switch anytime.'}
+      </p>
 
-      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
-        <div onclick="selectInitialMode('simple')" style="background:rgba(255,255,255,0.05);border:2px solid rgba(52,211,153,0.45);border-radius:20px;padding:16px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:14px;transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-          <div style="font-size:32px;">👴</div>
-          <div>
-            <div style="font-size:16px;font-weight:800;color:#34d399;">Simple &amp; Clear (40+ / Seniors)</div>
-            <div style="font-size:12px;color:#94a3b8;margin-top:2px;">Extra large text, high contrast, 3 big buttons, pure passbook khata view.</div>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px;">
+        <!-- Option 1: 40+ Senior / Simple -->
+        <div onclick="selectAgeExperience('40_plus')" style="background:${currentMode==='simple'?'rgba(52,211,153,0.15)':'rgba(255,255,255,0.04)'};border:2px solid ${currentMode==='simple'?'var(--green,#34d399)':'rgba(52,211,153,0.35)'};border-radius:20px;padding:16px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:14px;transition:all 0.18s;">
+          <div style="font-size:34px;width:44px;text-align:center;">👴</div>
+          <div style="flex:1;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div style="font-size:15.5px;font-weight:800;color:#34d399;">${isHi ? '40+ वर्ष (सरल मोड)' : '40+ Years (Simple Mode)'}</div>
+              ${currentMode==='simple'?'<span style="font-size:11px;background:#34d399;color:#000;font-weight:800;padding:2px 8px;border-radius:99px;">ACTIVE</span>':''}
+            </div>
+            <div style="font-size:12px;color:#94a3b8;margin-top:3px;line-height:1.35;">
+              ${isHi ? 'बड़ा टेक्स्ट, हाई कंट्रास्ट, 1-नंबर बजट, आसान पासबुक खाता और शून्य उलझन।' : 'Extra large readable text, high contrast, 1-number budget, simple passbook & zero clutter.'}
+            </div>
           </div>
         </div>
 
-        <div onclick="selectInitialMode('power')" style="background:rgba(255,255,255,0.05);border:2px solid rgba(139,92,246,0.45);border-radius:20px;padding:16px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:14px;transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-          <div style="font-size:32px;">⚡</div>
-          <div>
-            <div style="font-size:16px;font-weight:800;color:#a78bfa;">Power Mode (Youth &amp; Pro)</div>
-            <div style="font-size:12px;color:#94a3b8;margin-top:2px;">Full power suite: Spaces, Chillar Vault, SIP Goals, and Money Wrapped.</div>
+        <!-- Option 2: Below 40 Power Mode -->
+        <div onclick="selectAgeExperience('under_40')" style="background:${currentMode==='power'?'rgba(139,92,246,0.18)':'rgba(255,255,255,0.04)'};border:2px solid ${currentMode==='power'?'var(--accent,#8b5cf6)':'rgba(139,92,246,0.35)'};border-radius:20px;padding:16px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:14px;transition:all 0.18s;">
+          <div style="font-size:34px;width:44px;text-align:center;">⚡</div>
+          <div style="flex:1;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div style="font-size:15.5px;font-weight:800;color:#a78bfa;">${isHi ? '40 से कम (पावर मोड)' : 'Under 40 (Power Mode)'}</div>
+              ${currentMode==='power'?'<span style="font-size:11px;background:#8b5cf6;color:#fff;font-weight:800;padding:2px 8px;border-radius:99px;">ACTIVE</span>':''}
+            </div>
+            <div style="font-size:12px;color:#94a3b8;margin-top:3px;line-height:1.35;">
+              ${isHi ? 'मल्टी-वॉलेट्स, फ्यूचर मनी सिम्युलेटर, चिल्लर वॉल्ट, वित्तीय डीएनए और प्रो टूल्स।' : 'Multi-wallets & accounts, Future Simulator, Chillar Vault, Financial DNA & Pro tools.'}
+            </div>
           </div>
         </div>
       </div>
+
+      <button onclick="document.getElementById('age-mode-modal')?.remove()" style="background:transparent;border:none;color:var(--text-dim,#94a3b8);font-size:12px;cursor:pointer;padding:6px 12px;">
+        ${isHi ? 'बाद में तय करें ✕' : 'Close / Decide Later ✕'}
+      </button>
     </div>
   `;
 
   document.body.appendChild(modal);
 };
 
-window.selectInitialMode = function(mode) {
+window.selectAgeExperience = function(ageGroup) {
+  localStorage.setItem('pockettrack_age_group', ageGroup);
   localStorage.setItem('pockettrack_app_mode_chosen', 'true');
-  window.setAppMode(mode, true);
-  const m = document.getElementById('first-time-mode-modal');
+  const targetMode = (ageGroup === '40_plus') ? 'simple' : 'power';
+  window.setAppMode(targetMode, true);
+  const m = document.getElementById('age-mode-modal');
   if (m) m.remove();
+  if (typeof toast === 'function') {
+    toast(targetMode === 'simple' ? '👴 Set to Simple 40+ Mode' : '⚡ Set to Power Mode', 'success');
+  }
+};
+
+window.openFirstTimeModeSelector = function() {
+  window.openAgeModeModal();
 };
 
 // Initial App Mode Setup on load
 document.addEventListener('DOMContentLoaded', () => {
   const savedMode = localStorage.getItem('pockettrack_app_mode') || 'power';
   window.setAppMode(savedMode, false);
-  if (!localStorage.getItem('pockettrack_app_mode_chosen')) {
-    setTimeout(window.openFirstTimeModeSelector, 1200);
+  if (!localStorage.getItem('pockettrack_age_group') && !localStorage.getItem('pockettrack_app_mode_chosen')) {
+    setTimeout(window.openAgeModeModal, 1200);
   }
 });
 

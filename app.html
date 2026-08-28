@@ -53,8 +53,12 @@
       }
     }
     function toggleAppMode() {
-      var nextMode = (window.currentAppMode === 'simple') ? 'power' : 'simple';
-      setAppMode(nextMode, true);
+      if (typeof window.openAgeModeModal === 'function') {
+        window.openAgeModeModal();
+      } else {
+        var nextMode = (window.currentAppMode === 'simple') ? 'power' : 'simple';
+        setAppMode(nextMode, true);
+      }
     }
     if (localStorage.getItem('pockettrack_app_mode') === 'simple') {
       document.documentElement.classList.add('app-mode-simple');

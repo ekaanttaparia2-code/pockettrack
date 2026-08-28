@@ -848,103 +848,7 @@ body[data-theme="midnight"]{
    BOTTOM TAB BAR NAVIGATION — floating pill dock, fixed at bottom
    ===================================================================== */
 
-/* Push shell content up so the floating bar never overlaps it */
-body{ padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
-
-.bottom-tab-bar {
-  /* Hidden until signed in — JS sets display via updateBottomBarVisibility(). */
-  display: none;
-  position: fixed;
-  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(94%, 430px);
-  height: 60px;
-  z-index: 450;
-  /* Floating frosted-glass pill — the app's signature glassmorphism */
-  background: linear-gradient(135deg, rgba(139,92,246,0.28), rgba(236,72,153,0.22)), rgba(18,11,42,0.82);
-  border: 1px solid rgba(255,255,255,0.16);
-  border-radius: 24px;
-  box-shadow: 0 14px 44px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.18);
-  backdrop-filter: blur(24px) saturate(1.6);
-  -webkit-backdrop-filter: blur(24px) saturate(1.6);
-  flex-direction: row;
-  justify-content: space-around;
-  align-items: stretch;
-  box-sizing: border-box;
-  padding: 5px;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.bottom-tab {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  flex: 1 1 0;
-  min-width: 0;
-  border: none;
-  border-radius: 18px;
-  background: transparent;
-  color: var(--text-dim, #b6aede);
-  cursor: pointer;
-  text-align: center;
-  transition: color 0.18s ease, background 0.18s ease, transform 0.15s ease;
-  padding: 3px 2px;
-  box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
-
-.bottom-tab i {
-  font-size: 17px;
-  line-height: 1;
-  transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), color 0.18s ease;
-}
-
-.bottom-tab span {
-  font-size: 8.5px;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: 0.2px;
-  text-transform: uppercase;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-}
-
-.bottom-tab:active {
-  transform: scale(0.94);
-  background: rgba(155,107,255,0.14);
-}
-
-.bottom-tab.active {
-  color: #fff;
-  background: linear-gradient(135deg, var(--accent, #9b6bff), var(--accent2, #ff7eb3));
-  box-shadow: 0 6px 20px rgba(155,107,255,0.45);
-}
-
-.bottom-tab.active i {
-  transform: translateY(-1px) scale(1.1);
-  color: #fff;
-  filter: drop-shadow(0 2px 5px rgba(0,0,0,0.35));
-}
-
-.bottom-tab.active span {
-  color: #fff;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
-}
-
-/* Small phones */
-@media (max-width: 480px) {
-  .bottom-tab-bar { height: 56px; border-radius: 20px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); }
-  .bottom-tab i { font-size: 16px; }
-  .bottom-tab span { font-size: 8px; }
-  body{ padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
-}
+/* (Consolidated bottom navigation is defined in PocketTrack Mobile Foundation) */
 
 /* =====================================================================
    HOME SHORTCUTS (replaces the old side menu) — small feature tiles
@@ -1594,19 +1498,7 @@ body{ padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
 .more-hub .home-shortcuts{grid-template-columns:repeat(3,1fr)}
 .more-hub .shortcut-btn{min-height:74px}
 
-.bottom-tab-bar{height:64px;border-radius:22px;padding:5px;bottom:calc(12px + env(safe-area-inset-bottom,0px))}
-.bottom-tab{position:relative}
-.bottom-tab i{font-size:18px}
-.bottom-tab span{font-size:8.5px}
-.bottom-tab.bottom-add{overflow:visible}
-.bottom-add-icon{
-  width:42px;height:42px;margin-top:-22px;border-radius:15px;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:21px;
-  box-shadow:0 10px 28px rgba(139,92,246,.48),0 0 0 5px rgba(18,12,43,.95);
-  transition:transform .2s var(--ease),box-shadow .2s var(--ease);
-}
-.bottom-add:hover .bottom-add-icon{transform:translateY(-2px) scale(1.04);box-shadow:0 13px 32px rgba(139,92,246,.56),0 0 0 5px rgba(18,12,43,.95)}
-.bottom-add span:last-child{margin-top:4px}
+
 
 .floating-add{display:none}
 
@@ -1719,8 +1611,7 @@ header{margin-bottom:1.1rem}
 .shortcut-btn{min-height:84px;border-radius:20px;background:linear-gradient(145deg,rgba(100,62,255,.18),rgba(255,61,184,.09));border-color:rgba(255,255,255,.09);font-size:12px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
 .shortcut-icon{font-size:25px!important;color:#fff!important;filter:drop-shadow(0 4px 10px rgba(155,92,255,.45))!important}
 .shortcut-btn:hover{transform:translateY(-3px);border-color:rgba(210,178,255,.32)}
-.bottom-tab-bar{width:min(96%,470px);height:68px;border-radius:26px;background:rgba(9,5,30,.84);border:1px solid rgba(255,255,255,.13);box-shadow:0 18px 50px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.11);padding:6px;backdrop-filter:blur(26px) saturate(1.5)}
-.bottom-tab{border-radius:20px;gap:3px}.bottom-tab i{font-size:18px}.bottom-tab span{font-size:8px;text-transform:none;letter-spacing:0;font-weight:700}.bottom-tab.active{background:rgba(155,92,255,.17);box-shadow:none;color:#fff}.bottom-tab.active i{transform:none}.bottom-add{flex:1.1}.bottom-add-icon{width:50px;height:50px;border-radius:18px;display:grid;place-items:center;background:linear-gradient(135deg,#ff3db8,#9b5cff);box-shadow:0 10px 28px rgba(255,61,184,.38);margin-top:-18px;border:3px solid #11072d}.bottom-add-icon .ti{font-size:18px}.bottom-add span:last-child{color:#f6ddff}
+
 /* Emoji icon sizing — let emojis be the visual language, not glyph icons */
 .ti{font-size:1.05em}
 .btn .ti,.sec-title .ti,.filter-bar .ti{font-size:1em}
@@ -1910,42 +1801,114 @@ body{
 }
 
 /* Persistent, truly fixed mobile navigation - sleek 56px height. */
-.bottom-tab-bar{
-  position:fixed !important;
-  left:0 !important;
-  right:0 !important;
-  bottom:0 !important;
-  transform:none !important;
-  width:100% !important;
-  max-width:none !important;
-  height:calc(var(--pt-bottom-nav-h) + env(safe-area-inset-bottom,0px)) !important;
-  padding:4px 8px calc(4px + env(safe-area-inset-bottom,0px)) !important;
-  border-radius:18px 18px 0 0 !important;
-  box-sizing:border-box;
-  z-index:50000 !important;
-  background:rgba(9,5,30,.94) !important;
-  border-left:0 !important;
-  border-right:0 !important;
-  border-bottom:0 !important;
-  box-shadow:0 -8px 28px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.10) !important;
-  backdrop-filter:blur(24px) saturate(1.5);
-  -webkit-backdrop-filter:blur(24px) saturate(1.5);
-  overscroll-behavior:none;
+/* Persistent, sleek fixed mobile navigation (56px + safe-area) */
+.bottom-tab-bar {
+  display: flex;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: calc(var(--pt-bottom-nav-h, 56px) + env(safe-area-inset-bottom, 0px));
+  padding: 4px 8px calc(4px + env(safe-area-inset-bottom, 0px));
+  border-radius: 20px 20px 0 0;
+  box-sizing: border-box;
+  z-index: 50000;
+  background: rgba(9, 5, 30, 0.95);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 0;
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(24px) saturate(1.6);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+  overscroll-behavior: none;
 }
 
-.bottom-tab{
-  min-width:0;
-  min-height:var(--pt-touch-min);
-  padding:3px 2px !important;
-  border-radius:12px !important;
+.bottom-tab {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: var(--pt-touch-min, 44px);
+  border: none;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--text-dim, #b6aede);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.18s ease;
+  padding: 4px 2px;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
-.bottom-tab i{font-size:16px !important}
-.bottom-tab span{font-size:8.5px !important;font-weight:600;}
-.bottom-add{flex:1 !important}
-.bottom-add-icon{
-  width:42px !important;
-  height:42px !important;
-  margin-top:-14px !important;
+
+.bottom-tab i {
+  font-size: 17px;
+  line-height: 1;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.18s ease;
+}
+
+.bottom-tab span {
+  font-size: 8.5px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.bottom-tab:active {
+  transform: scale(0.92);
+}
+
+.bottom-tab.active {
+  color: #fff;
+  background: rgba(139, 92, 246, 0.22);
+}
+
+.bottom-tab.active i {
+  transform: translateY(-1px) scale(1.1);
+  color: var(--accent-bright, #c4b5fd);
+}
+
+.bottom-tab.active span {
+  color: #fff;
+}
+
+.bottom-add {
+  flex: 1.1;
+  overflow: visible;
+}
+
+.bottom-add-icon {
+  width: 44px;
+  height: 44px;
+  margin-top: -16px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, var(--accent, #8b5cf6), var(--accent2, #ff7eb3));
+  color: #fff;
+  font-size: 20px;
+  box-shadow: 0 10px 26px rgba(139, 92, 246, 0.48), 0 0 0 4px rgba(9, 5, 30, 0.95);
+  transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+
+.bottom-add:hover .bottom-add-icon,
+.bottom-add:active .bottom-add-icon {
+  transform: translateY(-2px) scale(1.06);
+  box-shadow: 0 12px 32px rgba(139, 92, 246, 0.6), 0 0 0 4px rgba(9, 5, 30, 0.95);
 }
 
 /* The voice action always floats above the fixed nav. */
@@ -2355,18 +2318,23 @@ textarea{
 .brand-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   flex-shrink: 0;
+  position: relative;
+  z-index: 100;
+  pointer-events: auto;
 }
 
 .mode-toggle-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 5px;
   background: rgba(139, 92, 246, 0.22);
   border: 1px solid rgba(139, 92, 246, 0.55);
   color: #fff;
   border-radius: 99px;
+  min-height: 36px;
   padding: 6px 12px;
   font-size: 12px;
   font-weight: 700;
@@ -2374,22 +2342,30 @@ textarea{
   white-space: nowrap;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 10px rgba(139, 92, 246, 0.25);
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 .mode-toggle-pill:active { transform: scale(0.92); }
 
 .sync-pill-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   cursor: pointer;
   border: 1px solid rgba(255, 255, 255, 0.16);
   background: rgba(255, 255, 255, 0.07);
+  min-height: 36px;
   padding: 6px 11px;
   border-radius: 99px;
   font-size: 11.5px;
   color: #cbd5e1;
   white-space: nowrap;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 .sync-pill-btn:active { transform: scale(0.92); background: rgba(52, 211, 153, 0.2); }
 
