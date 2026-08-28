@@ -33,12 +33,12 @@ function ledgerCacheKey(){
 
 function saveLocalLedgerCache() {
   const ck = ledgerCacheKey(); if(!ck) return;
-  try { localStorage.setItem(ck, JSON.stringify(ledgerPeople)); } catch(e){}
+  try { localStorage.setItem(ck, JSON.stringify(ledgerPeople)); } catch(e){ console.warn('Ledger cache save warning:', e.message); }
 }
 
 function detachLedgerListeners(){
-  if (ledgerUnsubscribe) { try { ledgerUnsubscribe(); } catch(e){} ledgerUnsubscribe = null; }
-  ledgerTxUnsubs.forEach(u => { try { u(); } catch(e){} });
+  if (ledgerUnsubscribe) { try { ledgerUnsubscribe(); } catch(e){ console.warn('Unsubscribe error:', e.message); } ledgerUnsubscribe = null; }
+  ledgerTxUnsubs.forEach(u => { try { u(); } catch(e){ console.warn('Tx unsubscribe error:', e.message); } });
   ledgerTxUnsubs = [];
 }
 
@@ -49,13 +49,13 @@ function resetLedgerLocal() {
     Object.keys(localStorage)
       .filter(k => k === LOCAL_LEDGER_KEY || k.indexOf(LOCAL_LEDGER_KEY + '_') === 0)
       .forEach(k => localStorage.removeItem(k));
-  } catch(e){}
+  } catch(e){ console.warn('Ledger cache clear warning:', e.message); }
 }
 
 function loadLocalLedgerCache() {
   ledgerPeople = [];
   const ck = ledgerCacheKey(); if(!ck) return;
-  try { const cached = localStorage.getItem(ck); if (cached) ledgerPeople = JSON.parse(cached) || []; } catch(e){}
+  try { const cached = localStorage.getItem(ck); if (cached) ledgerPeople = JSON.parse(cached) || []; } catch(e){ console.warn('Ledger cache load error:', e.message); }
 }
 
 // Dedicated Custom Glassmorphism Modal System for Ledger (Zero browser prompts)

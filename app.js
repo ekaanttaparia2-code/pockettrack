@@ -2678,8 +2678,18 @@ window.openFirstTimeModeSelector = function() {
 document.addEventListener('DOMContentLoaded', () => {
   const savedMode = localStorage.getItem('pockettrack_app_mode') || 'power';
   window.setAppMode(savedMode, false);
-  if (!localStorage.getItem('pockettrack_age_group') && !localStorage.getItem('pockettrack_app_mode_chosen')) {
-    setTimeout(window.openAgeModeModal, 1200);
+  
+  // Prompt user for age group if not already set
+  if (!localStorage.getItem('pockettrack_age_group')) {
+    const onboardingEl = document.getElementById('onboarding-screen');
+    const isOnboardingActive = onboardingEl && onboardingEl.style.display !== 'none';
+    if (!isOnboardingActive) {
+      setTimeout(() => {
+        if (typeof window.openAgeModeModal === 'function') {
+          window.openAgeModeModal();
+        }
+      }, 700);
+    }
   }
 });
 

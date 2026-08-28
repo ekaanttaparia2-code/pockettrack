@@ -362,6 +362,7 @@ function _dupUTC(d){return Date.UTC(+d.slice(0,4),+d.slice(5,7)-1,+d.slice(8,10)
 
 function findDuplicateEntry(payload){
   try{
+    if(!payload || payload.transferGroupId || payload.isRecurring || payload.allowDuplicate) return null;
     if(!Array.isArray(entries)||!entries.length)return null;
     const amt=Math.round((Number(payload.amt)||0)*100)/100;
     if(!(amt>0))return null;

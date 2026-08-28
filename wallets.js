@@ -622,8 +622,16 @@ window.submitWalletTransfer = async function() {
 
   const fromWallet = userWallets.find(w => w.id === fromId);
   const toWallet = userWallets.find(w => w.id === toId);
+
+  if (!fromWallet || !toWallet) {
+    if (typeof toast === 'function') toast('Invalid source or destination wallet', 'error');
+    return;
+  }
+
   const dateStr = (typeof todayStr === 'function') ? todayStr() : new Date().toISOString().split('T')[0];
-  const transferGroupId = 'txfer_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+  const transferGroupId = (window.crypto && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : ('txfer_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9));
 
   try {
     const debitPayload = {
