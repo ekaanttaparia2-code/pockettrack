@@ -1,7 +1,7 @@
 /* Transaction syncing, entry management, and transaction-list UI. */
 
 function getWalletBadgeHtml(entryOrId) {
-  if (typeof window.getWalletBadgeHtml === 'function') {
+  if (typeof window.getWalletBadgeHtml === 'function' && window.getWalletBadgeHtml !== getWalletBadgeHtml) {
     return window.getWalletBadgeHtml(entryOrId);
   }
   if (!entryOrId) return '';
@@ -15,7 +15,8 @@ function getWalletBadgeHtml(entryOrId) {
   ];
   const w = wList.find(x => x.id === wId) || { name: wId, icon: '💳' };
   const cls = wId === 'cash' ? 'wallet-tag-cash' : (wId === 'bank' ? 'wallet-tag-bank' : (wId === 'card' ? 'wallet-tag-card' : ''));
-  return `<span class="wallet-badge-tag ${cls}" style="margin-left:4px;">${w.icon || '💳'} ${escapeHTML(w.name)}</span>`;
+  const safeName = (typeof escapeHTML === 'function') ? escapeHTML(w.name) : (w.name || '');
+  return `<span class="wallet-badge-tag ${cls}" style="margin-left:4px;">${w.icon || '💳'} ${safeName}</span>`;
 }
 
 function updateHeaderStats(){

@@ -7,7 +7,6 @@
  */
 
 function escapeHTML(str) {
-  if (typeof window.escapeHTML === 'function') return window.escapeHTML(str);
   const div = document.createElement('div');
   div.textContent = str || '';
   return div.innerHTML;
@@ -224,7 +223,7 @@ window.saveWallets = function() {
  * Calculates current balance for all wallets using Smart Retroactive Classifier
  */
 window.computeWalletBalances = function() {
-  const allTx = (typeof mainEntries === 'function') ? mainEntries() : [];
+  const allTx = (typeof allRawMainEntries === 'function') ? allRawMainEntries() : ((typeof mainEntries === 'function') ? mainEntries() : []);
   const balances = {};
 
   userWallets.forEach(w => {
