@@ -6,6 +6,13 @@
  * with Smart Retroactive Classifier, Atomic Batch Transfers, Wallet Management, and Cloud-First Sync.
  */
 
+function escapeHTML(str) {
+  if (typeof window.escapeHTML === 'function') return window.escapeHTML(str);
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
 // 1. Style Tag Guard — Injects styles only once
 (function() {
   if (document.getElementById('pt-wallets-styles')) return;
@@ -82,6 +89,7 @@ const DEFAULT_WALLETS = [
 ];
 
 let userWallets = [];
+window.userWallets = userWallets;
 window.activeWalletId = 'all'; // 'all' or specific wallet id
 let isCloudWalletsLoaded = false;
 
@@ -101,22 +109,31 @@ window.resolveEntryWalletId = function(tx) {
   // Run Smart NLP text classification on label and note
   const text = ((tx.label || '') + ' ' + (tx.note || '')).toLowerCase();
 
-  // 1. Cash indicators
-  if (/(?:cash|nagad|rokad|in cash|cash diya|नकद|कैश|हाथ में|chai|tea|auto|rickshaw|sabzi|vegetable)/.test(text)) {
-    return 'cash';
+  // 1. Match custom wallet names
+  if (typeof userWallets !== 'undefined' && Array.isArray(userWallets)) {
+    for (const w of userWallets) {
+      if (w.id !== 'cash' && w.id !== 'bank' && w.id !== 'card') {
+        if (text.includes(w.name.toLowerCase())) return w.id;
+      }
+    }
   }
 
-  // 2. Credit Card indicators
-  if (/(?:credit card|credit|card|hdfc card|sbi card|icici card|axis card|amex|onecard|क्रेडिट कार्ड|कार्ड)/.test(text)) {
-    return 'card';
-  }
-
-  // 3. UPI / Bank indicators
-  if (/(?:upi|gpay|google pay|phonepe|paytm|bank|online|netbanking|neft|imps|account|salary|credited|transfer|खाते|बैंक|यूपीआई)/.test(text)) {
+  // 2. UPI / Bank indicators (salary, credited, account, upi, bank, gpay, phonepe)
+  if (/\b(?:upi|gpay|google pay|phonepe|paytm|bank|online|netbanking|neft|imps|account|salary|credited|transfer|खाते|बैंक|यूपीआई)\b/i.test(text)) {
     return 'bank';
   }
 
-  // 4. Fallback heuristics based on category & type
+  // 3. Credit Card indicators (credit card, onecard, amex, hdfc card, sbi card, icici card, axis card)
+  if (/\b(?:credit card|onecard|amex|hdfc card|sbi card|icici card|axis card|card payment|cc bill|क्रेडिट कार्ड|कार्ड)\b/i.test(text) || (/\bcard\b/i.test(text) && !/\b(scratch card|postcard|cardboard)\b/i.test(text))) {
+    return 'card';
+  }
+
+  // 4. Cash indicators (cash, nagad, rokad, chai, tea, auto, rickshaw, sabzi)
+  if (/\b(?:cash|nagad|rokad|in cash|cash diya|नकद|कैश|हाथ में|chai|tea|auto|rickshaw|sabzi|vegetable)\b/i.test(text)) {
+    return 'cash';
+  }
+
+  // 5. Fallback heuristics based on category & type
   if (tx.type === 'income') return 'bank';
   if (tx.cat === 'travel' || tx.cat === 'food') return 'cash';
   return 'bank';
@@ -178,8 +195,10 @@ window.loadWallets = function() {
     } else {
       userWallets = JSON.parse(JSON.stringify(DEFAULT_WALLETS));
     }
+    window.userWallets = userWallets;
   } catch (e) {
     userWallets = JSON.parse(JSON.stringify(DEFAULT_WALLETS));
+    window.userWallets = userWallets;
   }
 };
 
@@ -415,6 +434,7 @@ window.submitNewWallet = function() {
   };
 
   userWallets.push(newWallet);
+  window.userWallets = userWallets;
   window.saveWallets();
   if (typeof window.closeCustomSheet === 'function') window.closeCustomSheet();
   window.switchActiveWallet(newWallet.id);
@@ -511,6 +531,7 @@ window.deleteCustomWallet = function(walletId) {
 
   // 1. Remove from local array
   userWallets = userWallets.filter(w => w.id !== walletId);
+  window.userWallets = userWallets;
   window.saveWallets();
 
   // 2. Remove from Firestore

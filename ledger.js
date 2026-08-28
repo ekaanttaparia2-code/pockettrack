@@ -1,3 +1,4 @@
+const TRANSLATIONS = (typeof window !== 'undefined' && window.TRANSLATIONS) ? window.TRANSLATIONS : ((typeof global !== 'undefined' && global.TRANSLATIONS) ? global.TRANSLATIONS : {});
 Object.assign(TRANSLATIONS, {
   nav_ledger: { en: 'Ledger Accounts', hi: 'खाता प्रणाली' },
   btn_add_person: { en: '+ Add Contact', hi: '+ संपर्क जोड़ें' },
@@ -25,6 +26,10 @@ Object.assign(TRANSLATIONS, {
 let ledgerUnsubscribe = null;
 let ledgerTxUnsubs = [];
 let ledgerPeople = [];
+window.ledgerPeople = ledgerPeople;
+function getLedgerPeopleList() {
+  return (typeof window !== 'undefined' && Array.isArray(window.ledgerPeople) && window.ledgerPeople.length) ? window.ledgerPeople : ledgerPeople;
+}
 const LOCAL_LEDGER_KEY = 'pockettrack_local_ledger';
 
 function ledgerCacheKey(){
@@ -592,7 +597,8 @@ if (window.firebase && firebase.auth()) {
 }
 
 window.sendPersonWhatsAppReminder = function(personId, amount) {
-  const person = ledgerPeople.find(p => p._id === personId);
+  const list = getLedgerPeopleList();
+  const person = list.find(p => p._id === personId);
   if (!person) return;
   const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
   const userUpi = (typeof getUserUpiId === 'function' ? getUserUpiId() : '') || 'pockettrack@upi';

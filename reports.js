@@ -1,16 +1,24 @@
 /* Financial reports, category charting, and report export. */
+var period = (typeof window !== 'undefined' && window.period) ? window.period : 'week';
 
 function setPeriod(p){
-  period=p;
+  period = p;
+  if (typeof window !== 'undefined') window.period = p;
   document.querySelectorAll('#period-toggle button').forEach(b=>b.classList.remove('active'));
   const idx={week:0,month:1,all:2,custom:3}[p];
-  document.querySelectorAll('#period-toggle button')[idx].classList.add('active');
+  if (document.querySelectorAll('#period-toggle button')[idx]) {
+    document.querySelectorAll('#period-toggle button')[idx].classList.add('active');
+  }
   const showCustom=p==='custom';
-  document.getElementById('rep-from').style.display=showCustom?'block':'none';
-  document.getElementById('rep-to-label').style.display=showCustom?'block':'none';
-  document.getElementById('rep-to').style.display=showCustom?'block':'none';
+  const repFrom = document.getElementById('rep-from');
+  const repToLabel = document.getElementById('rep-to-label');
+  const repTo = document.getElementById('rep-to');
+  if (repFrom) repFrom.style.display=showCustom?'block':'none';
+  if (repToLabel) repToLabel.style.display=showCustom?'block':'none';
+  if (repTo) repTo.style.display=showCustom?'block':'none';
   renderReport();
 }
+window.setPeriod = setPeriod;
 
 function getReportEntries(){
   const base = mainEntries();
@@ -145,6 +153,7 @@ function renderReport(){
   if (typeof renderFutureMoneySimulator === 'function') renderFutureMoneySimulator();
   if (typeof renderWalletDistributionCard === 'function') renderWalletDistributionCard();
 }
+window.renderReport = renderReport;
 
 function copyReport(){
   // Preview mode: export is unlocked for testers. Live mode: only Pro can export.

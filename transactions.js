@@ -46,6 +46,7 @@ function updateHeaderStats(){
   }
   renderHomeSnapshot();
 }
+window.updateHeaderStats = updateHeaderStats;
 
 function renderHomeSnapshot(){
   const wrap=document.getElementById('home-recent-activity');
@@ -84,6 +85,7 @@ function renderHomeSnapshot(){
     }
   }
 }
+window.renderHomeSnapshot = renderHomeSnapshot;
 
 let composerMode='expense';
 let composerSelection='food';
@@ -565,17 +567,20 @@ function cancelEdit(){
 }
 
 function deleteEntry(id){
-  const target = entries.find(e => e._id === id);
+  const allList = (typeof window !== 'undefined' && Array.isArray(window.entries) && window.entries.length) ? window.entries : entries;
+  const target = allList.find(e => e._id === id);
   const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
-  showAppConfirm(isHi ? 'क्या आप इस एंट्री को हटाना चाहते हैं?' : 'Delete this entry?', async ()=>{
+  return showAppConfirm(isHi ? 'क्या आप इस एंट्री को हटाना चाहते हैं?' : 'Delete this entry?', async ()=>{
     try {
       if (target && target.transferPeerId) {
         await removeEntry(id);
         await removeEntry(target.transferPeerId);
         entries = entries.filter(e => e._id !== id && e._id !== target.transferPeerId);
+        if (typeof window !== 'undefined') window.entries = entries;
       } else {
         await removeEntry(id);
         entries = entries.filter(e => e._id !== id);
+        if (typeof window !== 'undefined') window.entries = entries;
       }
       updateHeaderStats();
       renderEntries();
@@ -587,7 +592,7 @@ function deleteEntry(id){
     }
   });
 }
-
+window.deleteEntry = deleteEntry;
 
 function resetFilter(){
   document.getElementById('filter-from').value='';
@@ -665,6 +670,7 @@ function renderEntries(){
       </div>`;
   }).join('');
 }
+window.renderEntries = renderEntries;
 
 function checkEntryLimit(){
   const banner = document.getElementById('limit-banner');
@@ -716,6 +722,7 @@ function checkEntryLimit(){
 // ===== Manifest app-shortcut actions (?action=expense|income|report) =====
 (function initShortcutAction(){
   const run = () => {
+    if (typeof location === 'undefined' || !location.search) return;
     const action = new URLSearchParams(location.search).get('action');
     if(!action) return;
     if(action==='expense' || action==='income'){ if(typeof openQuickComposer==='function') openQuickComposer(action); }

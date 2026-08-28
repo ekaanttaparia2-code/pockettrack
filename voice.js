@@ -1,3 +1,4 @@
+const TRANSLATIONS = (typeof window !== 'undefined' && window.TRANSLATIONS) ? window.TRANSLATIONS : ((typeof global !== 'undefined' && global.TRANSLATIONS) ? global.TRANSLATIONS : {});
 Object.assign(TRANSLATIONS, {
   voice_entry_title: { en: 'Voice Expense Log', hi: 'वॉयस खर्च रिकॉर्डर' },
   voice_listening: { en: 'Listening... Speak now!', hi: 'सुन रहा है... अब बोलें!' },

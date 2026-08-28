@@ -176,7 +176,9 @@ const TRANSLATIONS = {
   step_log:{en:'3. Auto-logged!',hi:'3. ऑटो-लॉग हो गया!'},
   step3_desc:{en:"Confirm and it's saved instantly", hi:'कन्फर्म करें और तुरंत सेव हो जाएगा'},
 };
+window.TRANSLATIONS = TRANSLATIONS;
 let currentLang = localStorage.getItem('pocketTrackLang') || 'en';
+window.currentLang = currentLang;
 
 const PLACEHOLDER_TRANSLATIONS = {
   ph_email:{en:'you@example.com',hi:'you@example.com'},
@@ -213,9 +215,11 @@ function applyLanguage(){
   });
   updateLanguageTabUI();
   // re-render dynamic sections so their generated text (category names, empty states) updates too
-  if(document.getElementById('tab-entries').style.display!=='none') renderEntries();
+  if(document.getElementById('tab-entries').style.display!=='none') {
+    if(typeof renderEntries==='function') renderEntries();
+  }
   if(document.getElementById('tab-report').style.display!=='none'){
-    renderReport();
+    if(typeof renderReport==='function') renderReport();
     const tipEl=document.getElementById('money-tip-text');
     if(tipEl && lastTipIndex>=0) tipEl.textContent = MONEY_TIPS[lastTipIndex][currentLang] || MONEY_TIPS[lastTipIndex].en;
   }
@@ -292,7 +296,10 @@ const CAT_LABELS_BI = {
 };
 function CAT_LABEL(cat){ return (CAT_LABELS_BI[cat] && CAT_LABELS_BI[cat][currentLang]) || cat; }
 function displayCatLabel(e){ return (e.cat==='custom' && e.customCat) ? e.customCat : CAT_LABEL(e.cat); }
+window.CAT_LABEL = CAT_LABEL;
+window.displayCatLabel = displayCatLabel;
 const CAT_LABELS = new Proxy({}, { get: (_, cat) => CAT_LABEL(cat) }); // backward-compatible drop-in
+window.CAT_LABELS = CAT_LABELS;
 
 const MSG = {
   no_entries_log:{en:'No entries yet — log something!',hi:'अभी तक कोई एंट्री नहीं — कुछ लॉग करें!'},
@@ -327,6 +334,7 @@ function TT(key){
   if(!entry) return key;
   return entry[currentLang] || entry['hi'] || entry.en || key;
 }
+window.TT = TT;
 
 // --- Money-saving tips (rotates a random tip each time, bilingual) ---
 const MONEY_TIPS = [
@@ -351,9 +359,12 @@ function showNextTip(){
 }
 
 const CAT_COLORS = {food:'#4ade80',travel:'#60a5fa',friends:'#ffb84d',home:'#ff7eb3',shopping:'#c084fc',entertainment:'#f472b6',health:'#fb7185',education:'#fbbf24',work:'#22d3ee',other:'#9b95c2',custom:'#c4a8ff'};
+window.CAT_COLORS = CAT_COLORS;
 let entries = [];
+window.entries = entries;
 function mainEntries(){
-  const base = entries.filter(e=>!e.event);
+  const list = (typeof window !== 'undefined' && Array.isArray(window.entries) && window.entries.length) ? window.entries : entries;
+  const base = list.filter(e=>!e.event);
   if (typeof activeWalletId !== 'undefined' && activeWalletId && activeWalletId !== 'all') {
     return base.filter(e => {
       const wId = (typeof resolveEntryWalletId === 'function') ? resolveEntryWalletId(e) : (e.walletId || (e.type === 'income' ? 'bank' : 'cash'));
@@ -362,12 +373,21 @@ function mainEntries(){
   }
   return base;
 }
-function allRawMainEntries(){ return entries.filter(e=>!e.event); }
+window.mainEntries = mainEntries;
+function allRawMainEntries(){
+  const list = (typeof window !== 'undefined' && Array.isArray(window.entries) && window.entries.length) ? window.entries : entries;
+  return list.filter(e=>!e.event);
+}
+window.allRawMainEntries = allRawMainEntries;
 let period = 'week';
+window.period = period;
 
 function dateToStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function todayStr(){return dateToStr(new Date())}
 function fmtDate(d){return new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short'})}
+window.dateToStr = dateToStr;
+window.todayStr = todayStr;
+window.fmtDate = fmtDate;
 
 // --- Validation & sanitization helpers ---
 const MAX_AMT = 999999999;
@@ -376,6 +396,7 @@ function escapeHTML(str){
   div.textContent=str;
   return div.innerHTML;
 }
+window.escapeHTML = escapeHTML;
 function isValidAmount(amt){
   return typeof amt==='number' && isFinite(amt) && amt>0 && amt<=MAX_AMT;
 }
@@ -512,6 +533,10 @@ function totalBudget(){ // sum of all category budgets (used for the Health Scor
   const sum = Object.values(categoryBudgets).reduce((a,b)=>a+(Number(b)||0),0);
   return sum || (budgetPeriod==='weekly'? weeklyBudget : monthlyBudget);
 }
+window.totalBudget = totalBudget;
+window.weeklyBudget = weeklyBudget;
+window.monthlyBudget = monthlyBudget;
+window.budgetPeriod = budgetPeriod;
 
 function setBudgetPeriod(period){
   budgetPeriod=period;
@@ -1328,9 +1353,11 @@ function setTab(t){
     btn.classList.toggle('active', btn.dataset.tab===t);
   });
   document.getElementById('header-stat-pills').style.display = (t==='log'||t==='entries') ? 'flex' : 'none';
-  if(t==='entries')renderEntries();
+  if(t==='entries'){
+    if(typeof renderEntries==='function') renderEntries();
+  }
   if(t==='report'){
-    renderReport();
+    if(typeof renderReport==='function') renderReport();
     showNextTip();
     if(typeof renderBudgetEditor==='function') renderBudgetEditor();
     if(typeof ptSyncGates === 'function') ptSyncGates();
@@ -2476,7 +2503,7 @@ function clearAll(){
   };
 })();
 
-renderReport();
+if (typeof renderReport === 'function') renderReport();
 applyLanguage();
 
 // --- PWA: installable app (manifest + service worker). This enables
