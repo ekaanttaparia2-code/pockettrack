@@ -1,5 +1,23 @@
 /* Transaction syncing, entry management, and transaction-list UI. */
 
+function getWalletBadgeHtml(entryOrId) {
+  if (typeof window.getWalletBadgeHtml === 'function') {
+    return window.getWalletBadgeHtml(entryOrId);
+  }
+  if (!entryOrId) return '';
+  const wId = (typeof entryOrId === 'object' && entryOrId !== null)
+    ? ((typeof resolveEntryWalletId === 'function') ? resolveEntryWalletId(entryOrId) : (entryOrId.walletId || 'cash'))
+    : entryOrId;
+  const wList = (typeof userWallets !== 'undefined' && userWallets.length) ? userWallets : [
+    { id: 'cash', name: 'Cash', icon: '💵' },
+    { id: 'bank', name: 'Bank / UPI', icon: '📱' },
+    { id: 'card', name: 'Credit Card', icon: '💳' }
+  ];
+  const w = wList.find(x => x.id === wId) || { name: wId, icon: '💳' };
+  const cls = wId === 'cash' ? 'wallet-tag-cash' : (wId === 'bank' ? 'wallet-tag-bank' : (wId === 'card' ? 'wallet-tag-card' : ''));
+  return `<span class="wallet-badge-tag ${cls}" style="margin-left:4px;">${w.icon || '💳'} ${escapeHTML(w.name)}</span>`;
+}
+
 function updateHeaderStats(){
   const list = mainEntries();
   const income=list.filter(e=>e.type==='income').reduce((s,e)=>s+e.amt,0);
@@ -44,7 +62,7 @@ function renderHomeSnapshot(){
     const label=displayCatLabel(e);
     const title=e.label||label||'Entry';
     const date=e.date||'';
-    const wBadge = (typeof getWalletBadgeHtml === 'function') ? getWalletBadgeHtml(e.walletId) : '';
+    const wBadge = (typeof getWalletBadgeHtml === 'function') ? getWalletBadgeHtml(e) : '';
     return `<div class="home-entry-row">
       <span class="home-entry-icon ${income?'income':'expense'}"><i class="ti ${income?'ti-arrow-down-left':'ti-arrow-up-right'}"></i></span>
       <div class="home-entry-main"><strong>${escapeHTML(title)} ${wBadge}</strong><span>${escapeHTML(label)} · ${escapeHTML(date)}</span></div>
@@ -610,19 +628,6 @@ function renderEntries(){
   else if(sortMode==='date-asc')dateKeys.sort((a,b)=>a.localeCompare(b));
   else if(sortMode==='amt-desc')dateKeys.sort((a,b)=>(byDate[b].income-byDate[b].expense)-(byDate[a].income-byDate[a].expense));
   else if(sortMode==='amt-asc')dateKeys.sort((a,b)=>(byDate[a].income-byDate[a].expense)-(byDate[b].income-byDate[b].expense));
-
-function getWalletBadgeHtml(entry) {
-  const wId = (typeof resolveEntryWalletId === 'function') ? resolveEntryWalletId(entry) : (entry.walletId || 'cash');
-  if (!wId) return '';
-  const wList = (typeof userWallets !== 'undefined' && userWallets.length) ? userWallets : [
-    { id: 'cash', name: 'Cash', icon: '💵' },
-    { id: 'bank', name: 'Bank / UPI', icon: '📱' },
-    { id: 'card', name: 'Card', icon: '💳' }
-  ];
-  const w = wList.find(x => x.id === wId) || { name: wId, icon: '💳' };
-  const cls = wId === 'cash' ? 'wallet-tag-cash' : (wId === 'bank' ? 'wallet-tag-bank' : (wId === 'card' ? 'wallet-tag-card' : ''));
-  return `<span class="wallet-badge-tag ${cls}" style="margin-left:4px;">${w.icon || '💳'} ${escapeHTML(w.name)}</span>`;
-}
 
   el.innerHTML=dateKeys.map(d=>{
     const grp=byDate[d];

@@ -123,6 +123,30 @@ window.resolveEntryWalletId = function(tx) {
 };
 
 /**
+ * Universal Wallet Badge Generator (Polymorphic: accepts entry object or walletId string)
+ */
+window.getWalletBadgeHtml = function(entryOrId) {
+  if (!entryOrId) return '';
+  let wId = '';
+  if (typeof entryOrId === 'object' && entryOrId !== null) {
+    wId = (typeof window.resolveEntryWalletId === 'function') ? window.resolveEntryWalletId(entryOrId) : (entryOrId.walletId || 'cash');
+  } else if (typeof entryOrId === 'string') {
+    wId = entryOrId;
+  }
+  if (!wId) return '';
+
+  const wList = (typeof userWallets !== 'undefined' && userWallets.length) ? userWallets : [
+    { id: 'cash', name: 'Cash', icon: '💵' },
+    { id: 'bank', name: 'Bank / UPI', icon: '📱' },
+    { id: 'card', name: 'Credit Card', icon: '💳' }
+  ];
+  const w = wList.find(x => x.id === wId) || { name: wId, icon: '💳' };
+  const cls = wId === 'cash' ? 'wallet-tag-cash' : (wId === 'bank' ? 'wallet-tag-bank' : (wId === 'card' ? 'wallet-tag-card' : ''));
+  const safeName = (typeof escapeHTML === 'function') ? escapeHTML(w.name) : w.name;
+  return `<span class="wallet-badge-tag ${cls}" style="margin-left:4px;">${w.icon || '💳'} ${safeName}</span>`;
+};
+
+/**
  * Loads wallets from localStorage and ensures defaults exist
  */
 window.loadWallets = function() {
