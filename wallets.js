@@ -3,12 +3,14 @@
 /**
  * PocketTrack Multi-Wallet & Smart Account Engine
  * Supports Cash, Bank/UPI, Credit Cards, and Custom Wallets
- * with live balance calculation, transfers, smart context detection, and cloud sync.
+ * with Smart Retroactive Classifier, Atomic Batch Transfers, Wallet Management, and Cloud-First Sync.
  */
 
-// Inject styles for Wallet Switcher, Account Cards, and Badges
+// 1. Style Tag Guard — Injects styles only once
 (function() {
+  if (document.getElementById('pt-wallets-styles')) return;
   const s = document.createElement('style');
+  s.id = 'pt-wallets-styles';
   s.textContent = `
     .wallet-switcher-bar {
       display: flex;
@@ -74,19 +76,55 @@
 
 // Default system wallets
 const DEFAULT_WALLETS = [
-  { id: 'cash', name: 'Cash', type: 'cash', icon: '💵', initialBalance: 0, color: '#34d399' },
-  { id: 'bank', name: 'Bank / UPI', type: 'bank', icon: '📱', initialBalance: 0, color: '#60a5fa' },
-  { id: 'card', name: 'Credit Card', type: 'card', icon: '💳', initialBalance: 0, color: '#f43f5e' }
+  { id: 'cash', name: 'Cash', type: 'cash', icon: '💵', initialBalance: 0, color: '#34d399', isDefault: true },
+  { id: 'bank', name: 'Bank / UPI', type: 'bank', icon: '📱', initialBalance: 0, color: '#60a5fa', isDefault: true },
+  { id: 'card', name: 'Credit Card', type: 'card', icon: '💳', initialBalance: 0, color: '#f43f5e', isDefault: true }
 ];
 
 let userWallets = [];
 window.activeWalletId = 'all'; // 'all' or specific wallet id
+let isCloudWalletsLoaded = false;
 
 function getWalletsStorageKey() {
   const uid = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.uid : 'guest';
   return 'pockettrack_wallets_' + uid;
 }
 
+/**
+ * Smart Retroactive Classifier:
+ * Determines the true wallet for any transaction (especially legacy entries that have no walletId).
+ */
+window.resolveEntryWalletId = function(tx) {
+  if (!tx) return 'cash';
+  if (tx.walletId) return tx.walletId;
+
+  // Run Smart NLP text classification on label and note
+  const text = ((tx.label || '') + ' ' + (tx.note || '')).toLowerCase();
+
+  // 1. Cash indicators
+  if (/(?:cash|nagad|rokad|in cash|cash diya|नकद|कैश|हाथ में|chai|tea|auto|rickshaw|sabzi|vegetable)/.test(text)) {
+    return 'cash';
+  }
+
+  // 2. Credit Card indicators
+  if (/(?:credit card|credit|card|hdfc card|sbi card|icici card|axis card|amex|onecard|क्रेडिट कार्ड|कार्ड)/.test(text)) {
+    return 'card';
+  }
+
+  // 3. UPI / Bank indicators
+  if (/(?:upi|gpay|google pay|phonepe|paytm|bank|online|netbanking|neft|imps|account|salary|credited|transfer|खाते|बैंक|यूपीआई)/.test(text)) {
+    return 'bank';
+  }
+
+  // 4. Fallback heuristics based on category & type
+  if (tx.type === 'income') return 'bank';
+  if (tx.cat === 'travel' || tx.cat === 'food') return 'cash';
+  return 'bank';
+};
+
+/**
+ * Loads wallets from localStorage and ensures defaults exist
+ */
 window.loadWallets = function() {
   try {
     let saved = null;
@@ -107,7 +145,7 @@ window.loadWallets = function() {
     }
 
     if (saved && Array.isArray(saved)) {
-      // Merge with default wallets to ensure cash/bank/card always exist
+      // Merge defaults if not present
       const existingIds = new Set(saved.map(w => w.id));
       DEFAULT_WALLETS.forEach(dw => {
         if (!existingIds.has(dw.id)) saved.push({ ...dw });
@@ -121,6 +159,9 @@ window.loadWallets = function() {
   }
 };
 
+/**
+ * Saves wallets to localStorage and Firestore
+ */
 window.saveWallets = function() {
   try {
     const dataStr = JSON.stringify(userWallets);
@@ -137,7 +178,7 @@ window.saveWallets = function() {
 };
 
 /**
- * Calculates current balance for all wallets based on transactions
+ * Calculates current balance for all wallets using Smart Retroactive Classifier
  */
 window.computeWalletBalances = function() {
   const allTx = (typeof mainEntries === 'function') ? mainEntries() : [];
@@ -149,7 +190,7 @@ window.computeWalletBalances = function() {
 
   allTx.forEach(tx => {
     const amt = parseFloat(tx.amt) || 0;
-    const wId = tx.walletId || (tx.cat === 'income' ? 'bank' : 'cash');
+    const wId = window.resolveEntryWalletId(tx);
     if (balances[wId] !== undefined) {
       if (tx.type === 'income') {
         balances[wId] += amt;
@@ -201,6 +242,9 @@ window.renderWalletSwitcher = function() {
     <button class="wallet-pill" onclick="openTransferModal()" style="background:rgba(139,92,246,0.12);border-color:rgba(139,92,246,0.4);color:var(--accent-bright,#c4b5fd);">
       <span>🔁 ${typeof currentLang !== 'undefined' && currentLang === 'hi' ? 'ट्रांसफर' : 'Transfer'}</span>
     </button>
+    <button class="wallet-pill" onclick="openWalletManagerModal()" style="background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.15);" title="Manage & Delete Wallets">
+      <span>⚙️ ${typeof currentLang !== 'undefined' && currentLang === 'hi' ? 'प्रबंधन' : 'Manage'}</span>
+    </button>
     <button class="wallet-pill add-pill" onclick="openNewWalletModal()">
       <i class="ti ti-plus"></i> <span>${typeof currentLang !== 'undefined' && currentLang === 'hi' ? 'नया वॉलेट' : 'Add Wallet'}</span>
     </button>
@@ -242,7 +286,7 @@ window.detectWalletFromText = function(text) {
   }
 
   // 3. Match Credit Card keywords
-  if (/(?:credit card|credit|card|hdfc card|sbi card|icici card|axis card|क्रेडिट कार्ड|कार्ड)/.test(t)) {
+  if (/(?:credit card|credit|card|hdfc card|sbi card|icici card|axis card|amex|onecard|क्रेडिट कार्ड|कार्ड)/.test(t)) {
     return 'card';
   }
 
@@ -354,6 +398,120 @@ window.submitNewWallet = function() {
 };
 
 /**
+ * In-App Modal for Managing & Deleting Custom Wallets
+ */
+window.openWalletManagerModal = function() {
+  const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
+  let container = document.getElementById('pt-sheet-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'pt-sheet-container';
+    container.className = 'pt-sheet-backdrop';
+    container.onclick = function(e) {
+      if (e.target === container) window.closeCustomSheet();
+    };
+    document.body.appendChild(container);
+  }
+
+  const balances = window.computeWalletBalances();
+
+  const walletItems = userWallets.map(w => {
+    const bal = balances[w.id] || 0;
+    const isCustom = !w.isDefault && w.id !== 'cash' && w.id !== 'bank' && w.id !== 'card';
+    return `
+      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:22px;">${w.icon || '💳'}</span>
+          <div>
+            <div style="font-size:14px;font-weight:700;color:#fff;">${escapeHTML(w.name)} ${w.isDefault ? '<span style="font-size:10px;color:var(--text-dim);font-weight:500;">(System)</span>' : ''}</div>
+            <div style="font-size:12px;color:var(--green,#34d399);font-weight:700;">₹${bal.toLocaleString('en-IN')}</div>
+          </div>
+        </div>
+        <div>
+          ${isCustom ? `
+            <button onclick="deleteCustomWallet('${w.id}')" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.35);color:#f87171;padding:6px 12px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;">
+              🗑️ ${isHi ? 'हटाएं' : 'Delete'}
+            </button>
+          ` : `
+            <span style="font-size:11px;color:var(--text-dim);padding:4px 8px;">Default</span>
+          `}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="pt-sheet-panel" style="max-width:440px;">
+      <div class="pt-sheet-handle"></div>
+      
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:24px;">⚙️</span>
+          <h3 style="margin:0;font-size:19px;font-weight:800;color:#fff;font-family:'Space Grotesk',sans-serif;">${isHi ? 'वॉलेट और खाते प्रबंधित करें' : 'Manage Wallets & Accounts'}</h3>
+        </div>
+        <button onclick="closeCustomSheet()" style="background:rgba(255,255,255,0.08);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;">✕</button>
+      </div>
+
+      <p style="font-size:12px;color:var(--text-dim);margin:0 0 14px;">
+        ${isHi ? 'कस्टम वॉलेट हटाएं या नए खाते जोड़ें।' : 'Edit or delete custom wallets. System wallets remain protected.'}
+      </p>
+
+      <div style="max-height:280px;overflow-y:auto;margin-bottom:16px;">
+        ${walletItems}
+      </div>
+
+      <div style="display:flex;gap:10px;">
+        <button class="btn" onclick="closeCustomSheet()" style="flex:1;border-radius:14px;padding:12px;font-size:13px;">${isHi ? 'बंद करें' : 'Close'}</button>
+        <button class="btn primary" onclick="closeCustomSheet();openNewWalletModal();" style="flex:1.4;border-radius:14px;padding:12px;font-weight:800;font-size:13px;background:linear-gradient(135deg,#8b5cf6,#10b981);">+ ${isHi ? 'नया वॉलेट जोड़ें' : 'Add New Wallet'}</button>
+      </div>
+    </div>
+  `;
+
+  requestAnimationFrame(() => {
+    container.classList.add('active');
+  });
+};
+
+/**
+ * Deletes a custom wallet and reassigns its transactions
+ */
+window.deleteCustomWallet = function(walletId) {
+  const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
+  const targetWallet = userWallets.find(w => w.id === walletId);
+  if (!targetWallet) return;
+
+  if (targetWallet.isDefault || walletId === 'cash' || walletId === 'bank' || walletId === 'card') {
+    if (typeof toast === 'function') toast('Default system wallets cannot be deleted', 'error');
+    return;
+  }
+
+  // 1. Remove from local array
+  userWallets = userWallets.filter(w => w.id !== walletId);
+  window.saveWallets();
+
+  // 2. Remove from Firestore
+  if (typeof currentUser !== 'undefined' && currentUser && typeof db !== 'undefined') {
+    try {
+      db.collection('users').doc(currentUser.uid).collection('wallets').doc(walletId).delete().catch(()=>{});
+    } catch(e){}
+  }
+
+  // 3. Reset active wallet if it was active
+  if (window.activeWalletId === walletId) {
+    window.activeWalletId = 'all';
+  }
+
+  if (typeof window.closeCustomSheet === 'function') window.closeCustomSheet();
+  window.renderWalletSwitcher();
+  if (typeof updateHeaderStats === 'function') updateHeaderStats();
+  if (typeof renderHomeSnapshot === 'function') renderHomeSnapshot();
+  if (typeof renderEntries === 'function') renderEntries();
+  if (typeof renderBudgetEditor === 'function') renderBudgetEditor();
+  if (typeof renderReport === 'function') renderReport();
+  if (typeof toast === 'function') toast(`Deleted "${targetWallet.name}"!`, 'info');
+};
+
+/**
  * In-App Modal for Inter-Wallet Transfer (e.g. Bank to Cash ATM withdrawal)
  */
 window.openTransferModal = function() {
@@ -421,6 +579,9 @@ window.openTransferModal = function() {
   });
 };
 
+/**
+ * Atomic Batch Transfer execution in Firestore & Local state
+ */
 window.submitWalletTransfer = async function() {
   const fromId = document.getElementById('transfer-from-wallet')?.value;
   const toId = document.getElementById('transfer-to-wallet')?.value;
@@ -437,8 +598,8 @@ window.submitWalletTransfer = async function() {
 
   const fromWallet = userWallets.find(w => w.id === fromId);
   const toWallet = userWallets.find(w => w.id === toId);
-
   const dateStr = (typeof todayStr === 'function') ? todayStr() : new Date().toISOString().split('T')[0];
+  const transferGroupId = 'txfer_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
 
   try {
     const debitPayload = {
@@ -448,6 +609,7 @@ window.submitWalletTransfer = async function() {
       note: 'Account Transfer 🔁',
       cat: 'other',
       walletId: fromId,
+      transferGroupId: transferGroupId,
       date: dateStr
     };
     const creditPayload = {
@@ -457,15 +619,34 @@ window.submitWalletTransfer = async function() {
       note: 'Account Transfer 🔁',
       cat: 'income',
       walletId: toId,
+      transferGroupId: transferGroupId,
       date: dateStr
     };
 
-    if (typeof saveEntry === 'function') {
-      await saveEntry(debitPayload);
-      await saveEntry(creditPayload);
+    // Atomic Batch Execution in Firestore
+    if (typeof currentUser !== 'undefined' && currentUser && typeof db !== 'undefined') {
+      const colRef = db.collection('users').doc(currentUser.uid).collection('entries');
+      const debitDoc = colRef.doc();
+      const creditDoc = colRef.doc();
+      
+      debitPayload.transferPeerId = creditDoc.id;
+      creditPayload.transferPeerId = debitDoc.id;
+
+      const batch = db.batch();
+      batch.set(debitDoc, debitPayload);
+      batch.set(creditDoc, creditPayload);
+      await batch.commit();
+
+      // Add to local array
+      if (typeof entries !== 'undefined') {
+        entries.unshift({ _id: debitDoc.id, ...debitPayload });
+        entries.unshift({ _id: creditDoc.id, ...creditPayload });
+      }
     } else if (typeof entries !== 'undefined') {
       debitPayload._id = 'local_' + Date.now() + '_deb';
       creditPayload._id = 'local_' + (Date.now() + 1) + '_cred';
+      debitPayload.transferPeerId = creditPayload._id;
+      creditPayload.transferPeerId = debitPayload._id;
       entries.unshift(debitPayload);
       entries.unshift(creditPayload);
     }
@@ -482,34 +663,41 @@ window.submitWalletTransfer = async function() {
   }
 };
 
+/**
+ * Cloud-First Sync on Auth State Change
+ */
+window.syncWalletsFromCloud = async function(user) {
+  if (!user || typeof db === 'undefined') return;
+  try {
+    const snap = await db.collection('users').doc(user.uid).collection('wallets').get();
+    if (snap && !snap.empty) {
+      const cloudWallets = snap.docs.map(d => ({ ...d.data(), id: d.id }));
+      // Cloud is authoritative on login
+      userWallets = cloudWallets;
+      const existingIds = new Set(userWallets.map(w => w.id));
+      DEFAULT_WALLETS.forEach(dw => {
+        if (!existingIds.has(dw.id)) userWallets.push({ ...dw });
+      });
+      isCloudWalletsLoaded = true;
+      window.saveWallets();
+      window.renderWalletSwitcher();
+      if (typeof updateHeaderStats === 'function') updateHeaderStats();
+    } else {
+      // First time on cloud: seed default wallets
+      window.saveWallets();
+    }
+  } catch (e) {
+    console.warn('Cloud wallets load error:', e.message);
+  }
+};
+
 // Firestore Cloud Sync listener
 if (window.firebase && firebase.auth()) {
   firebase.auth().onAuthStateChanged((user) => {
     window.loadWallets();
     window.renderWalletSwitcher();
-    if (user && typeof db !== 'undefined') {
-      try {
-        db.collection('users').doc(user.uid).collection('wallets')
-          .onSnapshot((snap) => {
-            if (snap && !snap.empty) {
-              const cloudWallets = snap.docs.map(d => ({ ...d.data(), id: d.id }));
-              let changed = false;
-              cloudWallets.forEach(cw => {
-                const idx = userWallets.findIndex(w => w.id === cw.id);
-                if (idx >= 0) {
-                  userWallets[idx] = { ...userWallets[idx], ...cw };
-                } else {
-                  userWallets.push(cw);
-                  changed = true;
-                }
-              });
-              if (changed) {
-                window.saveWallets();
-                window.renderWalletSwitcher();
-              }
-            }
-          }, err => console.warn('Cloud wallets sync fallback:', err.message));
-      } catch(e){}
+    if (user) {
+      window.syncWalletsFromCloud(user);
     }
   });
 }

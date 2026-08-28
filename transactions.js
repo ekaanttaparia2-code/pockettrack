@@ -546,8 +546,26 @@ function cancelEdit(){
 }
 
 function deleteEntry(id){
-  showAppConfirm('Delete this entry?', ()=>{
-    removeEntry(id).then(()=>toast(TT('entry_deleted'),'success')).catch(e=>toast('Could not delete: '+e.message,'error'));
+  const target = entries.find(e => e._id === id);
+  const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
+  showAppConfirm(isHi ? 'क्या आप इस एंट्री को हटाना चाहते हैं?' : 'Delete this entry?', async ()=>{
+    try {
+      if (target && target.transferPeerId) {
+        await removeEntry(id);
+        await removeEntry(target.transferPeerId);
+        entries = entries.filter(e => e._id !== id && e._id !== target.transferPeerId);
+      } else {
+        await removeEntry(id);
+        entries = entries.filter(e => e._id !== id);
+      }
+      updateHeaderStats();
+      renderEntries();
+      if (typeof renderHomeSnapshot === 'function') renderHomeSnapshot();
+      if (typeof renderWalletSwitcher === 'function') renderWalletSwitcher();
+      toast(TT('entry_deleted'),'success');
+    } catch(e) {
+      toast('Could not delete: '+e.message,'error');
+    }
   });
 }
 
@@ -593,15 +611,16 @@ function renderEntries(){
   else if(sortMode==='amt-desc')dateKeys.sort((a,b)=>(byDate[b].income-byDate[b].expense)-(byDate[a].income-byDate[a].expense));
   else if(sortMode==='amt-asc')dateKeys.sort((a,b)=>(byDate[a].income-byDate[a].expense)-(byDate[b].income-byDate[b].expense));
 
-function getWalletBadgeHtml(walletId) {
-  if (!walletId) return '';
+function getWalletBadgeHtml(entry) {
+  const wId = (typeof resolveEntryWalletId === 'function') ? resolveEntryWalletId(entry) : (entry.walletId || 'cash');
+  if (!wId) return '';
   const wList = (typeof userWallets !== 'undefined' && userWallets.length) ? userWallets : [
     { id: 'cash', name: 'Cash', icon: '💵' },
     { id: 'bank', name: 'Bank / UPI', icon: '📱' },
     { id: 'card', name: 'Card', icon: '💳' }
   ];
-  const w = wList.find(x => x.id === walletId) || { name: walletId, icon: '💳' };
-  const cls = walletId === 'cash' ? 'wallet-tag-cash' : (walletId === 'bank' ? 'wallet-tag-bank' : (walletId === 'card' ? 'wallet-tag-card' : ''));
+  const w = wList.find(x => x.id === wId) || { name: wId, icon: '💳' };
+  const cls = wId === 'cash' ? 'wallet-tag-cash' : (wId === 'bank' ? 'wallet-tag-bank' : (wId === 'card' ? 'wallet-tag-card' : ''));
   return `<span class="wallet-badge-tag ${cls}" style="margin-left:4px;">${w.icon || '💳'} ${escapeHTML(w.name)}</span>`;
 }
 
@@ -614,7 +633,7 @@ function getWalletBadgeHtml(walletId) {
       const catKey=(e.cat&&e.cat!=='income'?e.cat:'other');
       const dotColor=(typeof CAT_COLORS!=='undefined'&&CAT_COLORS[catKey])||'var(--text-faint)';
       const meta=escapeHTML(displayCatLabel(e))+(e.note?' · '+escapeHTML(e.note):'');
-      const wBadge=getWalletBadgeHtml(e.walletId);
+      const wBadge=getWalletBadgeHtml(e);
       return `
       <div class="entry-row entry-card">
         <span class="cat-dot" style="background:${dotColor};color:${dotColor}"></span>

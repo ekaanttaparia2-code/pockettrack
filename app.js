@@ -355,7 +355,10 @@ let entries = [];
 function mainEntries(){
   const base = entries.filter(e=>!e.event);
   if (typeof activeWalletId !== 'undefined' && activeWalletId && activeWalletId !== 'all') {
-    return base.filter(e => (e.walletId || (e.type === 'income' ? 'bank' : 'cash')) === activeWalletId);
+    return base.filter(e => {
+      const wId = (typeof resolveEntryWalletId === 'function') ? resolveEntryWalletId(e) : (e.walletId || (e.type === 'income' ? 'bank' : 'cash'));
+      return wId === activeWalletId;
+    });
   }
   return base;
 }
