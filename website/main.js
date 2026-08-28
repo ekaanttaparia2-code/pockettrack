@@ -247,22 +247,7 @@ function updateStepsLine() {
 }
 window.addEventListener('scroll', updateStepsLine, { passive: true });
 
-// --- 10. 3D Card Hover Perspective Tilt ---
-document.querySelectorAll('.card-glass, .feature-card, .phone-frame').forEach(card => {
-  card.addEventListener('mousemove', e => {
-    const rect = card.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-    const rotateX = ((y - centerY) / centerY) * -3;
-    const rotateY = ((x - centerX) / centerX) * 3;
-    card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
-  });
-  card.addEventListener('mouseleave', () => {
-    card.style.transform = '';
-  });
-});
+// (3D Perspective tilt removed for rock-solid stability)
 
 // --- 11. CTA Celebratory Emoji Particle Burst ---
 document.querySelectorAll('.btn-primary, .cta-btn-glow').forEach(btn => {
@@ -331,25 +316,6 @@ function bindAppLaunchLinks() {
   });
 }
 
-// --- 13. Cinematic Brand Logo Intro & Page Reveal Transition ---
-function initIntroTransition() {
-  const curtain = document.getElementById('pt-intro-curtain');
-  if (!curtain) return;
-
-  // Let the logo spring and flare play for 480ms, then smoothly dissolve
-  setTimeout(() => {
-    curtain.classList.add('intro-hidden');
-    // Stagger in the hero elements
-    document.querySelectorAll('.navbar, .hero-title, .hero-desc, .hero-cta-group').forEach((el, i) => {
-      el.classList.add('hero-stagger-' + Math.min(4, i + 1));
-    });
-  }, 480);
-
-  setTimeout(() => {
-    if (curtain && curtain.parentNode) curtain.remove();
-  }, 1200);
-}
-
 // --- 14. Scroll-Driven Reveal Observer ---
 function initScrollReveals() {
   if (!('IntersectionObserver' in window)) return;
@@ -370,7 +336,6 @@ function initScrollReveals() {
 
 // Initialize on DOM load
 document.addEventListener('DOMContentLoaded', () => {
-  initIntroTransition();
   initScrollReveals();
   updateSavingsSim();
   updateLeakCalc();
