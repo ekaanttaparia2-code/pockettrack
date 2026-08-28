@@ -731,10 +731,95 @@ function getPeriodExpenseByCat(){
   return map;
 }
 
-// Build the per-category budget editor (input per category + live progress bars)
+// Build the Budget editor with Simple 1-Number Mode by default + Optional Category Breakdown
+window.budgetViewMode = localStorage.getItem('pockettrack_budget_view_mode') || 'simple';
+
+window.setBudgetViewMode = function(mode) {
+  window.budgetViewMode = mode;
+  localStorage.setItem('pockettrack_budget_view_mode', mode);
+  renderBudgetEditor();
+};
+
+window.getSavedTotalBudget = function() {
+  return parseFloat(localStorage.getItem('pockettrack_total_monthly_budget')) || 15000;
+};
+
+window.setSavedTotalBudget = function(amt) {
+  if (amt > 0) {
+    localStorage.setItem('pockettrack_total_monthly_budget', amt);
+    if (typeof toast === 'function') toast(`Monthly budget set to ₹${amt.toLocaleString('en-IN')}`, 'success');
+    renderBudgetEditor();
+    if (typeof renderReport === 'function') renderReport();
+  }
+};
+
+window.promptEditTotalBudget = function() {
+  const current = window.getSavedTotalBudget();
+  const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
+  const val = prompt(isHi ? 'अपना कुल मासिक बजट दर्ज करें (₹):' : 'Enter your total monthly budget target (₹):', current);
+  if (val && !isNaN(parseFloat(val))) {
+    window.setSavedTotalBudget(parseFloat(val));
+  }
+};
+
 function renderBudgetEditor(){
   const host = document.getElementById('budget-editor');
   if(!host) return;
+
+  const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
+  const isSimple = (window.budgetViewMode === 'simple');
+
+  if (isSimple) {
+    const list = getThisMonthEntries();
+    const totalSpent = list.filter(e => e.type === 'expense').reduce((s, e) => s + (parseFloat(e.amt) || 0), 0);
+    const totalBudget = window.getSavedTotalBudget();
+    const budgetSpentPct = Math.min(100, Math.round((totalSpent / totalBudget) * 100));
+    const isOverBudget = totalSpent > totalBudget;
+
+    const now = new Date();
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const currentDay = now.getDate();
+    const remainingDays = Math.max(1, daysInMonth - currentDay);
+    const remainingBudget = Math.max(0, totalBudget - totalSpent);
+    const safeDailySpend = Math.round(remainingBudget / remainingDays);
+
+    host.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+        <div class="toggle-grp" style="margin:0;">
+          <button class="active" onclick="setBudgetViewMode('simple')">🎯 ${isHi ? 'सरल (1-नंबर)' : 'Simple'}</button>
+          <button onclick="setBudgetViewMode('category')">🏷️ ${isHi ? 'श्रेणीवार' : 'Categories'}</button>
+        </div>
+        <button class="btn btn-sm" onclick="promptEditTotalBudget()" style="border-radius:10px;font-size:11.5px;padding:4px 10px;background:rgba(255,255,255,0.08);color:#fff;border:1px solid var(--border);">⚙️ ${isHi ? 'बजट बदलें' : 'Set Budget'}</button>
+      </div>
+
+      <div style="background:rgba(255,255,255,0.04);border-radius:18px;padding:16px;border:1px solid var(--border);margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+          <div style="font-size:22px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:#fff;">
+            ₹${totalSpent.toLocaleString('en-IN')} <span style="font-size:13px;color:var(--text-dim);font-weight:500;">/ ₹${totalBudget.toLocaleString('en-IN')}</span>
+          </div>
+          <div style="font-size:14px;font-weight:800;color:${isOverBudget ? 'var(--red,#f87171)' : 'var(--green,#34d399)'};">${budgetSpentPct}%</div>
+        </div>
+
+        <div style="width:100%;height:10px;border-radius:6px;background:rgba(255,255,255,0.08);overflow:hidden;margin-bottom:14px;">
+          <div style="width:${budgetSpentPct}%;height:100%;background:${isOverBudget ? 'linear-gradient(90deg,#ef4444,#dc2626)' : 'linear-gradient(90deg,#10b981,#3b82f6)'};border-radius:6px;transition:width 0.8s;"></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div style="background:rgba(0,0,0,0.22);padding:10px 12px;border-radius:14px;border:1px solid rgba(255,255,255,0.06);">
+            <div style="font-size:11px;color:var(--text-dim);">${isHi ? 'दैनिक सुरक्षित सीमा' : 'Safe Daily Spend'}</div>
+            <div style="font-size:16px;font-weight:800;color:var(--green,#34d399);margin-top:2px;">₹${safeDailySpend}/day</div>
+          </div>
+          <div style="background:rgba(0,0,0,0.22);padding:10px 12px;border-radius:14px;border:1px solid rgba(255,255,255,0.06);">
+            <div style="font-size:11px;color:var(--text-dim);">${isHi ? 'महीने के शेष दिन' : 'Days Left'}</div>
+            <div style="font-size:16px;font-weight:800;color:#fff;margin-top:2px;">${remainingDays} days</div>
+          </div>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  // Category Breakdown Mode
   const cats = budgetableCats();
   const spentByCat = getPeriodExpenseByCat();
   const catLabel = (c)=>(typeof CAT_LABEL==='function') ? CAT_LABEL(c) : c;
@@ -763,9 +848,20 @@ function renderBudgetEditor(){
   const tOver = totalB>0 && totalS>totalB;
 
   host.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+      <div class="toggle-grp" style="margin:0;">
+        <button onclick="setBudgetViewMode('simple')">🎯 ${isHi ? 'सरल (1-नंबर)' : 'Simple'}</button>
+        <button class="active" onclick="setBudgetViewMode('category')">🏷️ ${isHi ? 'श्रेणीवार' : 'Categories'}</button>
+      </div>
+      <div class="toggle-grp" id="budget-period-toggle" style="margin:0;">
+        <button class="${budgetPeriod==='weekly'?'active':''}" onclick="setBudgetPeriod('weekly')">${isHi ? 'सप्ताह' : 'Week'}</button>
+        <button class="${budgetPeriod==='monthly'?'active':''}" onclick="setBudgetPeriod('monthly')">${isHi ? 'माह' : 'Month'}</button>
+      </div>
+    </div>
+
     <div class="budget-total" style="margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-dim);margin-bottom:5px">
-        <span>${currentLang==='hi'?'कुल खर्च':'Total spent'}: <b style="color:var(--text)">₹${totalS}</b> / ₹${totalB||0}</span>
+        <span>${currentLang==='hi'?'कुल श्रेणी खर्च':'Total category spent'}: <b style="color:var(--text)">₹${totalS}</b> / ₹${totalB||0}</span>
         <span style="color:${tOver?'var(--red)':'var(--text-dim)'}">${tPct}%</span>
       </div>
       <div class="bar-track" style="height:8px"><div class="bar-fill" style="width:${tPct}%;background:${tOver?'var(--red)':'var(--amber)'}"></div></div>

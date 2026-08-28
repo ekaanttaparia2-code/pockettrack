@@ -23,6 +23,37 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="firebase.js"></script>
   <script src="offline.js"></script>
+  <script>
+    window.currentAppMode = localStorage.getItem('pockettrack_app_mode') || 'power';
+    function applyAppModeClass(mode) {
+      var isSimple = (mode === 'simple');
+      if (document.documentElement) document.documentElement.classList.toggle('app-mode-simple', isSimple);
+      if (document.body) document.body.classList.toggle('app-mode-simple', isSimple);
+      var iconEl = document.getElementById('mode-icon');
+      var labelEl = document.getElementById('mode-label');
+      if (iconEl) iconEl.textContent = isSimple ? '👴' : '⚡';
+      if (labelEl) labelEl.textContent = isSimple ? 'Simple' : 'Power';
+    }
+    function setAppMode(mode, save) {
+      if (save === undefined) save = true;
+      window.currentAppMode = mode;
+      applyAppModeClass(mode);
+      if (save) {
+        localStorage.setItem('pockettrack_app_mode', mode);
+        if (typeof toast === 'function') toast(mode === 'simple' ? 'Switched to Simple Mode (40+)' : 'Switched to Power Mode', 'success');
+      }
+    }
+    function toggleAppMode() {
+      var nextMode = (window.currentAppMode === 'simple') ? 'power' : 'simple';
+      setAppMode(nextMode, true);
+    }
+    if (localStorage.getItem('pockettrack_app_mode') === 'simple') {
+      document.documentElement.classList.add('app-mode-simple');
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+      applyAppModeClass(window.currentAppMode);
+    });
+  </script>
 </head>
 <body>
 <div id="onboarding-screen" style="display:none;">
@@ -395,12 +426,8 @@
     <div id="leak-detector-card" style="margin-bottom:1.1rem"></div>
     <div id="future-money-simulator-card" style="margin-bottom:1.1rem"></div>
 
-    <div class="card">
-      <p class="sec-title"><i class="ti ti-target-arrow"></i><span data-i18n="sec_budget">Budget</span></p>
-      <div class="toggle-grp" id="budget-period-toggle" style="margin-bottom:12px">
-        <button class="active" onclick="setBudgetPeriod('weekly')" data-i18n="period_week">This week</button>
-        <button onclick="setBudgetPeriod('monthly')" data-i18n="period_month">This month</button>
-      </div>
+    <div class="card" id="budget-main-card">
+      <p class="sec-title"><i class="ti ti-target-arrow"></i><span data-i18n="sec_budget">Budget Control</span></p>
       <div id="budget-editor"></div>
     </div>
 

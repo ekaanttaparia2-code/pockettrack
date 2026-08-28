@@ -52,4 +52,7 @@
 .ti-wand::before{content:'🪄'}
 .ti-currency-rupee::before,.ti-rupee::before{content:'₹'}
 .ti-currency-dollar::before{content:'₹'}
+.ti-chart-arrows::before{content:'🔮'}
+.ti-history::before{content:'📜'}
+.ti-calendar::before{content:'📅'}
 

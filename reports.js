@@ -141,6 +141,7 @@ function renderReport(){
 
   renderHealthScore();
   renderLeakDetector();
+  if (typeof renderBudgetEditor === 'function') renderBudgetEditor();
   if (typeof renderFutureMoneySimulator === 'function') renderFutureMoneySimulator();
 }
 
@@ -586,7 +587,7 @@ function renderFutureMoneySimulator() {
 
   const inner = `
     <div class="health-head" style="margin-bottom:14px;">
-      <p class="sec-title" style="margin:0"><i class="ti ti-chart-arrows"></i><span>${isHi ? 'फ्यूचर मनी सिम्युलेटर' : 'Future Money Simulator'}</span></p>
+      <p class="sec-title" style="margin:0;display:flex;align-items:center;gap:6px;"><span style="font-size:22px;">🔮</span><span>${isHi ? 'फ्यूचर मनी सिम्युलेटर' : 'Future Money Simulator'}</span></p>
       <span class="chip" style="font-size:10px;background:rgba(139,92,246,0.2);color:var(--primary-bright);">${isHi ? '12-माह पूर्वानुमान' : '12-Mo Projections'}</span>
     </div>
 
