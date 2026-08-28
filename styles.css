@@ -1499,8 +1499,6 @@ body[data-theme="midnight"]{
 
 
 
-.floating-add{display:none}
-
 /* Data surfaces are calmer than the hero. */
 .card:hover{transform:none;box-shadow:var(--shadow-md),inset 0 1px 0 rgba(255,255,255,.08)}
 
@@ -1952,8 +1950,7 @@ html.keyboard-open .transaction-composer{
   max-height:calc(var(--pt-visual-height, 70dvh) - 16px) !important;
   margin-bottom:0 !important;
 }
-html.keyboard-open .voice-fab,
-html.keyboard-open .floating-add{
+html.keyboard-open .voice-fab{
   display:none !important;
 }
 
@@ -2522,7 +2519,6 @@ button:active,
    AUTH & ONBOARDING SCREEN GUARDS
    ===================================================================== */
 body.auth-active .bottom-tab-bar,
-body.auth-active .floating-add,
 body.auth-active .voice-fab {
   display: none !important;
 }
