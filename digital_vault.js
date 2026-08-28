@@ -70,7 +70,7 @@
       line-height: 1.4;
     }
   `;
-  document.head.appendChild(s);
+  if (typeof document !== 'undefined') (document.head || document.documentElement || document.body)?.appendChild(s);
 })();
 
 function computeRoundUpVault() {

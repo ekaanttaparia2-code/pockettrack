@@ -73,7 +73,7 @@
       letter-spacing: 0.5px;
     }
   `;
-  document.head.appendChild(s);
+  if (typeof document !== 'undefined') (document.head || document.documentElement || document.body)?.appendChild(s);
 })();
 
 window.getUserUpiId = function() {

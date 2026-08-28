@@ -1,11 +1,9 @@
 /* Financial reports, category charting, and report export. */
-var period = (typeof window !== 'undefined' && window.period) ? window.period : 'week';
-window.period = period;
+window.period = (typeof window !== 'undefined' && window.period) ? window.period : 'week';
 
 function setPeriod(p){
   try {
-    period = p;
-    if (typeof window !== 'undefined') window.period = p;
+    window.period = p;
     const btns = document.querySelectorAll('#period-toggle button');
     btns.forEach(b => b.classList.remove('active'));
     const idx = { week: 0, month: 1, all: 2, custom: 3 }[p];

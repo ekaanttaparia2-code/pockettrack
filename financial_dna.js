@@ -130,7 +130,7 @@
             background: rgba(255, 255, 255, 0.2);
         }
     `;
-    document.head.appendChild(s);
+    if (typeof document !== 'undefined') (document.head || document.documentElement || document.body)?.appendChild(s);
 })();
 
 const DNA_TYPES = {

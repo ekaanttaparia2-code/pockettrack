@@ -6,7 +6,8 @@
  * with Smart Retroactive Classifier, Atomic Batch Transfers, Wallet Management, and Cloud-First Sync.
  */
 
-function escapeHTML(str) {
+function escapeWalletHTML(str) {
+  if (typeof window !== 'undefined' && typeof window.escapeHTML === 'function') return window.escapeHTML(str);
   const div = document.createElement('div');
   div.textContent = str || '';
   return div.innerHTML;
@@ -77,7 +78,7 @@ function escapeHTML(str) {
     .wallet-tag-bank { background: rgba(96, 165, 250, 0.15); color: #60a5fa; border-color: rgba(96, 165, 250, 0.35); }
     .wallet-tag-card { background: rgba(244, 63, 94, 0.15); color: #f43f5e; border-color: rgba(244, 63, 94, 0.35); }
   `;
-  document.head.appendChild(s);
+  if (typeof document !== 'undefined') (document.head || document.documentElement || document.body)?.appendChild(s);
 })();
 
 // Default system wallets
@@ -272,7 +273,7 @@ window.renderWalletSwitcher = function() {
     const isNeg = bal < 0;
     return `
       <button class="wallet-pill ${isActive ? 'active' : ''}" onclick="switchActiveWallet('${w.id}')">
-        <span>${w.icon || '💳'} ${escapeHTML(w.name)}</span>
+        <span>${w.icon || '💳'} ${escapeWalletHTML(w.name)}</span>
         <span style="font-size:10.5px;color:${isNeg ? '#f87171' : 'var(--green,#34d399)'};font-weight:700;">₹${bal.toLocaleString('en-IN')}</span>
       </button>
     `;
@@ -295,7 +296,7 @@ window.renderWalletSwitcher = function() {
   // Synchronize form dropdowns
   const incSel = document.getElementById('inc-wallet');
   const expSel = document.getElementById('exp-wallet');
-  const selOpts = userWallets.map(w => `<option value="${w.id}">${w.icon || '💳'} ${escapeHTML(w.name)}</option>`).join('');
+  const selOpts = userWallets.map(w => `<option value="${w.id}">${w.icon || '💳'} ${escapeWalletHTML(w.name)}</option>`).join('');
   if (incSel && !incSel.innerHTML) incSel.innerHTML = selOpts;
   else if (incSel) {
     const curVal = incSel.value;
@@ -484,7 +485,7 @@ window.openWalletManagerModal = function() {
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-size:22px;">${w.icon || '💳'}</span>
           <div>
-            <div style="font-size:14px;font-weight:700;color:#fff;">${escapeHTML(w.name)} ${w.isDefault ? '<span style="font-size:10px;color:var(--text-dim);font-weight:500;">(System)</span>' : ''}</div>
+            <div style="font-size:14px;font-weight:700;color:#fff;">${escapeWalletHTML(w.name)} ${w.isDefault ? '<span style="font-size:10px;color:var(--text-dim);font-weight:500;">(System)</span>' : ''}</div>
             <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
               <span style="font-size:12px;color:var(--green,#34d399);font-weight:700;">₹${bal.toLocaleString('en-IN')}</span>
               <span style="font-size:11px;color:var(--accent-bright,#c4b5fd);font-weight:600;">· 🎯 ₹${monthlyB.toLocaleString('en-IN')}/mo</span>

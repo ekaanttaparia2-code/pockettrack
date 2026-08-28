@@ -108,7 +108,7 @@
         }
         .wrapped-trigger-btn:active { transform: scale(0.98); box-shadow: 0 2px 10px rgba(244, 63, 94, 0.2); }
     `;
-    document.head.appendChild(s);
+    if (typeof document !== 'undefined') (document.head || document.documentElement || document.body)?.appendChild(s);
 })();
 
 // Application State

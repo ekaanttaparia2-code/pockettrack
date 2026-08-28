@@ -174,7 +174,13 @@ const TRANSLATIONS = {
   step_paste:{en:'2. Paste here',hi:'2. यहां पेस्ट करें'},
   step_paste_desc:{en:'Paste the text in the box below',hi:'नीचे बॉक्स में टेक्स्ट पेस्ट करें'},
   step_log:{en:'3. Auto-logged!',hi:'3. ऑटो-लॉग हो गया!'},
+  step_log_desc:{en:"Confirm and it's saved instantly", hi:'कन्फर्म करें और तुरंत सेव हो जाएगा'},
   step3_desc:{en:"Confirm and it's saved instantly", hi:'कन्फर्म करें और तुरंत सेव हो जाएगा'},
+  nav_ledger:{en:'Ledger',hi:'खाता',hinglish:'Ledger',mr:'खातेवही',ta:'லெட்ஜர்',te:'లెడ్జర్',gu:'ખાતાવહી',bn:'লেজার'},
+  btn_add_person:{en:'Add Person',hi:'व्यक्ति जोड़ें',hinglish:'Add Person',mr:'व्यक्ती जोडा',ta:'நபரைச் சேர்',te:'వ్యక్తిని జోడించు',gu:'વ્યક્તિ ઉમેરો',bn:'ব্যক্তি যোগ করুন'},
+  ledger_total_owed_to_you:{en:'Total Owed to You',hi:'आपको मिलना बाकी',hinglish:'You will receive',mr:'तुम्हाला मिळणे बाकी',ta:'உங்களுக்கு வரவேண்டியது',te:'మీకు రావలసినది',gu:'તમને મળવાનું બાકી',bn:'আপনি পাবেন'},
+  ledger_total_you_owe:{en:'You Owe',hi:'आपको देना है',hinglish:'You have to give',mr:'तुम्हाला देणे आहे',ta:'நீங்கள் தரவேண்டியது',te:'మీరు ఇవ్వవలసినది',gu:'તમારે આપવાનું છે',bn:'আপনি দেবেন'},
+  voice_entry_title:{en:'Voice Expense Entry',hi:'बोल कर एंट्री करें',hinglish:'Voice Expense Entry'},
 };
 window.TRANSLATIONS = TRANSLATIONS;
 let currentLang = localStorage.getItem('pocketTrackLang') || 'en';
@@ -2112,9 +2118,9 @@ async function addSharedExpense(){
   }catch(e){ toast('Could not save: '+e.message,'error'); }
 }
 
-function calculateSettlement(){
-  const curEvId = (typeof currentEventId !== 'undefined' && currentEventId) ? currentEventId : (typeof window !== 'undefined' ? window.currentEventId : null);
+function calculateSettlement(eventId){
   const allEvents = (typeof window !== 'undefined' && Array.isArray(window.events) && window.events.length) ? window.events : (typeof events !== 'undefined' ? events : []);
+  const curEvId = eventId || ((typeof currentEventId !== 'undefined' && currentEventId) ? currentEventId : ((typeof window !== 'undefined' && window.currentEventId) ? window.currentEventId : (allEvents.length ? allEvents[0]._id : null)));
   const ev = allEvents.find(e=>e._id===curEvId);
   const pMap = (typeof eventParticipants !== 'undefined' && eventParticipants && eventParticipants[curEvId]) ? eventParticipants : (typeof window !== 'undefined' ? window.eventParticipants : {});
   const participants = (curEvId && pMap && pMap[curEvId]) ? pMap[curEvId] : (ev?.participants || []);
@@ -2588,12 +2594,14 @@ function promptInstallApp(){
 document.addEventListener('DOMContentLoaded', ()=>{ setTimeout(refreshInstallButton, 300); });
 
 // --- Bottom tab bar visibility (hide on the auth/login screen) ---
-function updateBottomBarVisibility(){
-  const bar = document.getElementById('bottom-tab-bar');
-  const auth = document.getElementById('auth-screen');
-  if(!bar) return;
-  const onAuthScreen = auth && auth.style.display !== 'none';
-  bar.style.display = onAuthScreen ? 'none' : 'flex';
+if (typeof window.updateBottomBarVisibility !== 'function') {
+  window.updateBottomBarVisibility = function() {
+    const bar = document.getElementById('bottom-tab-bar');
+    const auth = document.getElementById('auth-screen');
+    if(!bar) return;
+    const onAuthScreen = auth && auth.style.display !== 'none';
+    bar.style.display = onAuthScreen ? 'none' : 'flex';
+  };
 }
 
 // =====================================================================

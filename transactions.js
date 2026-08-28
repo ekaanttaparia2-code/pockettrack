@@ -567,7 +567,11 @@ function startEdit(id){
   editingId=id;
   setTab('log');
 
+  const segInc = document.getElementById('addmode-inc');
+  const segExp = document.getElementById('addmode-exp');
+
   if(entry.type==='income'){
+    if(segInc) segInc.checked = true;
     const srcSelect=document.getElementById('inc-src');
     const knownValues=[...srcSelect.options].map(o=>o.value).filter(v=>v!=='__add_new__');
     if(knownValues.includes(entry.label)){
@@ -581,8 +585,11 @@ function startEdit(id){
     document.getElementById('inc-amt').value=entry.amt;
     document.getElementById('inc-date').value=entry.date;
     document.getElementById('inc-note').value=entry.note||'';
+    const incW = document.getElementById('inc-wallet');
+    if(incW && entry.walletId) incW.value = entry.walletId;
     document.getElementById('inc-btn-label').textContent=TT('btn_update_income');
   } else {
+    if(segExp) segExp.checked = true;
     if(entry.cat==='custom' && entry.customCat){
       document.getElementById('exp-cat').value='__add_new__';
       document.getElementById('exp-custom-wrap').style.display='block';
@@ -594,6 +601,8 @@ function startEdit(id){
     document.getElementById('exp-amt').value=entry.amt;
     document.getElementById('exp-date').value=entry.date;
     document.getElementById('exp-desc').value=entry.label;
+    const expW = document.getElementById('exp-wallet');
+    if(expW && entry.walletId) expW.value = entry.walletId;
     document.getElementById('exp-btn-label').textContent=TT('btn_update_expense');
     document.getElementById('cancel-edit-btn').style.display='inline-flex';
   }

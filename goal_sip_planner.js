@@ -84,7 +84,7 @@
       font-weight: 600;
     }
   `;
-  document.head.appendChild(s);
+  if (typeof document !== 'undefined') (document.head || document.documentElement || document.body)?.appendChild(s);
 })();
 
 function getGoalStorageKey() {

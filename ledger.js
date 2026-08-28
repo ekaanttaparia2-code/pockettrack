@@ -1,5 +1,6 @@
-const TRANSLATIONS = (typeof window !== 'undefined' && window.TRANSLATIONS) ? window.TRANSLATIONS : ((typeof global !== 'undefined' && global.TRANSLATIONS) ? global.TRANSLATIONS : {});
-Object.assign(TRANSLATIONS, {
+(function() {
+  const trans = (typeof window !== 'undefined' && window.TRANSLATIONS) ? window.TRANSLATIONS : ((typeof global !== 'undefined' && global.TRANSLATIONS) ? global.TRANSLATIONS : {});
+  Object.assign(trans, {
   nav_ledger: { en: 'Ledger Accounts', hi: 'खाता प्रणाली' },
   btn_add_person: { en: '+ Add Contact', hi: '+ संपर्क जोड़ें' },
   ledger_total_owed_to_you: { en: 'Total You Will Receive', hi: 'आपको कुल मिलेगा' },
@@ -21,7 +22,8 @@ Object.assign(TRANSLATIONS, {
   ledger_no_tx: { en: 'No transaction entries yet with', hi: 'अभी तक इसके साथ कोई लेन-देन नहीं' },
   ledger_history: { en: 'History', hi: 'इतिहास' },
   ledger_delete_entry: { en: 'Delete entry', hi: 'एंट्री हटाएं' }
-});
+  });
+})();
 
 let ledgerUnsubscribe = null;
 let ledgerTxUnsubs = [];

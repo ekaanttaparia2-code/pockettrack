@@ -1,10 +1,12 @@
-const TRANSLATIONS = (typeof window !== 'undefined' && window.TRANSLATIONS) ? window.TRANSLATIONS : ((typeof global !== 'undefined' && global.TRANSLATIONS) ? global.TRANSLATIONS : {});
-Object.assign(TRANSLATIONS, {
-  voice_entry_title: { en: 'Voice Expense Log', hi: 'वॉयस खर्च रिकॉर्डर' },
-  voice_listening: { en: 'Listening... Speak now!', hi: 'सुन रहा है... अब बोलें!' },
-  voice_not_supported: { en: 'Voice recognition is not supported in this browser. Type below instead:', hi: 'वॉयस सपोर्ट नहीं है। नीचे टाइप करें:' },
-  voice_parse_error: { en: 'Could not detect amount. Try: "Spent 450 on dinner"', hi: 'राशि समझ नहीं आई। उदाहरण: "Spent 450 on food"' }
-});
+(function() {
+  const trans = (typeof window !== 'undefined' && window.TRANSLATIONS) ? window.TRANSLATIONS : ((typeof global !== 'undefined' && global.TRANSLATIONS) ? global.TRANSLATIONS : {});
+  Object.assign(trans, {
+    voice_entry_title: { en: 'Voice Expense Log', hi: 'वॉयस खर्च रिकॉर्डर' },
+    voice_listening: { en: 'Listening... Speak now!', hi: 'सुन रहा है... अब बोलें!' },
+    voice_not_supported: { en: 'Voice recognition is not supported in this browser. Type below instead:', hi: 'वॉयस सपोर्ट नहीं है। नीचे टाइप करें:' },
+    voice_parse_error: { en: 'Could not detect amount. Try: "Spent 450 on dinner"', hi: 'राशि समझ नहीं आई। उदाहरण: "Spent 450 on food"' }
+  });
+})();
 
 let recognition = null;
 let isListening = false;
