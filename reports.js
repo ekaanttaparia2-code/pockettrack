@@ -642,14 +642,25 @@ function updateAppSimulator() {
 // =====================================================================
 // ACTIONABLE SMART INSIGHTS & SIMPLE BUDGET MODE
 // =====================================================================
-window.getSavedTotalBudget = function() {
+window.getSavedTotalBudget = function(period) {
+  const p = period || window.budgetPeriod || 'monthly';
+  if (p === 'weekly') {
+    return parseFloat(localStorage.getItem('pockettrack_total_weekly_budget')) || 3500;
+  }
   return parseFloat(localStorage.getItem('pockettrack_total_monthly_budget')) || 15000;
 };
 
-window.setSavedTotalBudget = function(amt) {
+window.setSavedTotalBudget = function(amt, period) {
+  const p = period || window.budgetPeriod || 'monthly';
   if (amt > 0) {
-    localStorage.setItem('pockettrack_total_monthly_budget', amt);
-    if (typeof toast === 'function') toast(`Monthly budget set to ₹${amt.toLocaleString('en-IN')}`, 'success');
+    if (p === 'weekly') {
+      localStorage.setItem('pockettrack_total_weekly_budget', amt);
+      if (typeof toast === 'function') toast(`Weekly budget set to ₹${amt.toLocaleString('en-IN')}`, 'success');
+    } else {
+      localStorage.setItem('pockettrack_total_monthly_budget', amt);
+      if (typeof toast === 'function') toast(`Monthly budget set to ₹${amt.toLocaleString('en-IN')}`, 'success');
+    }
+    if (typeof renderBudgetEditor === 'function') renderBudgetEditor();
     renderReport();
   }
 };

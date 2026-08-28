@@ -733,6 +733,7 @@ function getPeriodExpenseByCat(){
 
 // Build the Budget editor with Simple 1-Number Mode by default + Optional Category Breakdown
 window.budgetViewMode = localStorage.getItem('pockettrack_budget_view_mode') || 'simple';
+window.budgetPeriod = localStorage.getItem('pockettrack_budget_period') || 'monthly';
 
 window.setBudgetViewMode = function(mode) {
   window.budgetViewMode = mode;
@@ -740,21 +741,43 @@ window.setBudgetViewMode = function(mode) {
   renderBudgetEditor();
 };
 
-window.getSavedTotalBudget = function() {
+window.setBudgetPeriod = function(period) {
+  window.budgetPeriod = period;
+  localStorage.setItem('pockettrack_budget_period', period);
+  renderBudgetEditor();
+  if (typeof renderReport === 'function') renderReport();
+};
+
+window.getSavedWeeklyBudget = function() {
+  return parseFloat(localStorage.getItem('pockettrack_total_weekly_budget')) || 3500;
+};
+
+window.getSavedMonthlyBudget = function() {
   return parseFloat(localStorage.getItem('pockettrack_total_monthly_budget')) || 15000;
 };
 
-window.setSavedTotalBudget = function(amt) {
+window.getSavedTotalBudget = function(period) {
+  const p = period || window.budgetPeriod || 'monthly';
+  return (p === 'weekly') ? window.getSavedWeeklyBudget() : window.getSavedMonthlyBudget();
+};
+
+window.setSavedTotalBudget = function(amt, period) {
+  const p = period || window.budgetPeriod || 'monthly';
   if (amt > 0) {
-    localStorage.setItem('pockettrack_total_monthly_budget', amt);
-    if (typeof toast === 'function') toast(`Monthly budget set to ₹${amt.toLocaleString('en-IN')}`, 'success');
+    if (p === 'weekly') {
+      localStorage.setItem('pockettrack_total_weekly_budget', amt);
+      if (typeof toast === 'function') toast(`Weekly budget set to ₹${amt.toLocaleString('en-IN')}`, 'success');
+    } else {
+      localStorage.setItem('pockettrack_total_monthly_budget', amt);
+      if (typeof toast === 'function') toast(`Monthly budget set to ₹${amt.toLocaleString('en-IN')}`, 'success');
+    }
     renderBudgetEditor();
     if (typeof renderReport === 'function') renderReport();
   }
 };
 
-window.openSetBudgetModal = function() {
-  const current = window.getSavedTotalBudget();
+window.openSetBudgetModal = function(preferredPeriod) {
+  let activeP = preferredPeriod || window.budgetPeriod || 'monthly';
   const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
   
   let container = document.getElementById('pt-sheet-container');
@@ -768,82 +791,104 @@ window.openSetBudgetModal = function() {
     document.body.appendChild(container);
   }
 
-  const now = new Date();
-  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  const currentDay = now.getDate();
-  const remainingDays = Math.max(1, daysInMonth - currentDay);
-  const initialDaily = Math.round(current / daysInMonth);
+  function renderModalContent(p) {
+    activeP = p;
+    const isWeek = (p === 'weekly');
+    const current = isWeek ? window.getSavedWeeklyBudget() : window.getSavedMonthlyBudget();
+    const now = new Date();
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const divisor = isWeek ? 7 : daysInMonth;
+    const initialDaily = Math.round(current / divisor);
+    const chips = isWeek ? [2000, 3500, 5000, 7500, 10000] : [10000, 15000, 25000, 50000, 100000];
 
-  container.innerHTML = `
-    <div class="pt-sheet-panel" style="max-width:440px;">
-      <div class="pt-sheet-handle"></div>
-      
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:24px;">🎯</span>
-          <h3 style="margin:0;font-size:19px;font-weight:800;color:#fff;font-family:'Space Grotesk',sans-serif;">${isHi ? 'मासिक बजट लक्ष्य' : 'Set Monthly Budget Target'}</h3>
+    container.innerHTML = `
+      <div class="pt-sheet-panel" style="max-width:440px;">
+        <div class="pt-sheet-handle"></div>
+        
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:24px;">🎯</span>
+            <h3 style="margin:0;font-size:19px;font-weight:800;color:#fff;font-family:'Space Grotesk',sans-serif;">${isHi ? 'बजट लक्ष्य सेट करें' : 'Set Budget Target'}</h3>
+          </div>
+          <button onclick="closeCustomSheet()" style="background:rgba(255,255,255,0.08);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;">✕</button>
         </div>
-        <button onclick="closeCustomSheet()" style="background:rgba(255,255,255,0.08);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;">✕</button>
-      </div>
 
-      <p style="font-size:12.5px;color:var(--text-dim,#94a3b8);margin:0 0 16px;line-height:1.45;">
-        ${isHi ? 'यह सीमा आपको दैनिक खर्च नियंत्रित करने में मदद करेगी।' : 'Set your spending target for the month. We\'ll calculate your safe daily spend.'}
-      </p>
+        <div class="toggle-grp" style="margin-bottom:14px;width:100%;display:flex;">
+          <button class="${isWeek ? 'active' : ''}" onclick="window._switchBudgetModalTab('weekly')" style="flex:1;">📅 ${isHi ? 'साप्ताहिक' : 'Weekly'}</button>
+          <button class="${!isWeek ? 'active' : ''}" onclick="window._switchBudgetModalTab('monthly')" style="flex:1;">🗓️ ${isHi ? 'मासिक' : 'Monthly'}</button>
+        </div>
 
-      <label style="font-size:12px;font-weight:700;color:#cbd5e1;display:block;margin-bottom:6px;">${isHi ? 'मासिक बजट राशि (₹)' : 'Monthly Budget Target (₹)'}</label>
-      <div style="position:relative;margin-bottom:12px;">
-        <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:18px;font-weight:800;color:var(--green,#34d399);font-family:'Space Grotesk',sans-serif;">₹</span>
-        <input type="number" id="in-app-budget-val" value="${current}" placeholder="15000" style="width:100%;padding:14px 14px 14px 34px;border-radius:14px;background:rgba(255,255,255,0.06);border:1.5px solid rgba(139,92,246,0.4);color:#fff;font-size:20px;font-weight:800;font-family:'Space Grotesk',sans-serif;box-sizing:border-box;outline:none;" oninput="updateBudgetModalPreview()">
-      </div>
+        <p style="font-size:12.5px;color:var(--text-dim,#94a3b8);margin:0 0 14px;line-height:1.45;">
+          ${isWeek ? (isHi ? 'अपने 7 दिनों के खर्च का लक्ष्य तय करें।' : 'Set your 7-day spending limit for the week.') : (isHi ? 'अपने 30 दिनों के खर्च का लक्ष्य तय करें।' : 'Set your 30-day spending limit for the month.')}
+        </p>
 
-      <div style="margin-bottom:14px;">
-        <label style="font-size:11.5px;color:var(--text-dim);font-weight:600;display:block;margin-bottom:6px;">${isHi ? 'त्वरित सुझाव:' : 'Quick Targets:'}</label>
-        <div style="display:flex;flex-wrap:wrap;gap:6px;">
-          ${[10000, 15000, 25000, 50000, 100000].map(amt => `
-            <button type="button" onclick="document.getElementById('in-app-budget-val').value=${amt};updateBudgetModalPreview();" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:#fff;border-radius:99px;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer;transition:background 0.2s;">
-              ₹${amt.toLocaleString('en-IN')}
-            </button>
-          `).join('')}
+        <label style="font-size:12px;font-weight:700;color:#cbd5e1;display:block;margin-bottom:6px;">${isWeek ? (isHi ? 'साप्ताहिक बजट राशि (₹)' : 'Weekly Budget Target (₹)') : (isHi ? 'मासिक बजट राशि (₹)' : 'Monthly Budget Target (₹)')}</label>
+        <div style="position:relative;margin-bottom:12px;">
+          <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:18px;font-weight:800;color:var(--green,#34d399);font-family:'Space Grotesk',sans-serif;">₹</span>
+          <input type="number" id="in-app-budget-val" value="${current}" placeholder="${isWeek ? '3500' : '15000'}" style="width:100%;padding:14px 14px 14px 34px;border-radius:14px;background:rgba(255,255,255,0.06);border:1.5px solid rgba(139,92,246,0.4);color:#fff;font-size:20px;font-weight:800;font-family:'Space Grotesk',sans-serif;box-sizing:border-box;outline:none;" oninput="updateBudgetModalPreview('${p}')">
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <label style="font-size:11.5px;color:var(--text-dim);font-weight:600;display:block;margin-bottom:6px;">${isHi ? 'त्वरित सुझाव:' : 'Quick Targets:'}</label>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            ${chips.map(amt => `
+              <button type="button" onclick="document.getElementById('in-app-budget-val').value=${amt};updateBudgetModalPreview('${p}');" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:#fff;border-radius:99px;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer;transition:background 0.2s;">
+                ₹${amt.toLocaleString('en-IN')}
+              </button>
+            `).join('')}
+          </div>
+        </div>
+
+        <div id="budget-modal-preview" style="background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);border-radius:14px;padding:10px 14px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:12px;color:#cbd5e1;">${isHi ? 'दैनिक सुरक्षित सीमा:' : 'Estimated Daily Limit:'}</span>
+          <strong id="budget-modal-daily" style="font-size:15px;color:var(--green,#34d399);font-weight:800;">₹${initialDaily}/day</strong>
+        </div>
+
+        <div style="display:flex;gap:10px;">
+          <button class="btn" onclick="closeCustomSheet()" style="flex:1;border-radius:14px;padding:12px;font-size:13px;">${isHi ? 'रद्द करें' : 'Cancel'}</button>
+          <button class="btn primary" onclick="submitInAppBudget('${p}')" style="flex:1.4;border-radius:14px;padding:12px;font-weight:800;font-size:13.5px;background:linear-gradient(135deg,#8b5cf6,#10b981);">${isHi ? 'बजट सेव करें →' : 'Save Target →'}</button>
         </div>
       </div>
+    `;
 
-      <div id="budget-modal-preview" style="background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);border-radius:14px;padding:10px 14px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;">
-        <span style="font-size:12px;color:#cbd5e1;">${isHi ? 'दैनिक सुरक्षित सीमा:' : 'Estimated Daily Limit:'}</span>
-        <strong id="budget-modal-daily" style="font-size:15px;color:var(--green,#34d399);font-weight:800;">₹${initialDaily}/day</strong>
-      </div>
-
-      <div style="display:flex;gap:10px;">
-        <button class="btn" onclick="closeCustomSheet()" style="flex:1;border-radius:14px;padding:12px;font-size:13px;">${isHi ? 'रद्द करें' : 'Cancel'}</button>
-        <button class="btn primary" onclick="submitInAppBudget()" style="flex:1.4;border-radius:14px;padding:12px;font-weight:800;font-size:13.5px;background:linear-gradient(135deg,#8b5cf6,#10b981);">${isHi ? 'बजट सेव करें →' : 'Save Target →'}</button>
-      </div>
-    </div>
-  `;
-
-  requestAnimationFrame(() => {
-    container.classList.add('active');
     setTimeout(() => {
       const input = document.getElementById('in-app-budget-val');
       if (input) { input.focus(); input.select(); }
     }, 100);
+  }
+
+  window._switchBudgetModalTab = function(p) {
+    renderModalContent(p);
+  };
+
+  renderModalContent(activeP);
+
+  requestAnimationFrame(() => {
+    container.classList.add('active');
   });
 };
 
-window.updateBudgetModalPreview = function() {
+window.updateBudgetModalPreview = function(period) {
+  const p = period || window.budgetPeriod || 'monthly';
+  const isWeek = (p === 'weekly');
   const val = parseFloat(document.getElementById('in-app-budget-val')?.value) || 0;
   const now = new Date();
   const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  const daily = Math.round(val / daysInMonth);
+  const divisor = isWeek ? 7 : daysInMonth;
+  const daily = Math.round(val / divisor);
   const dailyEl = document.getElementById('budget-modal-daily');
   if (dailyEl) dailyEl.textContent = `₹${daily.toLocaleString('en-IN')}/day`;
 };
 
-window.submitInAppBudget = function() {
+window.submitInAppBudget = function(period) {
+  const p = period || window.budgetPeriod || 'monthly';
   const val = parseFloat(document.getElementById('in-app-budget-val')?.value);
   if (!val || isNaN(val) || val <= 0) {
     if (typeof toast === 'function') toast('Please enter a valid budget amount', 'error');
     return;
   }
-  window.setSavedTotalBudget(val);
+  window.setBudgetPeriod(p);
+  window.setSavedTotalBudget(val, p);
   if (typeof window.closeCustomSheet === 'function') window.closeCustomSheet();
 };
 
@@ -857,18 +902,25 @@ function renderBudgetEditor(){
 
   const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
   const isSimple = (window.budgetViewMode === 'simple');
+  const isWeek = (window.budgetPeriod === 'weekly');
 
   if (isSimple) {
-    const list = getThisMonthEntries();
+    const list = isWeek ? getThisWeekEntries() : getThisMonthEntries();
     const totalSpent = list.filter(e => e.type === 'expense').reduce((s, e) => s + (parseFloat(e.amt) || 0), 0);
-    const totalBudget = window.getSavedTotalBudget();
-    const budgetSpentPct = Math.min(100, Math.round((totalSpent / totalBudget) * 100));
+    const totalBudget = isWeek ? window.getSavedWeeklyBudget() : window.getSavedMonthlyBudget();
+    const budgetSpentPct = totalBudget > 0 ? Math.min(100, Math.round((totalSpent / totalBudget) * 100)) : 0;
     const isOverBudget = totalSpent > totalBudget;
 
     const now = new Date();
-    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    const currentDay = now.getDate();
-    const remainingDays = Math.max(1, daysInMonth - currentDay);
+    let remainingDays = 1;
+    if (isWeek) {
+      const day = now.getDay();
+      remainingDays = Math.max(1, 7 - (day === 0 ? 7 : day));
+    } else {
+      const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+      const currentDay = now.getDate();
+      remainingDays = Math.max(1, daysInMonth - currentDay);
+    }
     const remainingBudget = Math.max(0, totalBudget - totalSpent);
     const safeDailySpend = Math.round(remainingBudget / remainingDays);
 
@@ -878,15 +930,24 @@ function renderBudgetEditor(){
           <button class="active" onclick="setBudgetViewMode('simple')">🎯 ${isHi ? 'सरल (1-नंबर)' : 'Simple'}</button>
           <button onclick="setBudgetViewMode('category')">🏷️ ${isHi ? 'श्रेणीवार' : 'Categories'}</button>
         </div>
-        <button class="btn btn-sm" onclick="promptEditTotalBudget()" style="border-radius:10px;font-size:11.5px;padding:4px 10px;background:rgba(255,255,255,0.08);color:#fff;border:1px solid var(--border);">⚙️ ${isHi ? 'बजट बदलें' : 'Set Budget'}</button>
+        <div class="toggle-grp" style="margin:0;">
+          <button class="${isWeek ? 'active' : ''}" onclick="setBudgetPeriod('weekly')">📅 ${isHi ? 'सप्ताह' : 'Week'}</button>
+          <button class="${!isWeek ? 'active' : ''}" onclick="setBudgetPeriod('monthly')">🗓️ ${isHi ? 'माह' : 'Month'}</button>
+        </div>
       </div>
 
       <div style="background:rgba(255,255,255,0.04);border-radius:18px;padding:16px;border:1px solid var(--border);margin-bottom:12px;">
-        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
-          <div style="font-size:22px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:#fff;">
-            ₹${totalSpent.toLocaleString('en-IN')} <span style="font-size:13px;color:var(--text-dim);font-weight:500;">/ ₹${totalBudget.toLocaleString('en-IN')}</span>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div>
+            <span style="font-size:11px;color:var(--text-dim);text-transform:uppercase;font-weight:700;">${isWeek ? (isHi ? 'साप्ताहिक बजट' : 'Weekly Budget') : (isHi ? 'मासिक बजट' : 'Monthly Budget')}</span>
+            <div style="font-size:22px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:#fff;margin-top:2px;">
+              ₹${totalSpent.toLocaleString('en-IN')} <span style="font-size:13px;color:var(--text-dim);font-weight:500;">/ ₹${totalBudget.toLocaleString('en-IN')}</span>
+            </div>
           </div>
-          <div style="font-size:14px;font-weight:800;color:${isOverBudget ? 'var(--red,#f87171)' : 'var(--green,#34d399)'};">${budgetSpentPct}%</div>
+          <div style="text-align:right;">
+            <div style="font-size:15px;font-weight:800;color:${isOverBudget ? 'var(--red,#f87171)' : 'var(--green,#34d399)'};">${budgetSpentPct}%</div>
+            <button class="btn btn-sm" onclick="openSetBudgetModal('${isWeek ? 'weekly' : 'monthly'}')" style="margin-top:4px;border-radius:8px;font-size:11px;padding:3px 8px;background:rgba(255,255,255,0.08);color:#fff;border:1px solid var(--border);">⚙️ ${isHi ? 'बदलें' : 'Edit'}</button>
+          </div>
         </div>
 
         <div style="width:100%;height:10px;border-radius:6px;background:rgba(255,255,255,0.08);overflow:hidden;margin-bottom:14px;">
@@ -899,7 +960,7 @@ function renderBudgetEditor(){
             <div style="font-size:16px;font-weight:800;color:var(--green,#34d399);margin-top:2px;">₹${safeDailySpend}/day</div>
           </div>
           <div style="background:rgba(0,0,0,0.22);padding:10px 12px;border-radius:14px;border:1px solid rgba(255,255,255,0.06);">
-            <div style="font-size:11px;color:var(--text-dim);">${isHi ? 'महीने के शेष दिन' : 'Days Left'}</div>
+            <div style="font-size:11px;color:var(--text-dim);">${isWeek ? (isHi ? 'सप्ताह के शेष दिन' : 'Days in Week') : (isHi ? 'महीने के शेष दिन' : 'Days in Month')}</div>
             <div style="font-size:16px;font-weight:800;color:#fff;margin-top:2px;">${remainingDays} days</div>
           </div>
         </div>
