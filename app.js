@@ -2761,15 +2761,17 @@ document.addEventListener('DOMContentLoaded', () => {
   window.setAppMode(savedMode, false);
   
   // Prompt user for age group if not already set
-  if (!localStorage.getItem('pockettrack_age_group')) {
+  if (!localStorage.getItem('pockettrack_age_group') && !localStorage.getItem('pockettrack_app_mode_chosen')) {
     const onboardingEl = document.getElementById('onboarding-screen');
     const isOnboardingActive = onboardingEl && onboardingEl.style.display !== 'none';
     if (!isOnboardingActive) {
       setTimeout(() => {
-        if (typeof window.openAgeModeModal === 'function') {
+        const authEl = document.getElementById('auth-screen');
+        const isAuthShowing = authEl && authEl.style.display !== 'none';
+        if (!isAuthShowing && typeof window.openAgeModeModal === 'function') {
           window.openAgeModeModal();
         }
-      }, 700);
+      }, 400);
     }
   }
 });

@@ -127,6 +127,13 @@ if (typeof auth !== 'undefined') {
       }).catch(()=>{});
     }
     document.getElementById('verify-banner').style.display = user.emailVerified ? 'none' : 'block';
+    if (!localStorage.getItem('pockettrack_age_group') && !localStorage.getItem('pockettrack_app_mode_chosen')) {
+      setTimeout(() => {
+        if (typeof window.openAgeModeModal === 'function') {
+          window.openAgeModeModal();
+        }
+      }, 400);
+    }
   } else {
     currentUser=null;
     document.getElementById('auth-screen').style.display='flex';
