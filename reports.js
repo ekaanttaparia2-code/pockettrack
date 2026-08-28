@@ -1,49 +1,57 @@
 /* Financial reports, category charting, and report export. */
 var period = (typeof window !== 'undefined' && window.period) ? window.period : 'week';
+window.period = period;
 
 function setPeriod(p){
-  period = p;
-  if (typeof window !== 'undefined') window.period = p;
-  document.querySelectorAll('#period-toggle button').forEach(b=>b.classList.remove('active'));
-  const idx={week:0,month:1,all:2,custom:3}[p];
-  if (document.querySelectorAll('#period-toggle button')[idx]) {
-    document.querySelectorAll('#period-toggle button')[idx].classList.add('active');
+  try {
+    period = p;
+    if (typeof window !== 'undefined') window.period = p;
+    const btns = document.querySelectorAll('#period-toggle button');
+    btns.forEach(b => b.classList.remove('active'));
+    const idx = { week: 0, month: 1, all: 2, custom: 3 }[p];
+    if (btns[idx]) {
+      btns[idx].classList.add('active');
+    }
+    const showCustom = (p === 'custom');
+    const repFrom = document.getElementById('rep-from');
+    const repToLabel = document.getElementById('rep-to-label');
+    const repTo = document.getElementById('rep-to');
+    if (repFrom) repFrom.style.display = showCustom ? 'block' : 'none';
+    if (repToLabel) repToLabel.style.display = showCustom ? 'block' : 'none';
+    if (repTo) repTo.style.display = showCustom ? 'block' : 'none';
+    renderReport();
+  } catch(e) {
+    console.error('setPeriod error:', e);
   }
-  const showCustom=p==='custom';
-  const repFrom = document.getElementById('rep-from');
-  const repToLabel = document.getElementById('rep-to-label');
-  const repTo = document.getElementById('rep-to');
-  if (repFrom) repFrom.style.display=showCustom?'block':'none';
-  if (repToLabel) repToLabel.style.display=showCustom?'block':'none';
-  if (repTo) repTo.style.display=showCustom?'block':'none';
-  renderReport();
 }
 window.setPeriod = setPeriod;
 
 function getReportEntries(){
-  const base = mainEntries();
-  if(period==='all')return base;
-  if(period==='custom'){
-    const from=document.getElementById('rep-from').value;
-    const to=document.getElementById('rep-to').value;
-    return base.filter(e=>(!from||e.date>=from)&&(!to||e.date<=to));
+  const p = (typeof window !== 'undefined' && window.period) ? window.period : (typeof period !== 'undefined' ? period : 'week');
+  const base = (typeof mainEntries === 'function') ? mainEntries() : [];
+  if(p === 'all') return base;
+  if(p === 'custom'){
+    const from = document.getElementById('rep-from')?.value;
+    const to = document.getElementById('rep-to')?.value;
+    return base.filter(e => (!from || e.date >= from) && (!to || e.date <= to));
   }
-  if(period==='month'){
-    const now=new Date();
-    const y=now.getFullYear(), m=now.getMonth();
-    const start=dateToStr(new Date(y,m,1));
-    const end=dateToStr(new Date(y,m+1,0));
-    return base.filter(e=>e.date>=start&&e.date<=end);
+  if(p === 'month'){
+    const now = new Date();
+    const y = now.getFullYear(), m = now.getMonth();
+    const start = dateToStr(new Date(y, m, 1));
+    const end = dateToStr(new Date(y, m + 1, 0));
+    return base.filter(e => e.date >= start && e.date <= end);
   }
-  const now=new Date();
-  const day=now.getDay();
-  const diff=now.getDate()-(day===0?6:day-1);
-  const mon=new Date(now);mon.setDate(diff);
-  const monStr=dateToStr(mon);
-  const sun=new Date(mon);sun.setDate(mon.getDate()+6);
-  const sunStr=dateToStr(sun);
-  return base.filter(e=>e.date>=monStr&&e.date<=sunStr);
+  const now = new Date();
+  const day = now.getDay();
+  const diff = now.getDate() - (day === 0 ? 6 : day - 1);
+  const mon = new Date(now); mon.setDate(diff);
+  const monStr = dateToStr(mon);
+  const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+  const sunStr = dateToStr(sun);
+  return base.filter(e => e.date >= monStr && e.date <= sunStr);
 }
+window.getReportEntries = getReportEntries;
 
 // --- SVG pie chart for category spending — no external chart library needed ---
 function polarToXY(cx,cy,r,angleDeg){
@@ -125,33 +133,51 @@ function hidePieTooltip(){
 }
 
 function renderReport(){
-  const list=getReportEntries();
-  const income=list.filter(e=>e.type==='income').reduce((s,e)=>s+e.amt,0);
-  const spent=list.filter(e=>e.type==='expense').reduce((s,e)=>s+e.amt,0);
-  const bal=income-spent;
-  document.getElementById('r-income').textContent='₹'+income;
-  document.getElementById('r-spent').textContent='₹'+spent;
-  document.getElementById('r-balance').textContent='₹'+bal;
-  document.getElementById('r-count').textContent=list.length;
-  const cats={};
-  list.filter(e=>e.type==='expense').forEach(e=>{cats[e.cat]=(cats[e.cat]||0)+e.amt;});
-  const maxCat=Math.max(...Object.values(cats),1);
-  renderCategoryPieChart(cats);
-  document.getElementById('cat-breakdown').innerHTML=Object.entries(cats).length?Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([c,a])=>`
-    <div class="cat-bar">
-      <span style="font-size:13px;min-width:110px;color:var(--text-dim)">${CAT_LABELS[c]}</span>
-      <div class="bar-track"><div class="bar-fill" style="width:${Math.round(a/maxCat*100)}%;background:${CAT_COLORS[c]}"></div></div>
-      <span style="font-size:13px;font-weight:600;min-width:50px;text-align:right">₹${a}</span>
-    </div>`).join(''):`<p class="empty">${TT('no_expenses')}</p>`;
+  try {
+    const list = getReportEntries();
+    const income = list.filter(e=>e.type==='income').reduce((s,e)=>s+(Number(e.amt)||0),0);
+    const spent = list.filter(e=>e.type==='expense').reduce((s,e)=>s+(Number(e.amt)||0),0);
+    const bal = income - spent;
+    
+    const incEl = document.getElementById('r-income');
+    const spentEl = document.getElementById('r-spent');
+    const balEl = document.getElementById('r-balance');
+    const countEl = document.getElementById('r-count');
+    if (incEl) incEl.textContent = '₹' + income.toLocaleString('en-IN');
+    if (spentEl) spentEl.textContent = '₹' + spent.toLocaleString('en-IN');
+    if (balEl) balEl.textContent = (bal < 0 ? '-₹' : '₹') + Math.abs(bal).toLocaleString('en-IN');
+    if (countEl) countEl.textContent = list.length;
+    
+    const cats = {};
+    list.filter(e=>e.type==='expense').forEach(e=>{cats[e.cat]=(cats[e.cat]||0)+(Number(e.amt)||0);});
+    const maxCat = Math.max(...Object.values(cats), 1);
+    renderCategoryPieChart(cats);
+    
+    const catBreakdownEl = document.getElementById('cat-breakdown');
+    if (catBreakdownEl) {
+      catBreakdownEl.innerHTML = Object.entries(cats).length ? Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([c,a])=>`
+        <div class="cat-bar">
+          <span style="font-size:13px;min-width:110px;color:var(--text-dim)">${(typeof CAT_LABELS!=='undefined'&&CAT_LABELS[c])||c}</span>
+          <div class="bar-track"><div class="bar-fill" style="width:${Math.round(a/maxCat*100)}%;background:${(typeof CAT_COLORS!=='undefined'&&CAT_COLORS[c])||'#9b95c2'}"></div></div>
+          <span style="font-size:13px;font-weight:600;min-width:50px;text-align:right">₹${Number(a).toLocaleString('en-IN')}</span>
+        </div>`).join('') : `<p class="empty">${typeof TT==='function'?TT('no_expenses'):'No expenses'}</p>`;
+    }
 
-  const sorted=[...list].sort((a,b)=>a.date.localeCompare(b.date));
-  document.getElementById('full-breakdown').innerHTML=sorted.length?sorted.map(e=>`<div class="report-row"><span>${fmtDate(e.date)} — ${e.type==='income'?escapeHTML(e.label):escapeHTML(displayCatLabel(e))+': '+escapeHTML(e.label)}</span><span style="color:${e.type==='income'?'var(--green)':'var(--red)'}">${e.type==='income'?'+':'-'}₹${e.amt}</span></div>`).join(''):`<p class="empty">${TT('nothing_period')}</p>`;
+    const fullBreakdownEl = document.getElementById('full-breakdown');
+    if (fullBreakdownEl) {
+      const sorted = [...list].sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+      fullBreakdownEl.innerHTML = sorted.length ? sorted.map(e=>`<div class="report-row"><span>${(typeof fmtDate==='function'?fmtDate(e.date):e.date)} — ${e.type==='income'?escapeHTML(e.label):(typeof displayCatLabel==='function'?escapeHTML(displayCatLabel(e))+': ':'')+escapeHTML(e.label)}</span><span style="color:${e.type==='income'?'var(--green)':'var(--red)'}">${e.type==='income'?'+':'-'}₹${Number(e.amt||0).toLocaleString('en-IN')}</span></div>`).join('') : `<p class="empty">${typeof TT==='function'?TT('nothing_period'):'No entries in this period'}</p>`;
+    }
 
-  renderHealthScore();
-  renderLeakDetector();
-  if (typeof renderBudgetEditor === 'function') renderBudgetEditor();
-  if (typeof renderFutureMoneySimulator === 'function') renderFutureMoneySimulator();
-  if (typeof renderWalletDistributionCard === 'function') renderWalletDistributionCard();
+    if (typeof renderHealthScore === 'function') renderHealthScore();
+    if (typeof renderLeakDetector === 'function') renderLeakDetector();
+    if (typeof renderBudgetEditor === 'function') renderBudgetEditor();
+    if (typeof renderFutureMoneySimulator === 'function') renderFutureMoneySimulator();
+    if (typeof renderWalletDistributionCard === 'function') renderWalletDistributionCard();
+    if (typeof renderSmartInsights === 'function') renderSmartInsights();
+  } catch(e) {
+    console.error('renderReport error:', e);
+  }
 }
 window.renderReport = renderReport;
 
