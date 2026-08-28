@@ -2238,12 +2238,15 @@ window.currentAppMode = localStorage.getItem('pockettrack_app_mode') || 'power';
 
 window.setAppMode = function(mode, save = true) {
   window.currentAppMode = mode;
-  const body = document.body;
+  const isSimple = (mode === 'simple');
+  
+  if (document.body) document.body.classList.toggle('app-mode-simple', isSimple);
+  if (document.documentElement) document.documentElement.classList.toggle('app-mode-simple', isSimple);
+  
   const iconEl = document.getElementById('mode-icon');
   const labelEl = document.getElementById('mode-label');
 
-  if (mode === 'simple') {
-    body.classList.add('app-mode-simple');
+  if (isSimple) {
     if (iconEl) iconEl.textContent = '👴';
     if (labelEl) labelEl.textContent = 'Simple';
     if (save) {
@@ -2251,7 +2254,6 @@ window.setAppMode = function(mode, save = true) {
       if (typeof toast === 'function') toast('Switched to Simple Mode (40+)', 'success');
     }
   } else {
-    body.classList.remove('app-mode-simple');
     if (iconEl) iconEl.textContent = '⚡';
     if (labelEl) labelEl.textContent = 'Power';
     if (save) {

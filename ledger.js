@@ -467,6 +467,25 @@ function showPersonDetail(personId) {
 
   const deleteBtnText = isHi ? '🗑️ संपर्क हटाएं' : '🗑️ Delete Contact';
 
+  let sharedSpacesHtml = '';
+  if (typeof sharedPortfolios !== 'undefined' && Array.isArray(sharedPortfolios)) {
+    const matchedSpaces = sharedPortfolios.filter(sp => (sp.members || []).some(m => m.toLowerCase() === person.name.toLowerCase()));
+    if (matchedSpaces.length) {
+      sharedSpacesHtml = `
+        <div style="margin-bottom:12px;background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.35);border-radius:14px;padding:8px 12px;text-align:left;">
+          <div style="font-size:11px;font-weight:700;color:var(--accent-bright,#c4b5fd);margin-bottom:5px;">👥 Connected Shared Spaces:</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            ${matchedSpaces.map(sp => `
+              <button onclick="closeLedgerModal();setTab('log');switchActivePortfolio('${sp.id}');" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);color:#fff;border-radius:99px;padding:4px 10px;font-size:11.5px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
+                ${sp.icon || '👥'} ${escapeHTML(sp.name)} →
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+  }
+
   const html = `
     <div style="text-align:center; margin-bottom:16px;">
       <div style="width:50px; height:50px; border-radius:50%; background:linear-gradient(135deg, var(--accent,#8b5cf6), var(--accent2,#ec4899)); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:22px; color:#fff; margin:0 auto 8px; box-shadow:0 4px 16px rgba(139,92,246,0.4);">
@@ -478,6 +497,8 @@ function showPersonDetail(personId) {
         ${balStatusText}
       </span>
     </div>
+
+    ${sharedSpacesHtml}
 
     <div class="btn-row" style="margin-bottom:10px; gap:8px;">
       <button class="btn primary" style="flex:1; padding:12px; font-weight:700;" onclick="showAddTxModal('${personId}', 'gave')"><i class="ti ti-arrow-up-right"></i> ${TT('ledger_give')}</button>
