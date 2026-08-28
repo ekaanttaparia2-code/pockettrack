@@ -478,23 +478,28 @@ window.openWalletManagerModal = function() {
   const walletItems = userWallets.map(w => {
     const bal = balances[w.id] || 0;
     const isCustom = !w.isDefault && w.id !== 'cash' && w.id !== 'bank' && w.id !== 'card';
+    const monthlyB = (typeof window.getSavedMonthlyBudget === 'function') ? window.getSavedMonthlyBudget(w.id) : 0;
     return `
       <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-size:22px;">${w.icon || '💳'}</span>
           <div>
             <div style="font-size:14px;font-weight:700;color:#fff;">${escapeHTML(w.name)} ${w.isDefault ? '<span style="font-size:10px;color:var(--text-dim);font-weight:500;">(System)</span>' : ''}</div>
-            <div style="font-size:12px;color:var(--green,#34d399);font-weight:700;">₹${bal.toLocaleString('en-IN')}</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+              <span style="font-size:12px;color:var(--green,#34d399);font-weight:700;">₹${bal.toLocaleString('en-IN')}</span>
+              <span style="font-size:11px;color:var(--accent-bright,#c4b5fd);font-weight:600;">· 🎯 ₹${monthlyB.toLocaleString('en-IN')}/mo</span>
+            </div>
           </div>
         </div>
-        <div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <button onclick="if(typeof closeCustomSheet==='function')closeCustomSheet();if(typeof openSetBudgetModal==='function')openSetBudgetModal('monthly','${w.id}');" style="background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.4);color:var(--accent-bright,#c4b5fd);padding:6px 10px;border-radius:10px;font-size:11.5px;font-weight:700;cursor:pointer;">
+            🎯 ${isHi ? 'बजट' : 'Budget'}
+          </button>
           ${isCustom ? `
-            <button onclick="deleteCustomWallet('${w.id}')" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.35);color:#f87171;padding:6px 12px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;">
-              🗑️ ${isHi ? 'हटाएं' : 'Delete'}
+            <button onclick="deleteCustomWallet('${w.id}')" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.35);color:#f87171;padding:6px 10px;border-radius:10px;font-size:11.5px;font-weight:700;cursor:pointer;">
+              🗑️
             </button>
-          ` : `
-            <span style="font-size:11px;color:var(--text-dim);padding:4px 8px;">Default</span>
-          `}
+          ` : ''}
         </div>
       </div>
     `;

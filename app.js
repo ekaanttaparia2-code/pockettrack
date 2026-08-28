@@ -853,10 +853,8 @@ window.setSavedTotalBudget = function(amt, period, wId) {
 
 window.openSetBudgetModal = function(preferredPeriod, targetWalletId) {
   let activeP = preferredPeriod || window.budgetPeriod || 'monthly';
-  const targetW = targetWalletId !== undefined ? targetWalletId : (typeof activeWalletId !== 'undefined' ? activeWalletId : 'all');
+  let curTargetW = targetWalletId !== undefined ? targetWalletId : ((typeof window.budgetSelectedWallet !== 'undefined' && window.budgetSelectedWallet) ? window.budgetSelectedWallet : ((typeof activeWalletId !== 'undefined') ? activeWalletId : 'all'));
   const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
-  const wObj = (typeof userWallets !== 'undefined') ? userWallets.find(x => x.id === targetW) : null;
-  const wLabel = wObj ? `${wObj.icon} ${wObj.name}` : (isHi ? 'सभी वॉलेट' : 'All Wallets');
   
   let container = document.getElementById('pt-sheet-container');
   if (!container) {
@@ -869,29 +867,52 @@ window.openSetBudgetModal = function(preferredPeriod, targetWalletId) {
     document.body.appendChild(container);
   }
 
-  function renderModalContent(p) {
+  function renderModalContent(p, wId) {
     activeP = p;
+    curTargetW = wId !== undefined ? wId : curTargetW;
     const isWeek = (p === 'weekly');
-    const current = isWeek ? window.getSavedWeeklyBudget(targetW) : window.getSavedMonthlyBudget(targetW);
+    const wObj = (typeof userWallets !== 'undefined') ? userWallets.find(x => x.id === curTargetW) : null;
+    const wLabel = wObj ? `${wObj.icon} ${wObj.name}` : (isHi ? '🌐 सभी वॉलेट' : '🌐 All Wallets');
+    const current = isWeek ? window.getSavedWeeklyBudget(curTargetW) : window.getSavedMonthlyBudget(curTargetW);
     const now = new Date();
     const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
     const divisor = isWeek ? 7 : daysInMonth;
     const initialDaily = Math.round(current / divisor);
     const chips = isWeek ? [2000, 3500, 5000, 7500, 10000] : [10000, 15000, 25000, 50000, 100000];
 
+    const walletOptions = [
+      { id: 'all', name: isHi ? 'सभी वॉलेट' : 'All Wallets', icon: '🌐' },
+      ...((typeof userWallets !== 'undefined' && userWallets.length) ? userWallets : [
+        { id: 'cash', name: 'Cash', icon: '💵' },
+        { id: 'bank', name: 'Bank / UPI', icon: '📱' },
+        { id: 'card', name: 'Credit Card', icon: '💳' }
+      ])
+    ];
+
     container.innerHTML = `
-      <div class="pt-sheet-panel" style="max-width:440px;">
+      <div class="pt-sheet-panel" style="max-width:460px;">
         <div class="pt-sheet-handle"></div>
         
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
           <div style="display:flex;align-items:center;gap:8px;">
             <span style="font-size:24px;">🎯</span>
             <div>
-              <h3 style="margin:0;font-size:18px;font-weight:800;color:#fff;font-family:'Space Grotesk',sans-serif;">${isHi ? 'बजट लक्ष्य' : 'Set Budget Target'}</h3>
+              <h3 style="margin:0;font-size:18px;font-weight:800;color:#fff;font-family:'Space Grotesk',sans-serif;">${isHi ? 'वॉलेट बजट लक्ष्य' : 'Wallet Budget Target'}</h3>
               <span style="font-size:11.5px;color:var(--accent-bright,#c4b5fd);font-weight:700;">${wLabel}</span>
             </div>
           </div>
           <button onclick="closeCustomSheet()" style="background:rgba(255,255,255,0.08);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;">✕</button>
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <label style="font-size:11.5px;font-weight:700;color:#cbd5e1;display:block;margin-bottom:6px;">${isHi ? 'वॉलेट चुनें:' : 'Select Wallet / Account:'}</label>
+          <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;" class="custom-scroll">
+            ${walletOptions.map(w => `
+              <button type="button" onclick="window._switchBudgetModalWallet('${w.id}')" style="background:${w.id === curTargetW ? 'linear-gradient(135deg,#8b5cf6,#6366f1)' : 'rgba(255,255,255,0.05)'};border:1px solid ${w.id === curTargetW ? '#a78bfa' : 'rgba(255,255,255,0.12)'};color:#fff;padding:6px 12px;border-radius:12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:5px;">
+                <span>${w.icon || '💳'}</span> <span>${escapeHTML(w.name)}</span>
+              </button>
+            `).join('')}
+          </div>
         </div>
 
         <div class="toggle-grp" style="margin-bottom:14px;width:100%;display:flex;">
@@ -899,8 +920,8 @@ window.openSetBudgetModal = function(preferredPeriod, targetWalletId) {
           <button class="${!isWeek ? 'active' : ''}" onclick="window._switchBudgetModalTab('monthly')" style="flex:1;">🗓️ ${isHi ? 'मासिक' : 'Monthly'}</button>
         </div>
 
-        <p style="font-size:12.5px;color:var(--text-dim,#94a3b8);margin:0 0 14px;line-height:1.45;">
-          ${isWeek ? (isHi ? 'इस वॉलेट के 7 दिनों के खर्च का लक्ष्य तय करें।' : `Set your 7-day spending limit for ${wLabel}.`) : (isHi ? 'इस वॉलेट के 30 दिनों के खर्च का लक्ष्य तय करें।' : `Set your 30-day spending limit for ${wLabel}.`)}
+        <p style="font-size:12px;color:var(--text-dim,#94a3b8);margin:0 0 12px;line-height:1.45;">
+          ${isWeek ? (isHi ? `${wLabel} के लिए 7 दिनों के खर्च का लक्ष्य निर्धारित करें।` : `Set your 7-day spending limit for ${wLabel}.`) : (isHi ? `${wLabel} के लिए 30 दिनों के खर्च का लक्ष्य निर्धारित करें।` : `Set your 30-day spending limit for ${wLabel}.`)}
         </p>
 
         <label style="font-size:12px;font-weight:700;color:#cbd5e1;display:block;margin-bottom:6px;">${isWeek ? (isHi ? 'साप्ताहिक बजट राशि (₹)' : 'Weekly Target (₹)') : (isHi ? 'मासिक बजट राशि (₹)' : 'Monthly Target (₹)')}</label>
@@ -927,7 +948,7 @@ window.openSetBudgetModal = function(preferredPeriod, targetWalletId) {
 
         <div style="display:flex;gap:10px;">
           <button class="btn" onclick="closeCustomSheet()" style="flex:1;border-radius:14px;padding:12px;font-size:13px;">${isHi ? 'रद्द करें' : 'Cancel'}</button>
-          <button class="btn primary" onclick="submitInAppBudget('${p}','${targetW}')" style="flex:1.4;border-radius:14px;padding:12px;font-weight:800;font-size:13.5px;background:linear-gradient(135deg,#8b5cf6,#10b981);">${isHi ? 'बजट सेव करें →' : 'Save Target →'}</button>
+          <button class="btn primary" onclick="submitInAppBudget('${p}','${curTargetW}')" style="flex:1.4;border-radius:14px;padding:12px;font-weight:800;font-size:13.5px;background:linear-gradient(135deg,#8b5cf6,#10b981);">${isHi ? 'बजट सेव करें →' : 'Save Target →'}</button>
         </div>
       </div>
     `;
@@ -939,10 +960,14 @@ window.openSetBudgetModal = function(preferredPeriod, targetWalletId) {
   }
 
   window._switchBudgetModalTab = function(p) {
-    renderModalContent(p);
+    renderModalContent(p, curTargetW);
   };
 
-  renderModalContent(activeP);
+  window._switchBudgetModalWallet = function(wId) {
+    renderModalContent(activeP, wId);
+  };
+
+  renderModalContent(activeP, curTargetW);
 
   requestAnimationFrame(() => {
     container.classList.add('active');
@@ -977,6 +1002,11 @@ window.promptEditTotalBudget = function() {
   window.openSetBudgetModal();
 };
 
+window.setBudgetWalletFilter = function(wId) {
+  window.budgetSelectedWallet = wId;
+  renderBudgetEditor();
+};
+
 function renderBudgetEditor(){
   const host = document.getElementById('budget-editor');
   if(!host) return;
@@ -984,16 +1014,40 @@ function renderBudgetEditor(){
   const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
   const isSimple = (window.budgetViewMode === 'simple');
   const isWeek = (window.budgetPeriod === 'weekly');
-  const activeW = (typeof activeWalletId !== 'undefined' && activeWalletId !== 'all')
-    ? (typeof userWallets !== 'undefined' ? userWallets.find(x => x.id === activeWalletId) : null)
-    : null;
+  
+  const selectedWId = (typeof window.budgetSelectedWallet !== 'undefined' && window.budgetSelectedWallet)
+    ? window.budgetSelectedWallet
+    : ((typeof activeWalletId !== 'undefined' && activeWalletId !== 'all') ? activeWalletId : 'all');
 
-  const wTag = activeW ? `${activeW.icon} ${activeW.name}` : (isHi ? 'कुल' : 'Total');
+  const wObj = (typeof userWallets !== 'undefined') ? userWallets.find(x => x.id === selectedWId) : null;
+  const wTag = wObj ? `${wObj.icon} ${wObj.name}` : (isHi ? '🌐 सभी वॉलेट' : '🌐 All Wallets');
+
+  const walletOptions = [
+    { id: 'all', name: isHi ? 'सभी वॉलेट' : 'All Wallets', icon: '🌐' },
+    ...((typeof userWallets !== 'undefined' && userWallets.length) ? userWallets : [
+      { id: 'cash', name: 'Cash', icon: '💵' },
+      { id: 'bank', name: 'Bank / UPI', icon: '📱' },
+      { id: 'card', name: 'Credit Card', icon: '💳' }
+    ])
+  ];
+
+  const walletFilterBar = `
+    <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px;" class="custom-scroll">
+      ${walletOptions.map(w => `
+        <button type="button" onclick="setBudgetWalletFilter('${w.id}')" style="background:${w.id === selectedWId ? 'linear-gradient(135deg,#8b5cf6,#6366f1)' : 'rgba(255,255,255,0.05)'};border:1px solid ${w.id === selectedWId ? '#a78bfa' : 'rgba(255,255,255,0.1)'};color:#fff;padding:5px 11px;border-radius:12px;font-size:11.5px;font-weight:700;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:4px;">
+          <span>${w.icon || '💳'}</span> <span>${escapeHTML(w.name)}</span>
+        </button>
+      `).join('')}
+    </div>
+  `;
 
   if (isSimple) {
-    const list = isWeek ? getThisWeekEntries() : getThisMonthEntries();
+    let list = isWeek ? getThisWeekEntries() : getThisMonthEntries();
+    if (selectedWId !== 'all') {
+      list = list.filter(e => (e.walletId || (e.type === 'income' ? 'bank' : 'cash')) === selectedWId);
+    }
     const totalSpent = list.filter(e => e.type === 'expense').reduce((s, e) => s + (parseFloat(e.amt) || 0), 0);
-    const totalBudget = isWeek ? window.getSavedWeeklyBudget() : window.getSavedMonthlyBudget();
+    const totalBudget = isWeek ? window.getSavedWeeklyBudget(selectedWId) : window.getSavedMonthlyBudget(selectedWId);
     const budgetSpentPct = totalBudget > 0 ? Math.min(100, Math.round((totalSpent / totalBudget) * 100)) : 0;
     const isOverBudget = totalSpent > totalBudget;
 
@@ -1011,7 +1065,7 @@ function renderBudgetEditor(){
     const safeDailySpend = Math.round(remainingBudget / remainingDays);
 
     host.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
         <div class="toggle-grp" style="margin:0;">
           <button class="active" onclick="setBudgetViewMode('simple')">🎯 ${isHi ? 'सरल (1-नंबर)' : 'Simple'}</button>
           <button onclick="setBudgetViewMode('category')">🏷️ ${isHi ? 'श्रेणीवार' : 'Categories'}</button>
@@ -1022,11 +1076,13 @@ function renderBudgetEditor(){
         </div>
       </div>
 
+      ${walletFilterBar}
+
       <div style="background:rgba(255,255,255,0.04);border-radius:18px;padding:16px;border:1px solid var(--border);margin-bottom:12px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
           <div>
             <span style="font-size:11px;color:var(--accent-bright,#c4b5fd);text-transform:uppercase;font-weight:700;">
-              ${wTag} ${isWeek ? (isHi ? 'साप्ताहिक बजट' : 'Weekly Budget') : (isHi ? 'मासिक बजट' : 'Monthly Budget')}
+              ${wTag} · ${isWeek ? (isHi ? 'साप्ताहिक बजट' : 'Weekly Budget') : (isHi ? 'मासिक बजट' : 'Monthly Budget')}
             </span>
             <div style="font-size:22px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:#fff;margin-top:2px;">
               ₹${totalSpent.toLocaleString('en-IN')} <span style="font-size:13px;color:var(--text-dim);font-weight:500;">/ ₹${totalBudget.toLocaleString('en-IN')}</span>
@@ -1034,7 +1090,7 @@ function renderBudgetEditor(){
           </div>
           <div style="text-align:right;">
             <div style="font-size:15px;font-weight:800;color:${isOverBudget ? 'var(--red,#f87171)' : 'var(--green,#34d399)'};">${budgetSpentPct}%</div>
-            <button class="btn btn-sm" onclick="openSetBudgetModal('${isWeek ? 'weekly' : 'monthly'}')" style="margin-top:4px;border-radius:8px;font-size:11px;padding:3px 8px;background:rgba(255,255,255,0.08);color:#fff;border:1px solid var(--border);">⚙️ ${isHi ? 'बदलें' : 'Edit'}</button>
+            <button class="btn btn-sm" onclick="openSetBudgetModal('${isWeek ? 'weekly' : 'monthly'}', '${selectedWId}')" style="margin-top:4px;border-radius:8px;font-size:11px;padding:4px 10px;background:rgba(255,255,255,0.08);color:#fff;border:1px solid var(--border);">⚙️ ${isHi ? 'बजट बदलें' : 'Edit Target'}</button>
           </div>
         </div>
 
@@ -1096,6 +1152,8 @@ function renderBudgetEditor(){
         <button class="${budgetPeriod==='monthly'?'active':''}" onclick="setBudgetPeriod('monthly')">${isHi ? 'माह' : 'Month'}</button>
       </div>
     </div>
+
+    ${walletFilterBar}
 
     <div class="budget-total" style="margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-dim);margin-bottom:5px">
