@@ -233,10 +233,9 @@ header{
   backdrop-filter:blur(20px) saturate(1.5);
   -webkit-backdrop-filter:blur(20px) saturate(1.5);
   box-shadow:var(--shadow-md), inset 0 1px 0 rgba(255,255,255,0.10);
-  transition:transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease), border-color var(--dur) var(--ease);
+  transition:box-shadow var(--dur) var(--ease), border-color var(--dur) var(--ease);
 }
 .card:hover{
-  transform:translateY(-2px);
   border-color:var(--border-strong);
   box-shadow:var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,0.10);
 }

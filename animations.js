@@ -228,50 +228,7 @@ function renderParticles() {
   }
 }
 
-// --- 4. Dynamic Glassmorphism Spotlight Follower ---
-function initSpotlightFollower() {
-  document.addEventListener('pointermove', (e) => {
-    const cards = document.querySelectorAll('.card, .hero-card, .composer-chip, .btn');
-    const x = e.clientX;
-    const y = e.clientY;
-
-    cards.forEach((card) => {
-      const rect = card.getBoundingClientRect();
-      if (
-        x >= rect.left - 40 &&
-        x <= rect.right + 40 &&
-        y >= rect.top - 40 &&
-        y <= rect.bottom + 40
-      ) {
-        const mouseX = x - rect.left;
-        const mouseY = y - rect.top;
-        card.style.setProperty('--mouse-x', `${mouseX}px`);
-        card.style.setProperty('--mouse-y', `${mouseY}px`);
-      }
-    });
-  });
-}
-
-// --- 5. 3D Card Hover & Touch Tilt Physics ---
-function initCard3DTilt() {
-  document.querySelectorAll('.card, .hero-card, .health-card').forEach(card => {
-    card.addEventListener('pointermove', e => {
-      const rect = card.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      const centerX = rect.width / 2;
-      const centerY = rect.height / 2;
-      const rotateX = ((y - centerY) / centerY) * -2.5;
-      const rotateY = ((x - centerX) / centerX) * 2.5;
-      card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translate3d(0, -2px, 0)`;
-    });
-    card.addEventListener('pointerleave', () => {
-      card.style.transform = '';
-    });
-  });
-}
-
-// --- 6. Celebratory Button Micro-Bursts ---
+// --- 4. Celebratory Button Micro-Bursts ---
 function initButtonMicroBursts() {
   document.querySelectorAll('.hero-action.primary, .btn.primary, .home-add-mini, #quick-composer-submit').forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -283,8 +240,6 @@ function initButtonMicroBursts() {
 
 // Auto-initialize when DOM loads
 document.addEventListener('DOMContentLoaded', () => {
-  initSpotlightFollower();
-  initCard3DTilt();
   initButtonMicroBursts();
 });
 
