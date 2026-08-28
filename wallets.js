@@ -288,9 +288,6 @@ window.renderWalletSwitcher = function() {
     <button class="wallet-pill" onclick="openWalletManagerModal()" style="background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.15);" title="Manage & Delete Wallets">
       <span>⚙️ ${typeof currentLang !== 'undefined' && currentLang === 'hi' ? 'प्रबंधन' : 'Manage'}</span>
     </button>
-    <button class="wallet-pill add-pill" onclick="openNewWalletModal()">
-      <i class="ti ti-plus"></i> <span>${typeof currentLang !== 'undefined' && currentLang === 'hi' ? 'नया वॉलेट' : 'Add Wallet'}</span>
-    </button>
   `;
 
   // Synchronize form dropdowns
