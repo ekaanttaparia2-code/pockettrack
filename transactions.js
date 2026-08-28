@@ -279,6 +279,7 @@ function listenToEntries(){
   unsubscribeEntries = db.collection('users').doc(currentUser.uid).collection('entries')
     .onSnapshot({includeMetadataChanges:true}, snap=>{
       entries = snap.docs.map(d=>({...d.data(), _id:d.id}));
+      if (typeof window !== 'undefined') window.entries = entries;
       if(typeof pendingWriteState!=='undefined') pendingWriteState.entries = !!snap.metadata && snap.metadata.hasPendingWrites;
       if(typeof updateSyncIndicator==='function') updateSyncIndicator();
       renderEntries();

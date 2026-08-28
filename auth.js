@@ -121,6 +121,7 @@ auth.onAuthStateChanged(user=>{
     if(typeof updateVoiceFabVisibility === 'function') updateVoiceFabVisibility();
     if(typeof updateAIWidgetVisibility === 'function') updateAIWidgetVisibility();
     entries=[];
+    if(typeof window !== 'undefined') window.entries = entries;
     if(typeof resetLedgerLocal==='function') resetLedgerLocal();
     if(typeof resetRecurringLocal==='function') resetRecurringLocal();
     if(typeof pendingWriteState!=='undefined'){ pendingWriteState.entries=false; pendingWriteState.events=false; }

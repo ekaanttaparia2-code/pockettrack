@@ -360,10 +360,10 @@ function showNextTip(){
 
 const CAT_COLORS = {food:'#4ade80',travel:'#60a5fa',friends:'#ffb84d',home:'#ff7eb3',shopping:'#c084fc',entertainment:'#f472b6',health:'#fb7185',education:'#fbbf24',work:'#22d3ee',other:'#9b95c2',custom:'#c4a8ff'};
 window.CAT_COLORS = CAT_COLORS;
-let entries = [];
+var entries = [];
 window.entries = entries;
 function mainEntries(){
-  const list = (typeof window !== 'undefined' && Array.isArray(window.entries) && window.entries.length) ? window.entries : entries;
+  const list = (typeof window !== 'undefined' && Array.isArray(window.entries)) ? window.entries : (typeof entries !== 'undefined' && Array.isArray(entries) ? entries : []);
   const base = list.filter(e=>!e.event);
   if (typeof activeWalletId !== 'undefined' && activeWalletId && activeWalletId !== 'all') {
     return base.filter(e => {
@@ -375,7 +375,7 @@ function mainEntries(){
 }
 window.mainEntries = mainEntries;
 function allRawMainEntries(){
-  const list = (typeof window !== 'undefined' && Array.isArray(window.entries) && window.entries.length) ? window.entries : entries;
+  const list = (typeof window !== 'undefined' && Array.isArray(window.entries)) ? window.entries : (typeof entries !== 'undefined' && Array.isArray(entries) ? entries : []);
   return list.filter(e=>!e.event);
 }
 window.allRawMainEntries = allRawMainEntries;
@@ -1352,19 +1352,20 @@ function setTab(t){
   document.querySelectorAll('.bottom-tab').forEach(btn=>{
     btn.classList.toggle('active', btn.dataset.tab===t);
   });
-  document.getElementById('header-stat-pills').style.display = (t==='log'||t==='entries') ? 'flex' : 'none';
+  const statPills = document.getElementById('header-stat-pills');
+  if (statPills) statPills.style.display = (t==='log'||t==='entries') ? 'flex' : 'none';
   if(t==='entries'){
     if(typeof renderEntries==='function') renderEntries();
   }
   if(t==='report'){
     if(typeof renderReport==='function') renderReport();
-    showNextTip();
+    if(typeof showNextTip==='function') showNextTip();
     if(typeof renderBudgetEditor==='function') renderBudgetEditor();
     if(typeof ptSyncGates === 'function') ptSyncGates();
   }
   if(t==='events'){
-    showEventsListView();
-    renderEventsList();
+    if(typeof showEventsListView==='function') showEventsListView();
+    if(typeof renderEventsList==='function') renderEventsList();
   }
   if(t==='ledger'){
     if(typeof ptSyncGates === 'function') ptSyncGates();
@@ -1376,10 +1377,15 @@ function setTab(t){
   if(t==='pro'){
     if(typeof renderProTab === 'function') renderProTab();
   }
-  if(t==='rewards')renderRewards();
-  if(t==='language')updateLanguageTabUI();
-  closeMenu();
+  if(t==='rewards'){
+    if(typeof renderRewards==='function') renderRewards();
+  }
+  if(t==='language'){
+    if(typeof updateLanguageTabUI==='function') updateLanguageTabUI();
+  }
+  if(typeof closeMenu==='function') closeMenu();
 }
+window.setTab = setTab;
 
 // Side menu removed — these stay as safe no-ops for legacy callers.
 function openMenu(){}
@@ -2603,6 +2609,7 @@ window.triggerManualSync = async function() {
       const snap = await db.collection('users').doc(currentUser.uid).collection('entries').orderBy('date', 'desc').limit(250).get();
       if (!snap.empty) {
         entries = snap.docs.map(d => ({ _id: d.id, ...d.data() }));
+        if (typeof window !== 'undefined') window.entries = entries;
         if (typeof updateHeaderStats === 'function') updateHeaderStats();
         if (typeof renderEntries === 'function') renderEntries();
         if (typeof renderHomeSnapshot === 'function') renderHomeSnapshot();
