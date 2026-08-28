@@ -184,6 +184,11 @@
       </button>
     </div>
 
+    <!-- Wallet / Account Switcher Bar -->
+    <div class="wallet-switcher-bar" id="wallet-switcher-bar">
+      <div id="wallet-pills-list" style="display:inline-flex;gap:8px;"></div>
+    </div>
+
     <div id="home-shared-portfolio-slot"></div>
 
     <!-- 1. Hero Balance Card -->
@@ -425,6 +430,7 @@
     <div id="health-score-card"></div>
     <div id="leak-detector-card" style="margin-bottom:1.1rem"></div>
     <div id="future-money-simulator-card" style="margin-bottom:1.1rem"></div>
+    <div id="wallet-distribution-slot" style="margin-bottom:1.1rem"></div>
 
     <div class="card" id="budget-main-card">
       <p class="sec-title"><i class="ti ti-target-arrow"></i><span data-i18n="sec_budget">Budget Control</span></p>
@@ -884,6 +890,15 @@
         </div>
       </div>
 
+      <div style="margin-bottom:12px;">
+        <p class="composer-label" style="margin-bottom:6px;">Paid via / Account</p>
+        <div class="composer-chips" id="composer-wallet-chips">
+          <button type="button" class="composer-chip active" data-wallet="cash" onclick="selectComposerWallet(this,'cash')">💵 Cash</button>
+          <button type="button" class="composer-chip" data-wallet="bank" onclick="selectComposerWallet(this,'bank')">📱 Bank / UPI</button>
+          <button type="button" class="composer-chip" data-wallet="card" onclick="selectComposerWallet(this,'card')">💳 Credit Card</button>
+        </div>
+      </div>
+
       <div class="composer-row">
         <label class="composer-field"><span>📅 Date</span><input id="composer-date" type="date"/></label>
         <label class="composer-field composer-note"><span>📝 Note</span><input id="composer-note" type="text" maxlength="60" placeholder="Optional"/></label>
@@ -953,6 +968,7 @@
 <script src="financial_dna.js"></script>
 <script src="wrapped.js"></script>
 <script src="shared_portfolios.js"></script>
+<script src="wallets.js"></script>
 <script src="daily_burn_meter.js"></script>
 <script src="digital_vault.js"></script>
 <script src="upi_qr_generator.js"></script>

@@ -352,7 +352,14 @@ function showNextTip(){
 
 const CAT_COLORS = {food:'#4ade80',travel:'#60a5fa',friends:'#ffb84d',home:'#ff7eb3',shopping:'#c084fc',entertainment:'#f472b6',health:'#fb7185',education:'#fbbf24',work:'#22d3ee',other:'#9b95c2',custom:'#c4a8ff'};
 let entries = [];
-function mainEntries(){ return entries.filter(e=>!e.event); } // excludes entries tagged to an event — those live only in their event's own view
+function mainEntries(){
+  const base = entries.filter(e=>!e.event);
+  if (typeof activeWalletId !== 'undefined' && activeWalletId && activeWalletId !== 'all') {
+    return base.filter(e => (e.walletId || (e.type === 'income' ? 'bank' : 'cash')) === activeWalletId);
+  }
+  return base;
+}
+function allRawMainEntries(){ return entries.filter(e=>!e.event); }
 let period = 'week';
 
 function dateToStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}

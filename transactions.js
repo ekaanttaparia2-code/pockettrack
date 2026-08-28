@@ -44,9 +44,10 @@ function renderHomeSnapshot(){
     const label=displayCatLabel(e);
     const title=e.label||label||'Entry';
     const date=e.date||'';
+    const wBadge = (typeof getWalletBadgeHtml === 'function') ? getWalletBadgeHtml(e.walletId) : '';
     return `<div class="home-entry-row">
       <span class="home-entry-icon ${income?'income':'expense'}"><i class="ti ${income?'ti-arrow-down-left':'ti-arrow-up-right'}"></i></span>
-      <div class="home-entry-main"><strong>${escapeHTML(title)}</strong><span>${escapeHTML(label)} · ${escapeHTML(date)}</span></div>
+      <div class="home-entry-main"><strong>${escapeHTML(title)} ${wBadge}</strong><span>${escapeHTML(label)} · ${escapeHTML(date)}</span></div>
       <strong class="home-entry-amt ${income?'income':'expense'}">${income?'+':'−'}₹${Number(e.amt||0).toLocaleString('en-IN')}</strong>
     </div>`;
   }).join('');
@@ -68,6 +69,14 @@ function renderHomeSnapshot(){
 
 let composerMode='expense';
 let composerSelection='food';
+let composerWallet='cash';
+
+function selectComposerWallet(btn, value){
+  composerWallet = value;
+  const group = btn.closest('.composer-chips');
+  group?.querySelectorAll('.composer-chip').forEach(x=>x.classList.remove('active'));
+  btn.classList.add('active');
+}
 
 function openQuickComposer(mode='expense'){
   composerMode=mode==='income'?'income':'expense';
@@ -76,6 +85,10 @@ function openQuickComposer(mode='expense'){
   document.getElementById('composer-amount').value='';
   document.getElementById('composer-date').value=todayStr();
   document.getElementById('composer-note').value='';
+  composerWallet = (typeof activeWalletId !== 'undefined' && activeWalletId !== 'all') ? activeWalletId : (mode === 'income' ? 'bank' : 'cash');
+  document.querySelectorAll('#composer-wallet-chips .composer-chip').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.wallet === composerWallet);
+  });
   setComposerMode(composerMode);
   backdrop.style.display='flex';
   document.body.classList.add('composer-open');
@@ -103,7 +116,7 @@ function setComposerMode(mode){
   if(save)save.innerHTML=(composerMode==='expense'?'Save expense':'Save income')+' <span>→</span>';
   if(sub)sub.textContent=composerMode==='expense'?'Add it in a few taps.':'Capture money coming in just as quickly.';
   composerSelection=composerMode==='expense'?'food':'Salary';
-  document.querySelectorAll('.composer-chip').forEach(btn=>btn.classList.toggle('active', (composerMode==='expense'&&btn.dataset.cat===composerSelection)||(composerMode==='income'&&btn.dataset.source===composerSelection)));
+  document.querySelectorAll('#composer-expense-fields .composer-chip, #composer-income-fields .composer-chip').forEach(btn=>btn.classList.toggle('active', (composerMode==='expense'&&btn.dataset.cat===composerSelection)||(composerMode==='income'&&btn.dataset.source===composerSelection)));
 }
 
 function selectComposerChip(btn,value){
@@ -128,19 +141,21 @@ async function submitTransactionComposer(){
   if(btn)btn.disabled=true;
   try{
     let payload,offer;
+    const chosenWallet = composerWallet || ((typeof activeWalletId !== 'undefined' && activeWalletId !== 'all') ? activeWalletId : (composerMode === 'income' ? 'bank' : 'cash'));
     if(composerMode==='expense'){
       const labels={food:'Food & snacks',travel:'Travel/Convenience',friends:'Friends plan',home:'Household items',shopping:'Shopping',other:'Other'};
       const label=note||labels[composerSelection]||'Expense';
-      payload={type:'expense',cat:composerSelection,label,note:note||label,amt:Math.round(amt*100)/100,date};
+      payload={type:'expense',cat:composerSelection,label,note:note||label,amt:Math.round(amt*100)/100,walletId:chosenWallet,date};
       offer={type:'expense',label,amt:payload.amt,cat:composerSelection};
     }else{
       const label=note||composerSelection||'Income';
-      payload={type:'income',cat:'income',label,note:note||label,amt:Math.round(amt*100)/100,date};
+      payload={type:'income',cat:'income',label,note:note||label,amt:Math.round(amt*100)/100,walletId:chosenWallet,date};
       offer={type:'income',label,amt:payload.amt,cat:'income'};
     }
     const guardFn = (typeof maybeGuardAndSaveWithSmartEngine === 'function') ? maybeGuardAndSaveWithSmartEngine : maybeGuardAndSave;
     await guardFn(payload, async()=>{
       await saveEntry(payload);
+      if (typeof renderWalletSwitcher === 'function') renderWalletSwitcher();
       if(composerMode==='expense'){
         checkBudget();showSpendMoodToast(payload.amt);
         toast(TT('expense_added'),'success');
@@ -404,7 +419,8 @@ async function addIncome(){
     if(!isValidAmount(amt)){toast(TT('enter_valid_amount'),'error');return;}
     if(!note){toast(TT('add_description'),'error');return;}
     if(!isValidDate(date)){toast(TT('enter_valid_date'),'error');return;}
-    const payload={type:'income',cat:'income',label:src,note,amt:Math.round(amt*100)/100,date};
+    const chosenW = (typeof activeWalletId !== 'undefined' && activeWalletId !== 'all') ? activeWalletId : 'bank';
+    const payload={type:'income',cat:'income',label:src,note,amt:Math.round(amt*100)/100,walletId:chosenW,date};
     try{
       if(editingId){
         await updateEntry(editingId, payload);
@@ -414,6 +430,7 @@ async function addIncome(){
         const guardFn = (typeof maybeGuardAndSaveWithSmartEngine === 'function') ? maybeGuardAndSaveWithSmartEngine : maybeGuardAndSave;
         await guardFn(payload, async()=>{
           await saveEntry(payload);
+          if (typeof renderWalletSwitcher === 'function') renderWalletSwitcher();
           toast(TT('income_added'),'success');
           if(typeof maybeOfferRecurring==='function') maybeOfferRecurring({type:'income',label:src,amt,cat:'income'});
           if(isNewCustom) saveCustomIncomeSource(src);
@@ -451,7 +468,8 @@ async function addExpense(){
     if(!isValidAmount(amt)){toast(TT('enter_valid_amount'),'error');return;}
     if(!desc){toast(TT('add_description'),'error');return;}
     if(!isValidDate(date)){toast(TT('enter_valid_date'),'error');return;}
-    const payload={type:'expense',cat,customCat,label:desc,amt:Math.round(amt*100)/100,date};
+    const chosenExpW = (typeof activeWalletId !== 'undefined' && activeWalletId !== 'all') ? activeWalletId : 'cash';
+    const payload={type:'expense',cat,customCat,label:desc,amt:Math.round(amt*100)/100,walletId:chosenExpW,date};
     try{
       if(editingId){
         await updateEntry(editingId, payload);
@@ -461,6 +479,7 @@ async function addExpense(){
         const guardFn = (typeof maybeGuardAndSaveWithSmartEngine === 'function') ? maybeGuardAndSaveWithSmartEngine : maybeGuardAndSave;
         await guardFn(payload, async()=>{
           await saveEntry(payload);
+          if (typeof renderWalletSwitcher === 'function') renderWalletSwitcher();
           toast(TT('expense_added'),'success');
           checkBudget();
           showSpendMoodToast(payload.amt);
@@ -574,6 +593,18 @@ function renderEntries(){
   else if(sortMode==='amt-desc')dateKeys.sort((a,b)=>(byDate[b].income-byDate[b].expense)-(byDate[a].income-byDate[a].expense));
   else if(sortMode==='amt-asc')dateKeys.sort((a,b)=>(byDate[a].income-byDate[a].expense)-(byDate[b].income-byDate[b].expense));
 
+function getWalletBadgeHtml(walletId) {
+  if (!walletId) return '';
+  const wList = (typeof userWallets !== 'undefined' && userWallets.length) ? userWallets : [
+    { id: 'cash', name: 'Cash', icon: '💵' },
+    { id: 'bank', name: 'Bank / UPI', icon: '📱' },
+    { id: 'card', name: 'Card', icon: '💳' }
+  ];
+  const w = wList.find(x => x.id === walletId) || { name: walletId, icon: '💳' };
+  const cls = walletId === 'cash' ? 'wallet-tag-cash' : (walletId === 'bank' ? 'wallet-tag-bank' : (walletId === 'card' ? 'wallet-tag-card' : ''));
+  return `<span class="wallet-badge-tag ${cls}" style="margin-left:4px;">${w.icon || '💳'} ${escapeHTML(w.name)}</span>`;
+}
+
   el.innerHTML=dateKeys.map(d=>{
     const grp=byDate[d];
     const bal=grp.income-grp.expense;
@@ -583,11 +614,12 @@ function renderEntries(){
       const catKey=(e.cat&&e.cat!=='income'?e.cat:'other');
       const dotColor=(typeof CAT_COLORS!=='undefined'&&CAT_COLORS[catKey])||'var(--text-faint)';
       const meta=escapeHTML(displayCatLabel(e))+(e.note?' · '+escapeHTML(e.note):'');
+      const wBadge=getWalletBadgeHtml(e.walletId);
       return `
       <div class="entry-row entry-card">
         <span class="cat-dot" style="background:${dotColor};color:${dotColor}"></span>
         <div class="entry-main">
-          <span class="entry-label">${escapeHTML(e.label)}${e.event?' <span class="event-tag">🎉 '+escapeHTML(e.event)+'</span>':''}</span>
+          <span class="entry-label">${escapeHTML(e.label)}${e.event?' <span class="event-tag">🎉 '+escapeHTML(e.event)+'</span>':''}${wBadge}</span>
           <span class="entry-meta">${meta}</span>
         </div>
         <span class="entry-amt ${e.type==='income'?'income':'expense'}">${e.type==='income'?'+':'-'}₹${e.amt}</span>

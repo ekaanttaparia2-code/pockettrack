@@ -170,13 +170,17 @@ function parseVoiceInput(text) {
   description = description.replace(/\s+/g, ' ');
   if (!description) description = type === 'income' ? 'Voice Income' : 'Voice Expense';
 
-  description = description.charAt(0).toUpperCase() + description.slice(1);
+  // Smart Context Wallet Detection
+  const detectedWallet = (typeof detectWalletFromText === 'function')
+    ? detectWalletFromText(rawText)
+    : ((typeof activeWalletId !== 'undefined' && activeWalletId !== 'all') ? activeWalletId : (type === 'income' ? 'bank' : 'cash'));
 
   parsedVoiceData = {
     amount,
     type,
     category: type === 'income' ? 'Salary' : category,
     note: description,
+    walletId: detectedWallet,
     date
   };
 
@@ -379,6 +383,13 @@ function showVoiceModal() {
       <button id="voice-type-inc" class="${isIncome?'active':''}" onclick="setVoiceType('income')">📥 Income</button>
     </div>
 
+    <label style="font-size:11.5px;color:var(--text-dim)">Account / Wallet</label>
+    <select id="voice-wallet" onchange="parsedVoiceData.walletId=this.value">
+      ${(typeof userWallets !== 'undefined' ? userWallets : [{id:'cash',name:'Cash',icon:'💵'},{id:'bank',name:'Bank / UPI',icon:'📱'},{id:'card',name:'Credit Card',icon:'💳'}]).map(w => `
+        <option value="${w.id}" ${w.id===parsedVoiceData.walletId?'selected':''}>${w.icon} ${escapeHTML(w.name)}</option>
+      `).join('')}
+    </select>
+
     <label style="font-size:11.5px;color:var(--text-dim)">Category / Source</label>
     <select id="voice-cat" onchange="parsedVoiceData.category=this.value;parsedVoiceData.type=document.getElementById('voice-type-inc').classList.contains('active')?'income':'expense'">${voiceCatsHtml(parsedVoiceData.type)}</select>
 
@@ -404,12 +415,14 @@ async function confirmVoiceEntry() {
     const amtEl = document.getElementById('voice-amount');
     const noteEl = document.getElementById('voice-note');
     const dateEl = document.getElementById('voice-date');
+    const walletEl = document.getElementById('voice-wallet');
     const amt = amtEl ? parseFloat(amtEl.value) : parsedVoiceData.amount;
     if (!isFinite(amt) || amt <= 0) { toast('Enter a valid amount', 'error'); return; }
     // keep type & category which the modal mutates live on parsedVoiceData
     parsedVoiceData.amount = amt;
     if (noteEl) parsedVoiceData.note = noteEl.value.trim() || 'Voice Entry';
     if (dateEl) parsedVoiceData.date = dateEl.value;
+    if (walletEl) parsedVoiceData.walletId = walletEl.value;
     parsedVoiceData.label = parsedVoiceData.note;
     if (typeof isValidDate === 'function' && !isValidDate(parsedVoiceData.date)) { toast('Enter a valid date', 'error'); return; }
     if (currentUser && !currentUser.emailVerified && (!currentUser.providerData || currentUser.providerData[0].providerId !== 'google.com') && typeof entries !== 'undefined' && entries.length >= 10) {
@@ -426,6 +439,7 @@ async function confirmVoiceEntry() {
       label: parsedVoiceData.note,
       note: parsedVoiceData.note,
       amt: parsedVoiceData.amount,
+      walletId: parsedVoiceData.walletId || 'cash',
       date: parsedVoiceData.date
     };
     const savedType = parsedVoiceData.type;
@@ -434,6 +448,7 @@ async function confirmVoiceEntry() {
     await guardFn(voicePayload, async()=>{
       if (typeof saveEntry === 'function') await saveEntry(voicePayload);
       if (typeof incrementVoiceEntriesUsed === 'function') incrementVoiceEntriesUsed();
+      if (typeof renderWalletSwitcher === 'function') renderWalletSwitcher();
       toast((savedType === 'income' ? 'Income' : 'Expense') + ' recorded!', 'success');
       clearVoiceState();
       closeVoiceModal();

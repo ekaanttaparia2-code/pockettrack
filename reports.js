@@ -143,6 +143,7 @@ function renderReport(){
   renderLeakDetector();
   if (typeof renderBudgetEditor === 'function') renderBudgetEditor();
   if (typeof renderFutureMoneySimulator === 'function') renderFutureMoneySimulator();
+  if (typeof renderWalletDistributionCard === 'function') renderWalletDistributionCard();
 }
 
 function copyReport(){
@@ -638,6 +639,56 @@ function updateAppSimulator() {
   if(mo6El) mo6El.textContent = '₹' + (val * 6).toLocaleString('en-IN');
   if(mo12El) mo12El.textContent = '₹' + (val * 12).toLocaleString('en-IN');
 }
+
+window.renderWalletDistributionCard = function() {
+  const host = document.getElementById('wallet-distribution-slot');
+  if (!host) return;
+  if (typeof computeWalletBalances !== 'function' || typeof userWallets === 'undefined') return;
+
+  const balances = computeWalletBalances();
+  const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
+
+  let totalNetWorth = 0;
+  Object.values(balances).forEach(b => { totalNetWorth += b; });
+
+  const walletRows = userWallets.map(w => {
+    const bal = balances[w.id] || 0;
+    const isNeg = bal < 0;
+    const pct = totalNetWorth > 0 ? Math.max(0, Math.min(100, Math.round((bal / totalNetWorth) * 100))) : 0;
+    return `
+      <div style="background:rgba(255,255,255,0.03);border-radius:14px;padding:12px;border:1px solid rgba(255,255,255,0.06);margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:18px;">${w.icon || '💳'}</span>
+            <strong style="font-size:13.5px;color:#fff;">${escapeHTML(w.name)}</strong>
+          </div>
+          <strong style="font-size:14px;color:${isNeg ? '#f87171' : 'var(--green,#34d399)'};font-family:'Space Grotesk',sans-serif;">
+            ₹${bal.toLocaleString('en-IN')}
+          </strong>
+        </div>
+        <div style="width:100%;height:6px;border-radius:99px;background:rgba(255,255,255,0.08);overflow:hidden;">
+          <div style="width:${pct}%;height:100%;background:${w.color || '#34d399'};border-radius:99px;"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  host.innerHTML = `
+    <div class="card" style="margin-top:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <p class="sec-title" style="margin:0;display:flex;align-items:center;gap:6px;"><span style="font-size:20px;">💼</span><span>${isHi ? 'खाते और वॉलेट वितरण' : 'Accounts & Wallet Distribution'}</span></p>
+        <span class="chip" style="font-size:10.5px;">Net Worth: ₹${totalNetWorth.toLocaleString('en-IN')}</span>
+      </div>
+      <div style="margin-bottom:10px;">
+        ${walletRows}
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-sm" onclick="openTransferModal()" style="flex:1;border-radius:10px;font-size:11.5px;padding:6px;background:rgba(139,92,246,0.15);color:var(--accent-bright,#c4b5fd);border:1px solid rgba(139,92,246,0.3);">🔁 ${isHi ? 'ट्रांसफर करें' : 'Transfer'}</button>
+        <button class="btn btn-sm" onclick="openNewWalletModal()" style="flex:1;border-radius:10px;font-size:11.5px;padding:6px;background:rgba(52,211,153,0.12);color:var(--green,#34d399);border:1px solid rgba(52,211,153,0.3);">+ ${isHi ? 'नया खाता' : 'New Wallet'}</button>
+      </div>
+    </div>
+  `;
+};
 
 // =====================================================================
 // ACTIONABLE SMART INSIGHTS & SIMPLE BUDGET MODE
