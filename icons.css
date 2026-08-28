@@ -50,3 +50,6 @@
 .ti-arrows-exchange::before{content:'🔁'}
 .ti-repeat::before,.ti-refresh-dot::before{content:'🔁'}
 .ti-wand::before{content:'🪄'}
+.ti-currency-rupee::before,.ti-rupee::before{content:'₹'}
+.ti-currency-dollar::before{content:'₹'}
+

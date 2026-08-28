@@ -255,8 +255,18 @@ function applyThemeOf(id){
   localStorage.setItem(PT_STORE.theme, id);
   const body = document.body;
   if (!body) return;
-  if (id === 'cyber') { delete body.dataset.theme; }
-  else { body.dataset.theme = id; }
+  const themeMap = {
+    'cyber': 'cyberpunk',
+    'midnight': 'oled',
+    'emerald': 'emerald',
+    'sunset': 'sunset'
+  };
+  const themeAttr = themeMap[id];
+  if (themeAttr) {
+    body.dataset.theme = themeAttr;
+  } else {
+    delete body.dataset.theme;
+  }
 }
 
 function themeById(id){ return PT_THEMES.find(t=>t.id===id); }

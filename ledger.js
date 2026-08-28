@@ -64,11 +64,11 @@ function openLedgerModal(htmlContent) {
   if (!backdrop) {
     backdrop = document.createElement('div');
     backdrop.id = 'ledger-custom-modal-backdrop';
-    backdrop.style.cssText = 'position:fixed;inset:0;background:rgba(10,8,26,0.78);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
+    backdrop.style.cssText = 'position:fixed;inset:0;background:rgba(10,8,26,0.78);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px;';
     document.body.appendChild(backdrop);
   }
   backdrop.innerHTML = `
-    <div class="card" style="width:100%;max-width:420px;background:var(--card-solid,#1f1840);border:1px solid rgba(255,255,255,0.15);box-shadow:0 20px 50px rgba(0,0,0,0.6);position:relative;padding:24px 20px;border-radius:20px;max-height:88vh;display:flex;flex-direction:column;">
+    <div class="card" style="width:100%;max-width:420px;background:var(--card-solid,#1f1840);border:1px solid rgba(255,255,255,0.15);box-shadow:0 20px 50px rgba(0,0,0,0.6);position:relative;padding:24px 20px;border-radius:24px;max-height:88vh;display:flex;flex-direction:column;box-sizing:border-box;">
       <button class="icon-btn" onclick="closeLedgerModal()" style="position:absolute;top:16px;right:16px;font-size:20px;color:var(--text-dim,#9ca3af);"><i class="ti ti-x"></i></button>
       ${htmlContent}
     </div>
@@ -99,102 +99,137 @@ function listenToLedger() {
       .onSnapshot((snap) => {
         ledgerTxUnsubs.forEach(u => { try { u(); } catch(e){} });
         ledgerTxUnsubs = [];
-        const remotePeople = snap.docs.map(d => ({ ...d.data(), _id: d.id, transactions: [] }));
-        if (!remotePeople.length) { ledgerPeople = []; saveLocalLedgerCache(); renderLedger(); return; }
-        let pending = remotePeople.length;
-        remotePeople.forEach(personData => {
-          const unsub = db.collection('users').doc(currentUser.uid).collection('ledger').doc(personData._id).collection('transactions')
-            .onSnapshot(txSnap => {
-              personData.transactions = txSnap.docs.map(t => ({ ...t.data(), _id: t.id }));
-              personData.transactions.sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
-              pending = Math.max(0, pending - 1);
-              if (pending === 0) {
-                ledgerPeople = remotePeople;
+        
+        const docs = snap.docs;
+        if (!docs.length) {
+          ledgerPeople = [];
+          saveLocalLedgerCache();
+          renderLedger();
+          return;
+        }
+
+        let newPeopleList = docs.map(d => ({
+          _id: d.id,
+          name: d.data().name || 'Contact',
+          phone: d.data().phone || '',
+          createdAt: d.data().createdAt ? d.data().createdAt.toMillis() : Date.now(),
+          transactions: []
+        }));
+
+        let loadedCount = 0;
+        newPeopleList.forEach(person => {
+          const u = db.collection('users').doc(currentUser.uid).collection('ledger').doc(person._id).collection('transactions')
+            .onSnapshot((txSnap) => {
+              person.transactions = txSnap.docs.map(td => ({
+                _id: td.id,
+                amount: td.data().amount || 0,
+                type: td.data().type || 'gave',
+                note: td.data().note || '',
+                date: td.data().date || '',
+                createdAt: td.data().createdAt ? td.data().createdAt.toMillis() : Date.now()
+              })).sort((a, b) => b.createdAt - a.createdAt);
+
+              loadedCount++;
+              if (loadedCount >= newPeopleList.length) {
+                ledgerPeople = newPeopleList;
                 saveLocalLedgerCache();
+                renderLedger();
               }
-              renderLedger();
-            }, err => {
-              console.warn('Ledger tx listener warning:', err.message);
-              pending = Math.max(0, pending - 1);
             });
-          ledgerTxUnsubs.push(unsub);
+          ledgerTxUnsubs.push(u);
         });
       }, err => {
-        console.warn('Ledger listener warning, using local mode:', err.message);
-        renderLedger();
+        console.warn('Ledger realtime offline fallback:', err.message);
       });
-  } catch (e) {
-    console.warn('Failed to attach ledger listener:', e);
-    renderLedger();
+  } catch(e) {
+    console.warn('Ledger error:', e);
   }
 }
 
 function renderLedger() {
-  const listEl = document.getElementById('ledger-people-list');
-  if (!listEl) return;
-  
-  if (!ledgerPeople || ledgerPeople.length === 0) {
-    listEl.innerHTML = `
-      <div class="card" style="text-align:center; padding:35px 20px;">
-        <div style="font-size:48px; margin-bottom:12px;">📑</div>
-        <h3 style="margin:0 0 8px; font-family:'Space Grotesk',sans-serif;">${TT('ledger_no_contacts_title')}</h3>
-        <p style="color:var(--text-dim); font-size:13.5px; max-width:320px; margin:0 auto 20px; line-height:1.4;">
-          ${TT('ledger_empty_desc')}
-        </p>
-        <button class="btn primary" onclick="showAddPersonModal()"><i class="ti ti-user-plus"></i> ${TT('btn_add_person')}</button>
+  const container = document.getElementById('ledger-people-list');
+  if (!container) return;
+
+  let totalYouWillReceive = 0;
+  let totalYouOwe = 0;
+
+  const peopleWithBalances = (ledgerPeople || []).map(person => {
+    let balance = 0;
+    (person.transactions || []).forEach(tx => {
+      if (tx.type === 'gave') balance += tx.amount;
+      else if (tx.type === 'received') balance -= tx.amount;
+    });
+    if (balance > 0) totalYouWillReceive += balance;
+    else if (balance < 0) totalYouOwe += Math.abs(balance);
+    return { ...person, balance };
+  });
+
+  const recEl = document.getElementById('ledger-total-receive');
+  const oweEl = document.getElementById('ledger-total-owe');
+  if (recEl) recEl.textContent = '₹' + totalYouWillReceive.toLocaleString('en-IN');
+  if (oweEl) oweEl.textContent = '₹' + totalYouOwe.toLocaleString('en-IN');
+
+  if (!peopleWithBalances.length) {
+    container.innerHTML = `
+      <div class="card" style="text-align:center; padding:38px 20px; border-radius:24px;">
+        <div style="font-size:44px; margin-bottom:12px;">📑</div>
+        <h3 style="margin:0 0 6px; font-family:'Space Grotesk',sans-serif; font-size:18px;">${TT('ledger_no_contacts_title')}</h3>
+        <p style="color:var(--text-dim); font-size:13px; max-width:320px; margin:0 auto 20px; line-height:1.45;">${TT('ledger_empty_desc')}</p>
+        <button class="btn primary" onclick="showAddPersonModal()" style="border-radius:14px; padding:12px 22px; font-weight:700;">${TT('btn_add_person')}</button>
       </div>
     `;
-    const owedEl = document.getElementById('ledger-total-owed');
-    const oweEl = document.getElementById('ledger-total-owe');
-    if (owedEl) owedEl.textContent = '₹0';
-    if (oweEl) oweEl.textContent = '₹0';
     return;
   }
-  
-  let totalOwed = 0;
-  let totalOwe = 0;
-  
-  let html = '';
-  ledgerPeople.forEach(person => {
-    let personBalance = 0;
-    (person.transactions || []).forEach(tx => {
-      if (tx.type === 'gave') personBalance += tx.amount;
-      else if (tx.type === 'received') personBalance -= tx.amount;
-    });
-    
-    if (personBalance > 0) totalOwed += personBalance;
-    else if (personBalance < 0) totalOwe += Math.abs(personBalance);
-    
-    const balColor = personBalance > 0 ? 'var(--green,#4ade80)' : (personBalance < 0 ? 'var(--red,#f87171)' : 'var(--text-dim,#9ca3af)');
-    const balStatus = personBalance > 0 ? `${TT('ledger_owes_you')} ₹${personBalance}` : (personBalance < 0 ? `${TT('ledger_you_owe')} ₹${Math.abs(personBalance)}` : `${TT('ledger_settled')} (₹0)`);
-    const avatarLetter = (person.name || 'P').charAt(0).toUpperCase();
-    
-    html += `
-      <div class="card" style="padding:16px; margin-bottom:12px; cursor:pointer; transition:transform 0.2s;" onclick="showPersonDetail('${person._id}')">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <div style="display:flex; align-items:center; gap:12px;">
-            <div style="width:42px; height:42px; border-radius:50%; background:linear-gradient(135deg, var(--accent,#8b5cf6), var(--accent2,#ec4899)); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:18px; color:#fff;">
-              ${avatarLetter}
+
+  const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
+
+  container.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <h3 style="margin:0; font-family:'Space Grotesk',sans-serif; font-size:16px; color:#fff;">${isHi ? 'आपके संपर्क' : 'Your Contacts'} (${peopleWithBalances.length})</h3>
+      <button class="btn btn-sm primary" onclick="showAddPersonModal()" style="border-radius:12px; font-size:12px; padding:6px 14px;">${TT('btn_add_person')}</button>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr; gap:10px;">
+      ${peopleWithBalances.map(person => {
+        const bal = person.balance;
+        let balColor = 'var(--text-dim,#9ca3af)';
+        let balText = TT('ledger_settled');
+        let balBadge = 'background:rgba(255,255,255,0.06); color:var(--text-dim,#9ca3af); border:1px solid var(--border);';
+
+        if (bal > 0) {
+          balColor = 'var(--green,#4ade80)';
+          balText = `${TT('ledger_owes_you')} ₹${bal.toLocaleString('en-IN')}`;
+          balBadge = 'background:rgba(74,222,128,0.15); color:var(--green,#4ade80); border:1px solid rgba(74,222,128,0.3);';
+        } else if (bal < 0) {
+          balColor = 'var(--red,#f87171)';
+          balText = `${TT('ledger_you_owe')} ₹${Math.abs(bal).toLocaleString('en-IN')}`;
+          balBadge = 'background:rgba(248,113,113,0.15); color:var(--red,#f87171); border:1px solid rgba(248,113,113,0.3);';
+        }
+
+        const avatarLetter = (person.name || 'P').charAt(0).toUpperCase();
+
+        return `
+          <div class="card" onclick="showPersonDetail('${person._id}')" style="cursor:pointer; padding:14px 16px; border-radius:20px; transition:transform 0.15s, border-color 0.15s; border:1px solid var(--border); background:linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02)); display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <div style="width:42px; height:42px; border-radius:50%; background:linear-gradient(135deg, var(--accent,#8b5cf6), var(--accent2,#ec4899)); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:17px; color:#fff; flex-shrink:0;">
+                ${avatarLetter}
+              </div>
+              <div>
+                <div style="font-weight:700; font-size:15px; color:#fff;">${escapeHTML(person.name)}</div>
+                <div style="font-size:11.5px; color:var(--text-dim); margin-top:2px;">
+                  ${person.phone ? `📞 ${escapeHTML(person.phone)} · ` : ''}${(person.transactions || []).length} ${TT('ledger_tx_count')}
+                </div>
+              </div>
             </div>
-            <div>
-              <h4 style="margin:0; font-size:16px;">${escapeHTML(person.name)}</h4>
-              <div style="font-size:12px; color:var(--text-dim); margin-top:2px;">${(person.transactions || []).length} ${TT('ledger_tx_count')}</div>
+            <div style="text-align:right;">
+              <span style="display:inline-block; padding:4px 10px; border-radius:12px; font-size:12px; font-weight:700; ${balBadge}">
+                ${balText}
+              </span>
             </div>
           </div>
-          <div style="text-align:right;">
-            <div style="font-weight:700; font-size:15px; color:${balColor}">${balStatus}</div>
-            <div style="font-size:11px; color:var(--text-faint,#6b7280); margin-top:2px;">${TT('ledger_tap_history')}</div>
-          </div>
-        </div>
-      </div>
-    `;
-  });
-  
-  listEl.innerHTML = html;
-  const owedEl = document.getElementById('ledger-total-owed');
-  const oweEl = document.getElementById('ledger-total-owe');
-  if (owedEl) owedEl.textContent = `₹${totalOwed}`;
-  if (oweEl) oweEl.textContent = `₹${totalOwe}`;
+        `;
+      }).join('')}
+    </div>
+  `;
 }
 
 // In-App Modal for Adding a Contact (No browser prompt)
@@ -209,22 +244,29 @@ function showAddPersonModal() {
   }
   const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
   const title = isHi ? 'नया संपर्क जोड़ें' : 'Add New Contact';
-  const desc = isHi ? 'मित्र, रूममेट या संपर्क का नाम दर्ज करें' : 'Enter the name of a friend, roommate, or vendor';
+  const desc = isHi ? 'मित्र, रूममेट या संपर्क का नाम व मोबाइल नंबर' : 'Enter friend name & optional WhatsApp number';
   const btnSave = isHi ? '+ संपर्क जोड़ें' : '+ Save Contact';
   
   const html = `
-    <div style="text-align:center; margin-bottom:18px;">
-      <div style="font-size:38px; margin-bottom:6px;">📑</div>
-      <h3 style="margin:0 0 4px; font-family:'Space Grotesk',sans-serif; font-size:20px;">${title}</h3>
-      <p style="color:var(--text-dim); font-size:13px; margin:0;">${desc}</p>
+    <div style="text-align:center; margin-bottom:16px;">
+      <div style="font-size:36px; margin-bottom:4px;">📑</div>
+      <h3 style="margin:0 0 4px; font-family:'Space Grotesk',sans-serif; font-size:20px; font-weight:800;">${title}</h3>
+      <p style="color:var(--text-dim); font-size:12.5px; margin:0;">${desc}</p>
     </div>
+    
+    <div style="margin-bottom:12px;">
+      <label style="font-size:12px; font-weight:600; color:var(--text-dim); display:block; margin-bottom:4px;">${isHi ? 'नाम' : 'Contact Name'}</label>
+      <input type="text" id="new-person-name-input" placeholder="${isHi ? 'जैसे राहुल, प्रिया' : 'e.g. Rahul, Priya'}" style="width:100%; padding:12px 14px; border-radius:14px; border:1px solid var(--border); background:rgba(0,0,0,0.3); color:#fff; font-size:14.5px; box-sizing:border-box;" autofocus onkeydown="if(event.key==='Enter')document.getElementById('new-person-phone-input')?.focus()"/>
+    </div>
+
     <div style="margin-bottom:20px;">
-      <label style="font-size:12px; font-weight:600; color:var(--text-dim); display:block; margin-bottom:6px;">${isHi ? 'संपर्क का नाम' : 'Contact Name'}</label>
-      <input type="text" id="new-person-name-input" placeholder="${isHi ? 'जैसे राहुल, प्रिया' : 'e.g. Rahul, Priya'}" style="width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--border); background:rgba(0,0,0,0.3); color:#fff; font-size:15px;" autofocus onkeydown="if(event.key==='Enter')submitAddPersonModal()"/>
+      <label style="font-size:12px; font-weight:600; color:var(--text-dim); display:block; margin-bottom:4px;">${isHi ? 'मोबाइल नंबर (WhatsApp के लिए)' : 'Mobile Number (for WhatsApp reminders)'}</label>
+      <input type="tel" id="new-person-phone-input" placeholder="e.g. 9876543210" style="width:100%; padding:12px 14px; border-radius:14px; border:1px solid var(--border); background:rgba(0,0,0,0.3); color:#fff; font-size:14.5px; box-sizing:border-box;" onkeydown="if(event.key==='Enter')submitAddPersonModal()"/>
     </div>
+
     <div class="btn-row" style="gap:10px;">
       <button class="btn" style="flex:1" onclick="closeLedgerModal()">${isHi ? 'रद्द करें' : 'Cancel'}</button>
-      <button class="btn primary" style="flex:1; padding:12px; font-weight:700;" onclick="submitAddPersonModal()">${btnSave}</button>
+      <button class="btn primary" style="flex:1.2; padding:12px; font-weight:700;" onclick="submitAddPersonModal()">${btnSave}</button>
     </div>
   `;
   openLedgerModal(html);
@@ -233,20 +275,23 @@ function showAddPersonModal() {
 
 function submitAddPersonModal() {
   const inputEl = document.getElementById('new-person-name-input');
+  const phoneEl = document.getElementById('new-person-phone-input');
   if (!inputEl) return;
   const name = inputEl.value.trim();
+  const phone = phoneEl ? phoneEl.value.trim() : '';
   if (!name) {
     toast('Please enter a contact name', 'error');
     return;
   }
   closeLedgerModal();
-  addLedgerPerson(name);
+  addLedgerPerson(name, phone);
 }
 
-async function addLedgerPerson(name) {
+async function addLedgerPerson(name, phone = '') {
   const newPerson = {
     _id: 'local_' + Date.now(),
     name: name,
+    phone: phone,
     createdAt: Date.now(),
     transactions: []
   };
@@ -258,7 +303,7 @@ async function addLedgerPerson(name) {
   if (currentUser) {
     try {
       const docRef = await db.collection('users').doc(currentUser.uid).collection('ledger').add({
-        name, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        name, phone, createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
       newPerson._id = docRef.id;
       saveLocalLedgerCache();
@@ -281,21 +326,21 @@ function showAddTxModal(personId, type) {
   const btnClass = isGave ? 'primary' : 'danger';
   
   const html = `
-    <div style="text-align:center; margin-bottom:18px;">
-      <h3 style="margin:0 0 4px; font-family:'Space Grotesk',sans-serif; font-size:20px;">${escapeHTML(person.name)}</h3>
+    <div style="text-align:center; margin-bottom:16px;">
+      <h3 style="margin:0 0 4px; font-family:'Space Grotesk',sans-serif; font-size:20px; font-weight:800;">${escapeHTML(person.name)}</h3>
       <span style="display:inline-block; padding:3px 12px; border-radius:12px; font-size:12px; font-weight:700; background:rgba(255,255,255,0.08); color:${badgeColor}; border:1px solid ${badgeColor}44;">
         ${isGave ? '↗ Gave ₹' : '↘ Received ₹'}
       </span>
     </div>
     
-    <div style="margin-bottom:14px;">
-      <label style="font-size:12px; font-weight:600; color:var(--text-dim); display:block; margin-bottom:6px;">${isHi ? 'राशि (₹)' : 'Amount (₹)'}</label>
-      <input type="number" id="ledger-tx-amt-input" placeholder="0" min="1" step="1" style="width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--border); background:rgba(0,0,0,0.3); color:#fff; font-size:18px; font-weight:800;" autofocus onkeydown="if(event.key==='Enter')document.getElementById('ledger-tx-note-input')?.focus()"/>
+    <div style="margin-bottom:12px;">
+      <label style="font-size:12px; font-weight:600; color:var(--text-dim); display:block; margin-bottom:4px;">${isHi ? 'राशि (₹)' : 'Amount (₹)'}</label>
+      <input type="number" id="ledger-tx-amt-input" placeholder="0" min="1" step="1" style="width:100%; padding:12px 14px; border-radius:14px; border:1px solid var(--border); background:rgba(0,0,0,0.3); color:#fff; font-size:18px; font-weight:800; box-sizing:border-box;" autofocus onkeydown="if(event.key==='Enter')document.getElementById('ledger-tx-note-input')?.focus()"/>
     </div>
 
-    <div style="margin-bottom:20px;">
-      <label style="font-size:12px; font-weight:600; color:var(--text-dim); display:block; margin-bottom:6px;">${isHi ? 'विवरण / कारण (ऐच्छिक)' : 'Note / Reason (optional)'}</label>
-      <input type="text" id="ledger-tx-note-input" placeholder="${isHi ? 'जैसे लंच, किराया, पेट्रोल' : 'e.g. Lunch share, Rent, Petrol'}" style="width:100%; padding:11px 14px; border-radius:12px; border:1px solid var(--border); background:rgba(0,0,0,0.3); color:#fff; font-size:14px;" onkeydown="if(event.key==='Enter')submitAddTxModal('${personId}', '${type}')"/>
+    <div style="margin-bottom:18px;">
+      <label style="font-size:12px; font-weight:600; color:var(--text-dim); display:block; margin-bottom:4px;">${isHi ? 'विवरण (ऐच्छिक)' : 'Note / Reason (optional)'}</label>
+      <input type="text" id="ledger-tx-note-input" placeholder="${isHi ? 'जैसे लंच, किराया, पेट्रोल' : 'e.g. Lunch share, Rent, Petrol'}" style="width:100%; padding:12px 14px; border-radius:14px; border:1px solid var(--border); background:rgba(0,0,0,0.3); color:#fff; font-size:14px; box-sizing:border-box;" onkeydown="if(event.key==='Enter')submitAddTxModal('${personId}', '${type}')"/>
     </div>
 
     <div class="btn-row" style="gap:10px;">
@@ -363,6 +408,24 @@ async function saveLedgerTx(personId, type, amount, note) {
     : 'Recorded ' + (type === 'gave' ? 'Gave' : 'Received') + ' ₹' + amount, 'success');
 }
 
+// 1-Tap Settle Debt Function
+window.settlePersonDebt = function(personId, currentBalance) {
+  if (currentBalance === 0) return;
+  const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
+  const type = currentBalance > 0 ? 'received' : 'gave';
+  const amount = Math.abs(currentBalance);
+  
+  if (typeof showAppConfirm === 'function') {
+    showAppConfirm(isHi ? `क्या आप ₹${amount} का हिसाब पूरा चुकता (Settle) करना चाहते हैं?` : `Mark ₹${amount} debt as completely settled?`, () => {
+      saveLedgerTx(personId, type, amount, 'Full Debt Settlement 🤝');
+      toast(isHi ? 'हिसाब चुकता हो गया 🤝' : 'Debt settled successfully 🤝', 'success');
+    });
+  } else {
+    saveLedgerTx(personId, type, amount, 'Full Debt Settlement 🤝');
+    toast('Debt settled successfully 🤝', 'success');
+  }
+};
+
 // Sleek In-App Person Detail Card Modal
 function showPersonDetail(personId) {
   const person = ledgerPeople.find(p => p._id === personId);
@@ -391,7 +454,7 @@ function showPersonDetail(personId) {
   }
 
   let txHtml = (person.transactions && person.transactions.length) ? person.transactions.map(tx => `
-    <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.25); padding:12px 14px; border-radius:12px; margin-bottom:8px; border:1px solid var(--border)">
+    <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.25); padding:12px 14px; border-radius:14px; margin-bottom:8px; border:1px solid var(--border)">
       <div>
         <div style="font-weight:700; font-size:14px; color:${tx.type === 'gave' ? 'var(--green,#4ade80)' : 'var(--red,#f87171)'}">
           ${tx.type === 'gave' ? (isHi ? '↗ दिए' : '↗ Gave') : (isHi ? '↘ मिले' : '↘ Received')} ₹${tx.amount}
@@ -405,35 +468,40 @@ function showPersonDetail(personId) {
   const deleteBtnText = isHi ? '🗑️ संपर्क हटाएं' : '🗑️ Delete Contact';
 
   const html = `
-    <div style="text-align:center; margin-bottom:18px;">
-      <div style="width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg, var(--accent,#8b5cf6), var(--accent2,#ec4899)); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:22px; color:#fff; margin:0 auto 10px; box-shadow:0 4px 16px rgba(139,92,246,0.4);">
+    <div style="text-align:center; margin-bottom:16px;">
+      <div style="width:50px; height:50px; border-radius:50%; background:linear-gradient(135deg, var(--accent,#8b5cf6), var(--accent2,#ec4899)); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:22px; color:#fff; margin:0 auto 8px; box-shadow:0 4px 16px rgba(139,92,246,0.4);">
         ${avatarLetter}
       </div>
-      <h3 style="margin:0 0 6px; font-family:'Space Grotesk',sans-serif; font-size:22px;">${escapeHTML(person.name)}</h3>
+      <h3 style="margin:0 0 4px; font-family:'Space Grotesk',sans-serif; font-size:20px; font-weight:800;">${escapeHTML(person.name)}</h3>
+      ${person.phone ? `<p style="margin:0 0 8px; font-size:12px; color:var(--text-dim);">📞 ${escapeHTML(person.phone)}</p>` : ''}
       <span style="display:inline-block; padding:4px 14px; border-radius:14px; font-size:12.5px; font-weight:700; ${balBadgeStyle}">
         ${balStatusText}
       </span>
     </div>
 
-    <div class="btn-row" style="margin-bottom:12px; gap:10px;">
+    <div class="btn-row" style="margin-bottom:10px; gap:8px;">
       <button class="btn primary" style="flex:1; padding:12px; font-weight:700;" onclick="showAddTxModal('${personId}', 'gave')"><i class="ti ti-arrow-up-right"></i> ${TT('ledger_give')}</button>
       <button class="btn danger" style="flex:1; padding:12px; font-weight:700;" onclick="showAddTxModal('${personId}', 'received')"><i class="ti ti-arrow-down-left"></i> ${TT('ledger_receive')}</button>
     </div>
 
-    ${personBalance > 0 ? `
-    <div style="margin-bottom:16px;">
-      <button class="btn" style="width:100%; padding:11px; background:#25D366; color:#fff; border:none; font-weight:700; border-radius:12px; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer;" onclick="sendPersonWhatsAppReminder('${personId}', ${personBalance})">
-        💬 Send WhatsApp Reminder (₹${personBalance})
+    ${personBalance !== 0 ? `
+    <div style="display:flex; gap:8px; margin-bottom:14px;">
+      ${personBalance > 0 ? `
+      <button class="btn" style="flex:1.2; padding:11px; background:#25D366; color:#fff; border:none; font-weight:700; border-radius:12px; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer;" onclick="sendPersonWhatsAppReminder('${personId}', ${personBalance})">
+        💬 WhatsApp Reminder
+      </button>` : ''}
+      <button class="btn" style="flex:1; padding:11px; background:rgba(52,211,153,0.18); color:var(--green,#34d399); border:1px solid rgba(52,211,153,0.4); font-weight:700; border-radius:12px; cursor:pointer;" onclick="settlePersonDebt('${personId}', ${personBalance})">
+        🤝 Settle Up
       </button>
     </div>` : ''}
 
-    <div style="font-size:12px; font-weight:700; color:var(--text-dim); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">${TT('ledger_history')}</div>
+    <div style="font-size:11.5px; font-weight:700; color:var(--text-dim); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">${TT('ledger_history')}</div>
     
-    <div style="max-height:220px; overflow-y:auto; margin-bottom:18px; padding-right:2px;">
+    <div style="max-height:200px; overflow-y:auto; margin-bottom:16px; padding-right:2px;">
       ${txHtml}
     </div>
 
-    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:14px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:12px;">
       <button class="btn" style="background:rgba(248,113,113,0.12); color:var(--red,#f87171); border-color:rgba(248,113,113,0.3); font-size:12px;" onclick="deleteLedgerPerson('${personId}')">${deleteBtnText}</button>
       <button class="btn" onclick="closeLedgerModal()">${isHi ? 'बंद करें' : 'Close'}</button>
     </div>
@@ -458,12 +526,12 @@ async function deleteLedgerPerson(personId) {
           let batch = db.batch(), ops = 0;
           for (const t of txSnap.docs) {
             batch.delete(t.ref); ops++;
-            if (ops === 400) { await batch.commit(); batch = db.batch(); ops = 0; }
+            if (ops >= 400) { await batch.commit(); batch = db.batch(); ops = 0; }
           }
-          if (ops) await batch.commit();
+          if (ops > 0) await batch.commit();
           await db.collection('users').doc(currentUser.uid).collection('ledger').doc(personId).delete();
         } catch(e) {
-          console.warn('Firestore delete warning:', e.message);
+          console.warn('Firestore person delete warning:', e.message);
         }
       }
       toast(isHi ? 'संपर्क हटाया गया' : 'Contact deleted', 'success');
@@ -512,8 +580,14 @@ window.sendPersonWhatsAppReminder = function(personId, amount) {
   const person = ledgerPeople.find(p => p._id === personId);
   if (!person) return;
   const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
+  const userUpi = (typeof getUserUpiId === 'function' ? getUserUpiId() : '') || 'pockettrack@upi';
+  const upiPayLink = `upi://pay?pa=${encodeURIComponent(userUpi)}&pn=PocketTrack&am=${amount}&cu=INR`;
+  
   const msg = isHi 
-    ? `नमस्ते ${person.name}! PocketTrack रिमाइंडर: आपका बकाया ₹${amount.toLocaleString('en-IN')} है। धन्यवाद!`
-    : `👋 Hey ${person.name}!\nQuick PocketTrack balance reminder: You have a pending balance of ₹${amount.toLocaleString('en-IN')}.\n⚡ Pay via UPI: upi://pay?pa=yourname@okaxis&am=${amount}&pn=PocketTrack\n\nThanks!`;
-  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+    ? `नमस्ते ${person.name}! 🙏 PocketTrack रिमाइंडर: आपका बकाया ₹${amount.toLocaleString('en-IN')} है।\n⚡ UPI से सीधे भुगतान करें: ${upiPayLink}\n\nधन्यवाद!`
+    : `👋 Hey ${person.name}!\nQuick PocketTrack reminder: You have a pending balance of ₹${amount.toLocaleString('en-IN')}.\n⚡ Pay instantly via UPI: ${upiPayLink}\n\nThanks!`;
+  
+  const phoneTarget = person.phone ? person.phone.replace(/[^0-9]/g, '') : '';
+  const waUrl = phoneTarget ? `https://wa.me/91${phoneTarget}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+  window.open(waUrl, '_blank');
 };

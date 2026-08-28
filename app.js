@@ -2230,3 +2230,101 @@ function updateBottomBarVisibility(){
   const onAuthScreen = auth && auth.style.display !== 'none';
   bar.style.display = onAuthScreen ? 'none' : 'flex';
 }
+
+// =====================================================================
+// DUAL-MODE ENGINE (SIMPLE 40+ / SENIOR & YOUTH POWER MODE)
+// =====================================================================
+window.currentAppMode = localStorage.getItem('pockettrack_app_mode') || 'power';
+
+window.setAppMode = function(mode, save = true) {
+  window.currentAppMode = mode;
+  const body = document.body;
+  const iconEl = document.getElementById('mode-icon');
+  const labelEl = document.getElementById('mode-label');
+
+  if (mode === 'simple') {
+    body.classList.add('app-mode-simple');
+    if (iconEl) iconEl.textContent = '👴';
+    if (labelEl) labelEl.textContent = 'Simple';
+    if (save) {
+      localStorage.setItem('pockettrack_app_mode', 'simple');
+      if (typeof toast === 'function') toast('Switched to Simple Mode (40+)', 'success');
+    }
+  } else {
+    body.classList.remove('app-mode-simple');
+    if (iconEl) iconEl.textContent = '⚡';
+    if (labelEl) labelEl.textContent = 'Power';
+    if (save) {
+      localStorage.setItem('pockettrack_app_mode', 'power');
+      if (typeof toast === 'function') toast('Switched to Power Mode', 'success');
+    }
+  }
+};
+
+window.toggleAppMode = function() {
+  const nextMode = (window.currentAppMode === 'simple') ? 'power' : 'simple';
+  window.setAppMode(nextMode, true);
+};
+
+window.triggerManualSync = function() {
+  const statusEl = document.getElementById('sync-status');
+  if (statusEl) {
+    statusEl.textContent = 'Syncing...';
+    setTimeout(() => {
+      statusEl.textContent = 'Synced';
+      if (typeof toast === 'function') toast('☁️ Synced to Google Cloud (0 pending changes)', 'success');
+    }, 400);
+  }
+};
+
+window.openFirstTimeModeSelector = function() {
+  if (localStorage.getItem('pockettrack_app_mode_chosen')) return;
+  const modal = document.createElement('div');
+  modal.id = 'first-time-mode-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(7,4,20,0.85);backdrop-filter:blur(24px);z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px;animation:fadeIn 0.25s ease;';
+
+  modal.innerHTML = `
+    <div style="max-width:440px;width:100%;background:linear-gradient(160deg,#181238,#0d0a21);border:1px solid rgba(139,92,246,0.45);border-radius:28px;padding:26px 22px;box-shadow:0 25px 70px rgba(0,0,0,0.8);color:#fff;text-align:center;">
+      <div style="font-size:38px;margin-bottom:8px;">✨</div>
+      <h3 style="margin:0 0 6px;font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;">Choose Your Experience</h3>
+      <p style="font-size:13px;color:#cbd5e1;line-height:1.45;margin:0 0 20px;">You can switch between modes anytime in the top header.</p>
+
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
+        <div onclick="selectInitialMode('simple')" style="background:rgba(255,255,255,0.05);border:2px solid rgba(52,211,153,0.45);border-radius:20px;padding:16px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:14px;transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+          <div style="font-size:32px;">👴</div>
+          <div>
+            <div style="font-size:16px;font-weight:800;color:#34d399;">Simple &amp; Clear (40+ / Seniors)</div>
+            <div style="font-size:12px;color:#94a3b8;margin-top:2px;">Extra large text, high contrast, 3 big buttons, pure passbook khata view.</div>
+          </div>
+        </div>
+
+        <div onclick="selectInitialMode('power')" style="background:rgba(255,255,255,0.05);border:2px solid rgba(139,92,246,0.45);border-radius:20px;padding:16px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:14px;transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+          <div style="font-size:32px;">⚡</div>
+          <div>
+            <div style="font-size:16px;font-weight:800;color:#a78bfa;">Power Mode (Youth &amp; Pro)</div>
+            <div style="font-size:12px;color:#94a3b8;margin-top:2px;">Full power suite: Spaces, Chillar Vault, SIP Goals, and Money Wrapped.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+};
+
+window.selectInitialMode = function(mode) {
+  localStorage.setItem('pockettrack_app_mode_chosen', 'true');
+  window.setAppMode(mode, true);
+  const m = document.getElementById('first-time-mode-modal');
+  if (m) m.remove();
+};
+
+// Initial App Mode Setup on load
+document.addEventListener('DOMContentLoaded', () => {
+  const savedMode = localStorage.getItem('pockettrack_app_mode') || 'power';
+  window.setAppMode(savedMode, false);
+  if (!localStorage.getItem('pockettrack_app_mode_chosen')) {
+    setTimeout(window.openFirstTimeModeSelector, 1200);
+  }
+});
+

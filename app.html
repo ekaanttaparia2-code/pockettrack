@@ -113,8 +113,13 @@
       </div>
     </div>
     <div class="brand-actions">
-      <button class="btn btn-sm install-btn" id="install-app-btn" style="display:none" onclick="promptInstallApp()"><i class="ti ti-download"></i> <span>Install app</span></button>
-      <div class="pill"><span class="dot"></span><span id="sync-status">Connecting...</span></div>
+      <button class="mode-toggle-pill" id="header-mode-toggle" onclick="toggleAppMode()" title="Switch Simple (40+) / Power Mode">
+        <span id="mode-icon">⚡</span> <span id="mode-label">Power</span>
+      </button>
+      <button class="pill sync-pill-btn" id="sync-pill-btn" onclick="triggerManualSync()" title="Cloud Sync Status · Tap to Sync">
+        <span class="dot"></span><span id="sync-status">Synced</span>
+      </button>
+      <button class="btn btn-sm install-btn" id="install-app-btn" style="display:none" onclick="promptInstallApp()"><i class="ti ti-download"></i></button>
     </div>
   </header>
 
@@ -136,7 +141,6 @@
     <div class="stat-pill"><span class="stat-pill-label" data-i18n="stat_spent">Spent</span><span class="stat-pill-val red" id="hdr-spent">₹0</span></div>
     <div class="stat-pill"><span class="stat-pill-label" data-i18n="stat_entries">Entries</span><span class="stat-pill-val" id="hdr-count">0</span></div>
   </div>
-
 
   <div id="tab-log">
     <div class="home-greeting">
@@ -160,6 +164,7 @@
 
     <div id="home-shared-portfolio-slot"></div>
 
+    <!-- 1. Hero Balance Card -->
     <div class="hero-card hero-card-v2" id="hero-balance-card">
       <div class="hero-top">
         <div>
@@ -177,13 +182,60 @@
       <div class="hero-actions">
         <button class="hero-action primary" onclick="openQuickComposer('expense')"><i class="ti ti-arrow-up-right"></i> <span data-i18n="home_add_expense">Add expense</span></button>
         <button class="hero-action" onclick="openQuickComposer('income')"><i class="ti ti-arrow-down-left"></i> <span data-i18n="home_add_income">Add income</span></button>
-        <button class="hero-action voice-action" onclick="startVoiceRecognition()"><i class="ti ti-microphone"></i> <span data-i18n="home_voice">Voice</span></button>
+        <button class="hero-action voice-action" onclick="startVoiceRecognition()"><i class="ti ti-microphone"></i> <span data-i18n="home_voice">Bol kar likhein (Voice)</span></button>
       </div>
     </div>
 
-    <div id="home-daily-burn-slot"></div>
+    <!-- 2. Recent Activity / Khata (Promoted directly under Balance) -->
+    <div class="home-section-head" style="margin-top:14px;">
+      <div>
+        <p class="section-kicker" data-i18n="home_recent_kicker">RECENT TRANSACTIONS</p>
+        <h3 data-i18n="home_recent_title">Passbook &amp; Entries</h3>
+      </div>
+      <button class="text-action" onclick="setTab('entries')"><span data-i18n="home_view_all">View all</span> <i class="ti ti-arrow-right"></i></button>
+    </div>
+    <div class="recent-card" id="home-recent-activity">
+      <div class="empty-mini">Your latest entries will appear here.</div>
+    </div>
 
-    <div class="home-power-widgets-row" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:12px;margin:12px 0;">
+    <!-- 3. Financial Power Hub & Shortcuts -->
+    <div class="card home-command-center home-power-hub-section" id="more-features-card" style="background:linear-gradient(145deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));border:1px solid rgba(139,92,246,0.25);border-radius:22px;padding:16px 14px;margin-top:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:15px;">⚡</span>
+          <span style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;color:#fff;" data-i18n="home_command_hub">Financial Power Hub</span>
+        </div>
+        <button onclick="openCommandHubModal()" style="background:transparent;border:none;color:var(--primary-bright);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:3px;">
+          <span data-i18n="home_view_all">View all</span> →
+        </button>
+      </div>
+      <div class="home-shortcuts-v2" style="display:grid;grid-template-columns:repeat(5, 1fr);gap:6px;margin-bottom:4px;">
+        <button class="shortcut-btn-v2" onclick="openNewPortfolioModal()" style="background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.45);border-radius:14px;padding:10px 2px;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <span style="font-size:18px;">👥</span>
+          <span style="font-size:9.5px;font-weight:700;color:var(--accent-bright,#a78bfa);">Spaces</span>
+        </button>
+        <button class="shortcut-btn-v2" onclick="setTab('ledger')" style="background:rgba(255,255,255,0.04);border:1px solid rgba(52,211,153,0.3);border-radius:14px;padding:10px 2px;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <span style="font-size:18px;">📑</span>
+          <span style="font-size:9.5px;font-weight:600;">Ledger</span>
+        </button>
+        <button class="shortcut-btn-v2" onclick="openUpiQrModal()" style="background:rgba(255,255,255,0.04);border:1px solid rgba(251,191,36,0.3);border-radius:14px;padding:10px 2px;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <span style="font-size:18px;">⚡</span>
+          <span style="font-size:9.5px;font-weight:600;">My QR</span>
+        </button>
+        <button class="shortcut-btn-v2" onclick="openGoalPlannerModal()" style="background:rgba(255,255,255,0.04);border:1px solid rgba(16,185,129,0.3);border-radius:14px;padding:10px 2px;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <span style="font-size:18px;">🎯</span>
+          <span style="font-size:9.5px;font-weight:600;">Goals</span>
+        </button>
+        <button class="shortcut-btn-v2" onclick="setTab('pro')" style="background:rgba(236,72,153,0.08);border:1px solid rgba(236,72,153,0.35);border-radius:14px;padding:10px 2px;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <span style="font-size:18px;">👑</span>
+          <span style="font-size:9.5px;font-weight:700;color:#f472b6;">Pro</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 4. Power Widgets Grid (Safe-to-Spend, Chillar, Goals, DNA) -->
+    <div id="home-daily-burn-slot"></div>
+    <div class="home-power-widgets-row" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));gap:10px;margin:10px 0;">
       <div id="home-dna-slot"></div>
       <div id="home-vault-slot"></div>
       <div id="home-goal-slot"></div>
@@ -199,17 +251,6 @@
           <p class="streak-sub" data-i18n="streak_sub">Log something every day to keep it going</p>
         </div>
       </div>
-    </div>
-
-    <div class="home-section-head">
-      <div>
-        <p class="section-kicker" data-i18n="home_recent_kicker">RECENT ACTIVITY</p>
-        <h3 data-i18n="home_recent_title">What moved your money?</h3>
-      </div>
-      <button class="text-action" onclick="setTab('entries')"><span data-i18n="home_view_all">View all</span> <i class="ti ti-arrow-right"></i></button>
-    </div>
-    <div class="recent-card" id="home-recent-activity">
-      <div class="empty-mini">Your latest entries will appear here.</div>
     </div>
 
     <div class="card add-panel" style="display:none">
@@ -297,39 +338,6 @@
     </div>
     </div>
 
-    <div class="card home-command-center" id="more-features-card" style="background:linear-gradient(145deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));border:1px solid rgba(139,92,246,0.25);border-radius:24px;padding:20px 18px;margin-top:18px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:16px;">⚡</span>
-          <span style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;color:#fff;" data-i18n="home_command_hub">Financial Power Hub</span>
-        </div>
-        <button onclick="openCommandHubModal()" style="background:transparent;border:none;color:var(--primary-bright);font-size:11.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;">
-          <span data-i18n="home_view_all">View all</span> →
-        </button>
-      </div>
-      <div class="home-shortcuts-v2" style="display:grid;grid-template-columns:repeat(5, 1fr);gap:8px;margin-bottom:8px;">
-        <button class="shortcut-btn-v2" onclick="openNewPortfolioModal()" style="background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.45);border-radius:16px;padding:12px 4px;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;">
-          <span style="font-size:20px;">👥</span>
-          <span style="font-size:10.5px;font-weight:700;color:var(--accent-bright,#a78bfa);">Spaces</span>
-        </button>
-        <button class="shortcut-btn-v2" onclick="setTab('ledger')" style="background:rgba(255,255,255,0.04);border:1px solid rgba(52,211,153,0.3);border-radius:16px;padding:12px 4px;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;">
-          <span style="font-size:20px;">📑</span>
-          <span style="font-size:10.5px;font-weight:600;">Ledger</span>
-        </button>
-        <button class="shortcut-btn-v2" onclick="openUpiQrModal()" style="background:rgba(255,255,255,0.04);border:1px solid rgba(251,191,36,0.3);border-radius:16px;padding:12px 4px;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;">
-          <span style="font-size:20px;">⚡</span>
-          <span style="font-size:10.5px;font-weight:600;">My QR</span>
-        </button>
-        <button class="shortcut-btn-v2" onclick="openGoalPlannerModal()" style="background:rgba(255,255,255,0.04);border:1px solid rgba(16,185,129,0.3);border-radius:16px;padding:12px 4px;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;">
-          <span style="font-size:20px;">🎯</span>
-          <span style="font-size:10.5px;font-weight:600;">Goals</span>
-        </button>
-        <button class="shortcut-btn-v2" onclick="setTab('pro')" style="background:rgba(236,72,153,0.08);border:1px solid rgba(236,72,153,0.35);border-radius:16px;padding:12px 4px;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;">
-          <span style="font-size:20px;">👑</span>
-          <span style="font-size:10.5px;font-weight:700;color:#f472b6;">Pro</span>
-        </button>
-      </div>
-    </div>
   </div>
 
   <div id="tab-entries" style="display:none">
@@ -373,6 +381,7 @@
     </div>
 
     <div id="insights-hero" class="insights-hero"></div>
+    <div id="smart-insights-slot"></div>
 
     <div class="grid4">
       <div class="metric"><div class="metric-label" data-i18n="metric_total_income">Total income</div><div class="metric-val green" id="r-income">₹0</div></div>

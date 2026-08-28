@@ -158,10 +158,22 @@ window.openUpiSetupModal = function(amount = 0, note = 'PocketTrack') {
 
       <div style="font-size:28px;margin-bottom:8px;">⚡</div>
       <h3 style="margin:0 0 4px;font-size:19px;color:#0f172a;font-family:'Space Grotesk',sans-serif;font-weight:800;">Set Your UPI ID</h3>
-      <p style="margin:0 0 16px;font-size:13px;color:#64748b;line-height:1.45;">Enter your UPI ID so friends can scan your QR code and settle debts instantly.</p>
+      <p style="margin:0 0 14px;font-size:13px;color:#64748b;line-height:1.45;">Enter your UPI ID so friends can scan your QR code and settle debts instantly.</p>
 
       <label style="font-size:12px;font-weight:700;color:#334155;display:block;margin-bottom:6px;">Your UPI ID / VPA</label>
-      <input type="text" id="upi-setup-input" value="${escapeHTML(currentUpi)}" placeholder="e.g. yourname@okhdfcbank, 9876543210@paytm" style="width:100%;padding:13px 14px;border-radius:14px;background:#f8fafc;border:1.5px solid #cbd5e1;color:#0f172a;font-size:14.5px;font-weight:500;box-sizing:border-box;outline:none;margin-bottom:18px;">
+      <input type="text" id="upi-setup-input" value="${escapeHTML(currentUpi)}" placeholder="e.g. 9876543210 or yourname" style="width:100%;padding:13px 14px;border-radius:14px;background:#f8fafc;border:1.5px solid #cbd5e1;color:#0f172a;font-size:14.5px;font-weight:500;box-sizing:border-box;outline:none;margin-bottom:8px;">
+
+      <!-- 1-Tap Quick Bank Provider Pills -->
+      <div style="margin-bottom:18px;">
+        <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px;">Quick Bank Suffix:</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          <button type="button" class="btn" style="padding:4px 9px;font-size:11.5px;border-radius:8px;background:#f1f5f9;color:#334155;border:1px solid #cbd5e1;" onclick="appendUpiSuffix('@okhdfcbank')">@okhdfcbank</button>
+          <button type="button" class="btn" style="padding:4px 9px;font-size:11.5px;border-radius:8px;background:#f1f5f9;color:#334155;border:1px solid #cbd5e1;" onclick="appendUpiSuffix('@paytm')">@paytm</button>
+          <button type="button" class="btn" style="padding:4px 9px;font-size:11.5px;border-radius:8px;background:#f1f5f9;color:#334155;border:1px solid #cbd5e1;" onclick="appendUpiSuffix('@okaxis')">@okaxis</button>
+          <button type="button" class="btn" style="padding:4px 9px;font-size:11.5px;border-radius:8px;background:#f1f5f9;color:#334155;border:1px solid #cbd5e1;" onclick="appendUpiSuffix('@ybl')">@ybl</button>
+          <button type="button" class="btn" style="padding:4px 9px;font-size:11.5px;border-radius:8px;background:#f1f5f9;color:#334155;border:1px solid #cbd5e1;" onclick="appendUpiSuffix('@ibl')">@ibl</button>
+        </div>
+      </div>
 
       <div style="display:flex;gap:8px;">
         <button class="btn" style="flex:1;background:#f1f5f9;color:#334155;border:none;border-radius:14px;padding:12px;font-size:13px;" onclick="closeUpiQrModal()">Cancel</button>
@@ -173,6 +185,16 @@ window.openUpiSetupModal = function(amount = 0, note = 'PocketTrack') {
   requestAnimationFrame(() => {
     modal.classList.add('active');
   });
+};
+
+window.appendUpiSuffix = function(suffix) {
+  const input = document.getElementById('upi-setup-input');
+  if (!input) return;
+  let val = input.value.trim();
+  if (val.includes('@')) {
+    val = val.split('@')[0];
+  }
+  input.value = (val ? val : '') + suffix;
 };
 
 window.saveUpiIdFromSetup = function(amount, note) {

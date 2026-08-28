@@ -1873,8 +1873,8 @@ body.composer-open{overflow:hidden}
    Mobile-first navigation, safe areas, keyboard-aware composer and touch UX.
    ===================================================================== */
 :root{
-  --pt-bottom-nav-h:72px;
-  --pt-bottom-nav-gap:10px;
+  --pt-bottom-nav-h:56px;
+  --pt-bottom-nav-gap:6px;
   --pt-touch-min:44px;
 }
 
@@ -1900,11 +1900,11 @@ body{
   max-width:820px;
   box-sizing:border-box;
   margin:0 auto;
-  padding-left:clamp(12px,4vw,24px);
-  padding-right:clamp(12px,4vw,24px);
+  padding-left:clamp(10px,3.5vw,22px);
+  padding-right:clamp(10px,3.5vw,22px);
 }
 
-/* Persistent, truly fixed mobile navigation. */
+/* Persistent, truly fixed mobile navigation - sleek 56px height. */
 .bottom-tab-bar{
   position:fixed !important;
   left:0 !important;
@@ -1914,33 +1914,33 @@ body{
   width:100% !important;
   max-width:none !important;
   height:calc(var(--pt-bottom-nav-h) + env(safe-area-inset-bottom,0px)) !important;
-  padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px)) !important;
-  border-radius:20px 20px 0 0 !important;
+  padding:4px 8px calc(4px + env(safe-area-inset-bottom,0px)) !important;
+  border-radius:18px 18px 0 0 !important;
   box-sizing:border-box;
   z-index:50000 !important;
-  background:rgba(9,5,30,.92) !important;
+  background:rgba(9,5,30,.94) !important;
   border-left:0 !important;
   border-right:0 !important;
   border-bottom:0 !important;
-  box-shadow:0 -10px 34px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.10) !important;
-  backdrop-filter:blur(28px) saturate(1.5);
-  -webkit-backdrop-filter:blur(28px) saturate(1.5);
+  box-shadow:0 -8px 28px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.10) !important;
+  backdrop-filter:blur(24px) saturate(1.5);
+  -webkit-backdrop-filter:blur(24px) saturate(1.5);
   overscroll-behavior:none;
 }
 
 .bottom-tab{
   min-width:0;
   min-height:var(--pt-touch-min);
-  padding:4px 3px !important;
-  border-radius:16px !important;
+  padding:3px 2px !important;
+  border-radius:12px !important;
 }
-.bottom-tab i{font-size:18px !important}
-.bottom-tab span{font-size:9px !important}
-.bottom-add{flex:1.08 !important}
+.bottom-tab i{font-size:16px !important}
+.bottom-tab span{font-size:8.5px !important;font-weight:600;}
+.bottom-add{flex:1 !important}
 .bottom-add-icon{
-  width:48px !important;
-  height:48px !important;
-  margin-top:-16px !important;
+  width:42px !important;
+  height:42px !important;
+  margin-top:-14px !important;
 }
 
 /* The voice action always floats above the fixed nav. */
@@ -2344,46 +2344,160 @@ textarea{
   100% { transform: translateY(0); }
 }
 
-.aicoach-sheet-head {
-  padding: 18px 20px 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  display: flex;
+/* =====================================================================
+   DUAL-MODE ENGINE — SIMPLE 40+ (SENIOR) & YOUTH POWER MODE
+   ===================================================================== */
+.mode-toggle-pill {
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  background: rgba(255, 255, 255, 0.02);
-}
-
-.aicoach-sheet-body {
-  padding: 18px 20px;
-  overflow-y: auto;
-  flex: 1;
-  -webkit-overflow-scrolling: touch;
-}
-
-.aicoach-chat-msg-user {
-  background: linear-gradient(135deg, var(--accent, #8b5cf6), #7c3aed);
+  gap: 5px;
+  background: rgba(139, 92, 246, 0.16);
+  border: 1px solid rgba(139, 92, 246, 0.45);
   color: #fff;
-  padding: 10px 14px;
-  border-radius: 16px 16px 4px 16px;
-  max-width: 82%;
-  margin-left: auto;
-  margin-bottom: 10px;
-  font-size: 13.5px;
-  line-height: 1.45;
-  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.3);
+  border-radius: 99px;
+  padding: 5px 11px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.2);
+}
+.mode-toggle-pill:active { transform: scale(0.94); }
+
+.sync-pill-btn {
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  transition: all 0.2s;
+}
+.sync-pill-btn:active { transform: scale(0.94); background: rgba(52, 211, 153, 0.2); }
+
+/* Simple Senior (40+) Mode Optimizations */
+.app-mode-simple .home-power-widgets-row,
+.app-mode-simple #home-daily-burn-slot,
+.app-mode-simple #home-dna-slot,
+.app-mode-simple #home-vault-slot,
+.app-mode-simple #home-goal-slot,
+.app-mode-simple #home-wrapped-slot,
+.app-mode-simple #portfolio-switcher-bar,
+.app-mode-simple .stat-pills,
+.app-mode-simple .home-power-hub-section {
+  display: none !important;
 }
 
-.aicoach-chat-msg-bot {
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #f1f5f9;
-  padding: 12px 16px;
-  border-radius: 16px 16px 16px 4px;
-  max-width: 88%;
-  margin-bottom: 12px;
-  font-size: 13.5px;
-  line-height: 1.5;
-  backdrop-filter: blur(10px);
+.app-mode-simple .hero-card {
+  padding: 24px 20px !important;
+  border: 2px solid rgba(52, 211, 153, 0.55) !important;
+  background: linear-gradient(160deg, #181432, #0d0a21) !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6) !important;
+}
+.app-mode-simple .hero-balance {
+  font-size: 38px !important;
+  font-weight: 900 !important;
+  color: #ffffff !important;
+  margin: 12px 0 16px !important;
+}
+.app-mode-simple .hero-actions {
+  grid-template-columns: 1fr 1fr !important;
+  gap: 10px !important;
+}
+.app-mode-simple .hero-action {
+  padding: 16px 12px !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  border-radius: 16px !important;
+  min-height: 52px !important;
+}
+.app-mode-simple .voice-action {
+  grid-column: span 2 !important;
+  background: linear-gradient(135deg, #8b5cf6, #3b82f6) !important;
+  color: #fff !important;
+  font-size: 16px !important;
+  font-weight: 800 !important;
+}
+.app-mode-simple .recent-card { font-size: 15px !important; }
+.app-mode-simple .entry-row { padding: 14px 12px !important; }
+.app-mode-simple .entry-desc { font-size: 15px !important; font-weight: 700 !important; }
+.app-mode-simple .entry-amt { font-size: 17px !important; font-weight: 800 !important; }
+
+/* Mobile Touch Active Physics (Spring compress on tap) */
+button:active,
+.btn:active,
+.hero-action:active,
+.shortcut-btn-v2:active,
+.bottom-tab:active,
+.card-press:active {
+  transform: scale(0.96) !important;
+  transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* =====================================================================
+   LUXURY PRO THEMES (PRO EXCLUSIVES)
+   ===================================================================== */
+/* 1. Cyberpunk Neo */
+[data-theme="cyberpunk"] {
+  --bg: #05050f;
+  --bg-surface: #0b0a1d;
+  --border: rgba(0, 242, 254, 0.35);
+  --primary: #00f2fe;
+  --primary-bright: #38bdf8;
+  --accent: #ff007f;
+  --green: #00ff88;
+  --red: #ff0055;
+  --card: #0d0a24;
+}
+[data-theme="cyberpunk"] .card,
+[data-theme="cyberpunk"] .hero-card {
+  border-color: rgba(0, 242, 254, 0.32);
+  box-shadow: 0 0 20px rgba(0, 242, 254, 0.08);
+}
+[data-theme="cyberpunk"] .hero-balance {
+  color: #00f2fe;
+  text-shadow: 0 0 18px rgba(0, 242, 254, 0.5);
+}
+
+/* 2. Midnight Pure OLED (100% True Black) */
+[data-theme="oled"] {
+  --bg: #000000;
+  --bg-surface: #09090b;
+  --border: rgba(255, 255, 255, 0.14);
+  --primary: #a78bfa;
+  --primary-bright: #c4b5fd;
+  --accent: #8b5cf6;
+  --card: #09090c;
+}
+[data-theme="oled"] .shell,
+[data-theme="oled"] body {
+  background: #000000 !important;
+}
+[data-theme="oled"] .bottom-tab-bar {
+  background: rgba(0, 0, 0, 0.98) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.14) !important;
+}
+
+/* 3. Emerald Luxury */
+[data-theme="emerald"] {
+  --bg: #031711;
+  --bg-surface: #06261d;
+  --border: rgba(16, 185, 129, 0.35);
+  --primary: #10b981;
+  --primary-bright: #34d399;
+  --accent: #fbbf24;
+  --card: #072e23;
+}
+[data-theme="emerald"] .hero-balance {
+  color: #34d399;
+}
+
+/* 4. Sunset Glow */
+[data-theme="sunset"] {
+  --bg: #140924;
+  --bg-surface: #22103d;
+  --border: rgba(245, 158, 11, 0.35);
+  --primary: #f59e0b;
+  --primary-bright: #fbbf24;
+  --accent: #ec4899;
+  --card: #200f38;
 }
 
 

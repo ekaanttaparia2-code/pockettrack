@@ -638,3 +638,153 @@ function updateAppSimulator() {
   if(mo12El) mo12El.textContent = '₹' + (val * 12).toLocaleString('en-IN');
 }
 
+// =====================================================================
+// ACTIONABLE SMART INSIGHTS & SIMPLE BUDGET MODE
+// =====================================================================
+window.getSavedTotalBudget = function() {
+  return parseFloat(localStorage.getItem('pockettrack_total_monthly_budget')) || 15000;
+};
+
+window.setSavedTotalBudget = function(amt) {
+  if (amt > 0) {
+    localStorage.setItem('pockettrack_total_monthly_budget', amt);
+    if (typeof toast === 'function') toast(`Monthly budget set to ₹${amt.toLocaleString('en-IN')}`, 'success');
+    renderReport();
+  }
+};
+
+window.renderSmartInsights = function() {
+  const host = document.getElementById('smart-insights-slot');
+  if (!host) return;
+
+  const list = mainEntries();
+  const expList = list.filter(e => e.type === 'expense');
+  const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
+
+  if (!expList.length) {
+    host.innerHTML = `
+      <div class="card" style="text-align:center;padding:24px;border-radius:20px;">
+        <div style="font-size:32px;margin-bottom:6px;">📊</div>
+        <h4 style="margin:0 0 4px;font-family:'Space Grotesk',sans-serif;font-size:16px;">${isHi ? 'कोई खर्च डेटा नहीं' : 'No Expense Data Yet'}</h4>
+        <p style="font-size:12px;color:var(--text-dim);margin:0;">${isHi ? 'कुछ खर्चे दर्ज करें और स्मार्ट इनसाइट्स देखें।' : 'Log a few expenses to unlock spending patterns & daily burn rate.'}</p>
+      </div>
+    `;
+    return;
+  }
+
+  // 1. Compute Day of Week Peak
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const dayNamesHi = ['रविवार', 'सोमवार', 'मंगलवार', 'बुधवार', 'गुरुवार', 'शुक्रवार', 'शनिवार'];
+  const dayTotals = [0, 0, 0, 0, 0, 0, 0];
+  let totalSpent = 0;
+
+  expList.forEach(e => {
+    if (e.date) {
+      const d = new Date(e.date + 'T00:00:00');
+      const dayIdx = d.getDay();
+      if (!isNaN(dayIdx)) {
+        dayTotals[dayIdx] += (parseFloat(e.amt) || 0);
+        totalSpent += (parseFloat(e.amt) || 0);
+      }
+    }
+  });
+
+  let peakDayIdx = 0;
+  let maxDaySpend = 0;
+  dayTotals.forEach((amt, idx) => {
+    if (amt > maxDaySpend) {
+      maxDaySpend = amt;
+      peakDayIdx = idx;
+    }
+  });
+  const peakDayName = isHi ? dayNamesHi[peakDayIdx] : dayNames[peakDayIdx];
+  const peakDayPct = totalSpent > 0 ? Math.round((maxDaySpend / totalSpent) * 100) : 0;
+
+  // 2. Compute Top Expense Category
+  const catTotals = {};
+  expList.forEach(e => {
+    const c = e.label || 'Other';
+    catTotals[c] = (catTotals[c] || 0) + (parseFloat(e.amt) || 0);
+  });
+  const sortedCats = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
+  const topCatName = sortedCats.length ? sortedCats[0][0] : 'None';
+  const topCatAmount = sortedCats.length ? sortedCats[0][1] : 0;
+  const topCatPct = totalSpent > 0 ? Math.round((topCatAmount / totalSpent) * 100) : 0;
+
+  // 3. Simple Monthly Budget Calculation
+  const totalBudget = window.getSavedTotalBudget();
+  const budgetMode = localStorage.getItem('pockettrack_budget_mode') || 'simple';
+  const budgetSpentPct = Math.min(100, Math.round((totalSpent / totalBudget) * 100));
+  const isOverBudget = totalSpent > totalBudget;
+
+  const now = new Date();
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const currentDay = now.getDate();
+  const remainingDays = Math.max(1, daysInMonth - currentDay);
+  const remainingBudget = Math.max(0, totalBudget - totalSpent);
+  const safeDailySpend = Math.round(remainingBudget / remainingDays);
+
+  host.innerHTML = `
+    <!-- Budget Mode Switcher Card -->
+    <div class="card" style="margin-bottom:14px;border-radius:24px;padding:20px;border:1px solid rgba(139,92,246,0.35);background:linear-gradient(160deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02));">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:16px;">🎯</span>
+          <h4 style="margin:0;font-family:'Space Grotesk',sans-serif;font-size:16px;color:#fff;">${isHi ? 'मासिक बजट नियंत्रण' : 'Monthly Budget Control'}</h4>
+        </div>
+        <button class="btn btn-sm" onclick="promptEditTotalBudget()" style="border-radius:10px;font-size:11.5px;padding:4px 10px;background:rgba(255,255,255,0.08);color:#fff;border:1px solid var(--border);">⚙️ ${isHi ? 'बजट बदलें' : 'Set Budget'}</button>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+        <div style="font-size:22px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:#fff;">
+          ₹${totalSpent.toLocaleString('en-IN')} <span style="font-size:13px;color:var(--text-dim);font-weight:500;">/ ₹${totalBudget.toLocaleString('en-IN')}</span>
+        </div>
+        <div style="font-size:14px;font-weight:800;color:${isOverBudget ? 'var(--red,#f87171)' : 'var(--green,#34d399)'};">${budgetSpentPct}%</div>
+      </div>
+
+      <div style="width:100%;height:10px;border-radius:6px;background:rgba(255,255,255,0.08);overflow:hidden;margin-bottom:12px;">
+        <div style="width:${budgetSpentPct}%;height:100%;background:${isOverBudget ? 'linear-gradient(90deg,#ef4444,#dc2626)' : 'linear-gradient(90deg,#10b981,#3b82f6)'};border-radius:6px;transition:width 0.8s;"></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div style="background:rgba(0,0,0,0.22);padding:10px 12px;border-radius:14px;border:1px solid rgba(255,255,255,0.06);">
+          <div style="font-size:11px;color:var(--text-dim);">${isHi ? 'दैनिक सुरक्षित सीमा' : 'Safe Daily Limit'}</div>
+          <div style="font-size:16px;font-weight:800;color:var(--green,#34d399);margin-top:2px;">₹${safeDailySpend}/day</div>
+        </div>
+        <div style="background:rgba(0,0,0,0.22);padding:10px 12px;border-radius:14px;border:1px solid rgba(255,255,255,0.06);">
+          <div style="font-size:11px;color:var(--text-dim);">${isHi ? 'महीने के शेष दिन' : 'Days Left'}</div>
+          <div style="font-size:16px;font-weight:800;color:#fff;margin-top:2px;">${remainingDays} days</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actionable Intelligence Metrics -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+      <div class="card" style="padding:14px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:linear-gradient(145deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02));">
+        <div style="font-size:22px;margin-bottom:4px;">🚨</div>
+        <div style="font-size:11px;color:var(--text-dim);font-weight:600;">${isHi ? 'पीक खर्च का दिन' : 'Peak Spending Day'}</div>
+        <div style="font-size:16px;font-weight:800;color:#fff;margin:2px 0;">${peakDayName}</div>
+        <div style="font-size:11px;color:var(--primary-bright);font-weight:700;">${peakDayPct}% of all spend</div>
+      </div>
+
+      <div class="card" style="padding:14px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:linear-gradient(145deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02));">
+        <div style="font-size:22px;margin-bottom:4px;">🍔</div>
+        <div style="font-size:11px;color:var(--text-dim);font-weight:600;">${isHi ? 'शीर्ष खर्च श्रेणी' : 'Top Expense Leak'}</div>
+        <div style="font-size:16px;font-weight:800;color:#fff;margin:2px 0;">${escapeHTML(topCatName)}</div>
+        <div style="font-size:11px;color:var(--green,#34d399);font-weight:700;">₹${topCatAmount.toLocaleString('en-IN')} (${topCatPct}%)</div>
+      </div>
+    </div>
+  `;
+};
+
+window.promptEditTotalBudget = function() {
+  const current = window.getSavedTotalBudget();
+  const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
+  const val = prompt(isHi ? 'अपना कुल मासिक बजट दर्ज करें (₹):' : 'Enter your total monthly budget target (₹):', current);
+  if (val && !isNaN(parseFloat(val))) {
+    window.setSavedTotalBudget(parseFloat(val));
+    window.renderSmartInsights();
+  }
+};
+
+
