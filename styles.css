@@ -2519,5 +2519,14 @@ button:active,
   display: none !important;
 }
 
+/* =====================================================================
+   AUTH & ONBOARDING SCREEN GUARDS
+   ===================================================================== */
+body.auth-active .bottom-tab-bar,
+body.auth-active .floating-add,
+body.auth-active .voice-fab {
+  display: none !important;
+}
+
 
 

@@ -88,11 +88,26 @@ function logOut(){
   });
 }
 
-auth.onAuthStateChanged(user=>{
+function updateBottomBarVisibility(){
+  const bar = document.getElementById('bottom-tab-bar');
+  const floatingAdd = document.getElementById('floating-add');
+  const voiceFab = document.getElementById('voice-fab');
+  const authScreen = document.getElementById('auth-screen');
+  const isAuthVisible = authScreen && authScreen.style.display !== 'none';
+  const shouldShow = (currentUser !== null && !isAuthVisible);
+  if (bar) bar.style.display = shouldShow ? 'flex' : 'none';
+  if (floatingAdd) floatingAdd.style.display = shouldShow ? 'flex' : 'none';
+  if (voiceFab) voiceFab.style.display = shouldShow ? 'flex' : 'none';
+  if (document.body) document.body.classList.toggle('auth-active', !shouldShow);
+}
+window.updateBottomBarVisibility = updateBottomBarVisibility;
+
+if (typeof auth !== 'undefined') {
+  auth.onAuthStateChanged(user=>{
   if(user){
     currentUser=user;
     document.getElementById('auth-screen').style.display='none';
-    if(typeof updateBottomBarVisibility==='function') updateBottomBarVisibility();
+    updateBottomBarVisibility();
     if(typeof updateSyncIndicator==='function') updateSyncIndicator();
     else document.getElementById('sync-status').textContent = (typeof currentLang!=='undefined' && currentLang==='hi') ? 'क्लाउड से जुड़ा' : 'Synced to cloud';
     listenToEntries();
@@ -128,7 +143,8 @@ auth.onAuthStateChanged(user=>{
     events=[];
     weeklyBudget=0;
   }
-});
+  });
+}
 
 function resendVerification(){
   if(!currentUser)return;
