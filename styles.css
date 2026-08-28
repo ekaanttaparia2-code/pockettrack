@@ -2500,13 +2500,22 @@ button:active,
 }
 
 /* =====================================================================
-   POWER MODE ONLY FEATURES (HIDDEN IN SENIOR 40+ SIMPLE MODE)
+   SENIOR 40+ SIMPLE MODE: STREAMLINED WALLET UI
    ===================================================================== */
-.app-mode-simple .wallet-switcher-bar,
-.app-mode-simple #wallet-switcher-bar,
-.app-mode-simple #wallet-distribution-slot,
-.app-mode-simple #composer-wallet-chips,
+.app-mode-simple .wallet-switcher-bar {
+  margin-bottom: 12px !important;
+}
+.app-mode-simple .wallet-pill {
+  padding: 8px 14px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  border-radius: 12px !important;
+}
 .app-mode-simple .wallet-badge-tag {
+  font-size: 11px !important;
+  padding: 3px 8px !important;
+}
+.app-mode-simple #wallet-distribution-slot {
   display: none !important;
 }
 

@@ -291,6 +291,23 @@ window.renderWalletSwitcher = function() {
       <i class="ti ti-plus"></i> <span>${typeof currentLang !== 'undefined' && currentLang === 'hi' ? 'नया वॉलेट' : 'Add Wallet'}</span>
     </button>
   `;
+
+  // Synchronize form dropdowns
+  const incSel = document.getElementById('inc-wallet');
+  const expSel = document.getElementById('exp-wallet');
+  const selOpts = userWallets.map(w => `<option value="${w.id}">${w.icon || '💳'} ${escapeHTML(w.name)}</option>`).join('');
+  if (incSel && !incSel.innerHTML) incSel.innerHTML = selOpts;
+  else if (incSel) {
+    const curVal = incSel.value;
+    incSel.innerHTML = selOpts;
+    if (curVal) incSel.value = curVal;
+  }
+  if (expSel && !expSel.innerHTML) expSel.innerHTML = selOpts;
+  else if (expSel) {
+    const curVal = expSel.value;
+    expSel.innerHTML = selOpts;
+    if (curVal) expSel.value = curVal;
+  }
 };
 
 window.switchActiveWallet = function(walletId) {

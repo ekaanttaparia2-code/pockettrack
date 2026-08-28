@@ -107,9 +107,21 @@ function openQuickComposer(mode='expense'){
   document.getElementById('composer-date').value=todayStr();
   document.getElementById('composer-note').value='';
   composerWallet = (typeof activeWalletId !== 'undefined' && activeWalletId !== 'all') ? activeWalletId : (mode === 'income' ? 'bank' : 'cash');
-  document.querySelectorAll('#composer-wallet-chips .composer-chip').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.wallet === composerWallet);
-  });
+  
+  const wChipsEl = document.getElementById('composer-wallet-chips');
+  if (wChipsEl) {
+    const wList = (typeof userWallets !== 'undefined' && userWallets.length) ? userWallets : [
+      { id: 'cash', name: 'Cash', icon: '💵' },
+      { id: 'bank', name: 'Bank / UPI', icon: '📱' },
+      { id: 'card', name: 'Credit Card', icon: '💳' }
+    ];
+    wChipsEl.innerHTML = wList.map(w => `
+      <button type="button" class="composer-chip ${w.id === composerWallet ? 'active' : ''}" data-wallet="${w.id}" onclick="selectComposerWallet(this,'${w.id}')">
+        ${w.icon || '💳'} ${(typeof escapeHTML === 'function') ? escapeHTML(w.name) : w.name}
+      </button>
+    `).join('');
+  }
+
   setComposerMode(composerMode);
   backdrop.style.display='flex';
   document.body.classList.add('composer-open');
@@ -214,6 +226,12 @@ function openCommandHubModal(){
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;">
+        <div onclick="closeCommandHubModal();if(typeof openWalletManagerModal==='function')openWalletManagerModal();" style="background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.45);border-radius:18px;padding:16px;cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+          <div style="font-size:24px;margin-bottom:6px;">💳</div>
+          <strong style="display:block;font-size:14px;color:var(--accent-bright,#c4b5fd);">${isHi ? 'वॉलेट और खाते' : 'Wallets & Accounts'}</strong>
+          <span style="font-size:11px;color:var(--text-dim,#a1a1aa);">${isHi ? 'कैश, बैंक, कार्ड प्रबंधन' : 'Manage & custom wallets'}</span>
+        </div>
+
         <div onclick="selectHubTool('ledger')" style="background:rgba(255,255,255,0.04);border:1px solid rgba(52,211,153,0.3);border-radius:18px;padding:16px;cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
           <div style="font-size:24px;margin-bottom:6px;">📑</div>
           <strong style="display:block;font-size:14px;color:#fff;">${isHi ? 'खाता (Ledger)' : 'Ledger Accounts'}</strong>
@@ -467,7 +485,7 @@ async function addIncome(){
     if(!isValidAmount(amt)){toast(TT('enter_valid_amount'),'error');return;}
     if(!note){toast(TT('add_description'),'error');return;}
     if(!isValidDate(date)){toast(TT('enter_valid_date'),'error');return;}
-    const chosenW = (typeof activeWalletId !== 'undefined' && activeWalletId !== 'all') ? activeWalletId : 'bank';
+    const chosenW = document.getElementById('inc-wallet')?.value || ((typeof activeWalletId !== 'undefined' && activeWalletId !== 'all') ? activeWalletId : 'bank');
     const payload={type:'income',cat:'income',label:src,note,amt:Math.round(amt*100)/100,walletId:chosenW,date};
     try{
       if(editingId){
@@ -516,7 +534,7 @@ async function addExpense(){
     if(!isValidAmount(amt)){toast(TT('enter_valid_amount'),'error');return;}
     if(!desc){toast(TT('add_description'),'error');return;}
     if(!isValidDate(date)){toast(TT('enter_valid_date'),'error');return;}
-    const chosenExpW = (typeof activeWalletId !== 'undefined' && activeWalletId !== 'all') ? activeWalletId : 'cash';
+    const chosenExpW = document.getElementById('exp-wallet')?.value || ((typeof activeWalletId !== 'undefined' && activeWalletId !== 'all') ? activeWalletId : 'cash');
     const payload={type:'expense',cat,customCat,label:desc,amt:Math.round(amt*100)/100,walletId:chosenExpW,date};
     try{
       if(editingId){
