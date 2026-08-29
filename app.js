@@ -3354,7 +3354,9 @@ window.setAppMode = function(mode, save = true) {
 };
 
 window.toggleAppMode = function() {
-  window.openAgeModeModal();
+  const current = window.currentAppMode || (document.body && document.body.classList.contains('app-mode-simple') ? 'simple' : 'power');
+  const nextMode = (current === 'simple') ? 'power' : 'simple';
+  window.setAppMode(nextMode, true);
 };
 
 window.triggerManualSync = async function() {

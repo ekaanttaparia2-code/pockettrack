@@ -53,10 +53,11 @@
       }
     }
     function toggleAppMode() {
-      if (typeof window.openAgeModeModal === 'function') {
-        window.openAgeModeModal();
+      var current = window.currentAppMode || (document.body && document.body.classList.contains('app-mode-simple') ? 'simple' : 'power');
+      var nextMode = (current === 'simple') ? 'power' : 'simple';
+      if (typeof window.setAppMode === 'function') {
+        window.setAppMode(nextMode, true);
       } else {
-        var nextMode = (window.currentAppMode === 'simple') ? 'power' : 'simple';
         setAppMode(nextMode, true);
       }
     }
@@ -275,9 +276,9 @@
             <span class="action-circle-icon"><i class="ti ti-arrow-down-left"></i></span>
             <span class="action-circle-label" data-i18n="home_add_income">Income</span>
           </button>
-          <button class="hero-action-pill pill-voice" onclick="startVoiceRecognition()">
-            <span class="action-circle-icon"><i class="ti ti-microphone"></i></span>
-            <span class="action-circle-label" data-i18n="home_voice">Voice</span>
+          <button class="hero-action-pill pill-transfer" onclick="showTransferModal()" title="Transfer funds between Cash, Bank, Card">
+            <span class="action-circle-icon"><i class="ti ti-arrows-left-right"></i></span>
+            <span class="action-circle-label">Transfer</span>
           </button>
           <button class="hero-action-pill pill-paste" onclick="pasteFromClipboardAndLog()" title="1-Tap Paste UPI or SMS alert">
             <span class="action-circle-icon"><i class="ti ti-clipboard-text"></i></span>
