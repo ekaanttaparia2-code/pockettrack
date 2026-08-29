@@ -183,6 +183,7 @@ const TRANSLATIONS = {
   voice_entry_title:{en:'Voice Expense Entry',hi:'बोल कर एंट्री करें',hinglish:'Voice Expense Entry'},
   insights_sub_overview:{en:'Overview & Budget',hi:'अवलोकन और बजट',hinglish:'Overview & Budget'},
   insights_sub_deep:{en:'Deep Tools & DNA',hi:'डीप टूल्स और डीएनए',hinglish:'Deep Tools & DNA'},
+  lbl_account_filter:{en:'Wallets & Accounts',hi:'वॉलेट और खाते',hinglish:'Wallets & Accounts',mr:'वॉलेट्स आणि खाती',ta:'வாலெட்டுகள் மற்றும் கணக்குகள்',te:'వాలెట్లు మరియు ఖాతాలు',gu:'વોલેટ્સ અને ખાતાઓ',bn:'ওয়ালেট এবং অ্যাকাউন্টস'},
 };
 window.TRANSLATIONS = TRANSLATIONS;
 let currentLang = localStorage.getItem('pocketTrackLang') || 'en';

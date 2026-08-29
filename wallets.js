@@ -672,6 +672,7 @@ window.openTransferModal = function() {
     setTimeout(() => document.getElementById('transfer-amt')?.focus(), 100);
   });
 };
+window.openWalletTransferModal = window.openTransferModal;
 
 /**
  * Atomic Batch Transfer execution in Firestore & Local state
