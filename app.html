@@ -215,6 +215,24 @@
         </div>
         <p class="hero-balance" id="hdr-balance">₹0</p>
         
+        <!-- Daily Safe-to-Spend Inset Rectangle -->
+        <div class="hero-safe-spend-pill" id="hero-safe-spend-pill" onclick="openSafeSpendExplainer()" style="cursor:pointer;" title="Tap to view exact Daily Safe-to-Spend calculation">
+          <div class="safe-spend-badge" id="hero-safe-spend-badge">
+            <span id="hero-safe-spend-icon">🎯</span>
+          </div>
+          <div class="safe-spend-info">
+            <div class="safe-spend-label" id="hero-safe-spend-label">Daily Safe-to-Spend</div>
+            <div class="safe-spend-val-row">
+              <strong class="safe-spend-val" id="hero-safe-spend-val">₹0/day</strong>
+              <span class="safe-spend-sub" id="hero-safe-spend-sub">· Calculating...</span>
+            </div>
+          </div>
+          <div class="safe-spend-action">
+            <i class="ti ti-chevron-right"></i>
+          </div>
+        </div>
+        
+        <!-- Cash Flow Strip Inset Rectangle -->
         <div class="hero-flow-strip">
           <div class="flow-item flow-inc">
             <span class="flow-dot green-dot"></span>
@@ -252,27 +270,6 @@
             <span class="action-circle-icon"><i class="ti ti-clipboard-text"></i></span>
             <span class="action-circle-label">UPI Paste</span>
           </button>
-        </div>
-      </div>
-
-      <!-- 2. Dedicated Daily Safe-to-Spend Feature Card -->
-      <div class="card safe-spend-standalone-card" id="hero-safe-spend-pill" onclick="openSafeSpendExplainer()" style="cursor:pointer;margin-top:14px;padding:16px 18px;background:linear-gradient(135deg,rgba(16,185,129,0.12),rgba(139,92,246,0.08));border:1px solid rgba(52,211,153,0.3);border-radius:20px;box-shadow:0 8px 24px rgba(0,0,0,0.25);" title="Tap to view exact Daily Safe-to-Spend calculation">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-          <div style="display:flex;align-items:center;gap:8px;">
-            <div class="safe-spend-badge" id="hero-safe-spend-badge" style="width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;background:rgba(52,211,153,0.2);">
-              <span id="hero-safe-spend-icon">🎯</span>
-            </div>
-            <div>
-              <div style="font-size:12px;font-weight:700;color:var(--green,#34d399);text-transform:uppercase;letter-spacing:0.5px;" id="hero-safe-spend-label">Daily Safe-to-Spend</div>
-            </div>
-          </div>
-          <button class="btn btn-sm" style="font-size:11px;padding:4px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#cbd5e1;pointer-events:none;">
-            Math Sheet <i class="ti ti-chevron-right"></i>
-          </button>
-        </div>
-        <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">
-          <h2 style="font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:900;margin:0;color:#fff;" class="safe-spend-val" id="hero-safe-spend-val">₹0/day</h2>
-          <span style="font-size:12px;color:rgba(255,255,255,0.6);" class="safe-spend-sub" id="hero-safe-spend-sub">· Calculating...</span>
         </div>
       </div>
 
