@@ -248,22 +248,6 @@
     </div>
   </div>
 
-  <!-- Highlighted Top Stat Pills (Income, Spent, Entries) -->
-  <div class="stat-pills header-stat-pills" id="header-stat-pills" style="display:flex;gap:8px;margin-bottom:12px;">
-    <div class="stat-pill stat-pill-inc">
-      <span class="stat-pill-label" data-i18n="stat_income">Income</span>
-      <span class="stat-pill-val green" id="hdr-income">+₹0</span>
-    </div>
-    <div class="stat-pill stat-pill-exp">
-      <span class="stat-pill-label" data-i18n="stat_spent">Spent</span>
-      <span class="stat-pill-val red" id="hdr-spent">-₹0</span>
-    </div>
-    <div class="stat-pill stat-pill-cnt">
-      <span class="stat-pill-label" data-i18n="stat_entries">Entries</span>
-      <span class="stat-pill-val purple" id="hdr-count">0</span>
-    </div>
-  </div>
-
   <div id="tab-log">
     <!-- POWER MODE HOME VIEW -->
     <div id="power-mode-home-container">
@@ -275,45 +259,80 @@
         <button class="home-add-mini" onclick="openQuickComposer()" aria-label="Add transaction" style="width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,#a855f7,#ec4899);color:#fff;border:none;display:grid;place-items:center;font-size:16px;cursor:pointer;box-shadow:0 6px 18px rgba(168,85,247,0.4);"><i class="ti ti-plus"></i></button>
       </div>
 
-      <!-- 1. The Iconic Royal Blue Hero Balance Card -->
-      <div class="hero-card hero-card-classic" id="hero-balance-card">
+      <!-- 1. Sleek Modern Balance Card -->
+      <div class="hero-card hero-card-modern" id="hero-balance-card">
         <div class="hero-top">
           <div>
-            <span class="hero-label" style="color:rgba(255,255,255,0.85);font-weight:800;letter-spacing:1px;font-size:11px;" data-i18n="stat_balance">BALANCE</span>
-            <p class="hero-caption" style="color:rgba(255,255,255,0.65);font-size:11px;margin-top:2px;" data-i18n="home_available">Available across your tracked money</p>
+            <span class="hero-label" data-i18n="stat_balance">BALANCE</span>
+            <p class="hero-caption" data-i18n="home_available">Available across your tracked money</p>
           </div>
-          <div class="hero-chip-coin">
-            <span>💰</span>
+          <div class="hero-chip-green-rupee">
+            <span>₹</span>
           </div>
         </div>
         
-        <p class="hero-balance" id="hdr-balance" style="font-family:'Space Grotesk',sans-serif;font-size:42px;font-weight:800;color:#fff;margin:8px 0 14px;letter-spacing:-1.5px;text-shadow:0 4px 16px rgba(0,0,0,0.3);">₹0</p>
+        <p class="hero-balance" id="hdr-balance">₹0</p>
         
-        <div class="hero-metrics">
-          <div>
-            <span data-i18n="stat_income">INCOME</span>
+        <!-- Highlighted Metrics Pill Strip Inside Card -->
+        <div class="hero-metrics-pill">
+          <div class="hero-metric-item">
+            <span class="hero-metric-dot green"></span>
+            <span class="hero-metric-label" data-i18n="stat_income">Income</span>
             <strong class="green" id="hero-income">₹0</strong>
           </div>
-          <div>
-            <span data-i18n="stat_spent">SPENT</span>
+          <div class="hero-metric-item">
+            <span class="hero-metric-dot red"></span>
+            <span class="hero-metric-label" data-i18n="stat_spent">Spent</span>
             <strong class="red" id="hero-spent">₹0</strong>
           </div>
-          <div>
-            <span data-i18n="stat_entries">ENTRIES</span>
+          <div class="hero-metric-item">
+            <span class="hero-metric-dot purple"></span>
+            <span class="hero-metric-label" data-i18n="stat_entries">Entries</span>
             <strong id="hero-count">0</strong>
           </div>
         </div>
 
-        <div class="hero-actions-classic">
-          <button class="btn-hero-action btn-hero-exp" onclick="openQuickComposer('expense')">
-            <span>💸</span> <span data-i18n="home_add_expense">Add expense</span>
+        <!-- 4 Circular Action Buttons (Expense, Income, Transfer, UPI Paste) -->
+        <div class="hero-actions-grid-4">
+          <button class="hero-action-btn-item" onclick="openQuickComposer('expense')">
+            <div class="hero-action-btn-circle expense">
+              <i class="ti ti-arrow-up-right" style="font-size:22px;"></i>
+            </div>
+            <span class="hero-action-btn-label" data-i18n="home_add_expense">Expense</span>
           </button>
-          <button class="btn-hero-action btn-hero-inc" onclick="openQuickComposer('income')">
-            <span>💵</span> <span data-i18n="home_add_income">Add Income</span>
+          <button class="hero-action-btn-item" onclick="openQuickComposer('income')">
+            <div class="hero-action-btn-circle income">
+              <i class="ti ti-arrow-down-left" style="font-size:22px;"></i>
+            </div>
+            <span class="hero-action-btn-label" data-i18n="home_add_income">Income</span>
           </button>
-          <button class="btn-hero-action btn-hero-voice" onclick="startVoiceRecognition()">
-            <span>🎙️</span> <span data-i18n="home_voice">Voice</span>
+          <button class="hero-action-btn-item" onclick="openTransferModal()">
+            <div class="hero-action-btn-circle transfer">
+              <i class="ti ti-arrows-left-right" style="font-size:22px;"></i>
+            </div>
+            <span class="hero-action-btn-label" data-i18n="action_transfer">Transfer</span>
           </button>
+          <button class="hero-action-btn-item" onclick="pasteFromClipboardAndLog()">
+            <div class="hero-action-btn-circle upi">
+              <i class="ti ti-clipboard-text" style="font-size:22px;"></i>
+            </div>
+            <span class="hero-action-btn-label" data-i18n="action_upi_paste">UPI Paste</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. Daily Safe-to-Spend Card -->
+      <div class="card safe-to-spend-card" id="home-safe-to-spend-card" style="margin-bottom:14px;border-radius:22px;padding:16px 18px;background:linear-gradient(165deg,rgba(16,185,129,0.12) 0%,rgba(16,185,129,0.03) 100%);border:1px solid rgba(52,211,153,0.3);position:relative;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:34px;height:34px;border-radius:10px;background:rgba(52,211,153,0.18);display:flex;align-items:center;justify-content:center;font-size:18px;">🎯</div>
+            <span style="font-size:11.5px;font-weight:800;letter-spacing:0.8px;color:#34d399;text-transform:uppercase;" data-i18n="safe_to_spend_title">DAILY SAFE-TO-SPEND</span>
+          </div>
+          <button class="btn btn-sm" onclick="openSafeToSpendExplainer()" style="font-size:11px;padding:4px 10px;border-radius:10px;background:rgba(255,255,255,0.08);color:#e2e8f0;border:1px solid rgba(255,255,255,0.15);font-weight:700;">Math Sheet</button>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:8px;margin-top:4px;">
+          <h2 id="home-safe-spend-val" style="font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:800;color:#fff;margin:0;letter-spacing:-0.5px;">₹0/day</h2>
+          <span id="home-safe-spend-sub" style="font-size:12px;color:var(--text-dim,#94a3b8);font-weight:600;">· ₹0 left today</span>
         </div>
       </div>
 
