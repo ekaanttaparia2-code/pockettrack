@@ -80,7 +80,7 @@ function playHapticSound(type = 'click') {
 // --- 2. Rolling Number Animation (Odometer Effect) ---
 const _activeCounters = new Map();
 
-function animateNumber(elementId, targetValue, prefix = '₹', suffix = '', duration = 650) {
+function animateNumber(elementId, targetValue, prefix = '₹', suffix = '', duration = 120) {
   const el = document.getElementById(elementId);
   if (!el) return;
 
@@ -88,7 +88,7 @@ function animateNumber(elementId, targetValue, prefix = '₹', suffix = '', dura
   const currentText = el.textContent.replace(/[^0-9.-]+/g, '');
   const start = parseFloat(currentText) || 0;
 
-  if (start === target) {
+  if (start === target || duration <= 0) {
     el.textContent = `${prefix}${target.toLocaleString('en-IN')}${suffix}`;
     return;
   }
@@ -122,7 +122,7 @@ function animateNumber(elementId, targetValue, prefix = '₹', suffix = '', dura
   _activeCounters.set(elementId, requestAnimationFrame(update));
 }
 
-// --- 3. Canvas Neon Particle & Coin Bursts ---
+// --- 3. Canvas Neon Particle & Coin Bursts (Explicit Milestones Only) ---
 let particleCanvas = null;
 let particleCtx = null;
 let particles = [];
@@ -145,9 +145,8 @@ function initParticleCanvas() {
   resize();
 }
 
-function spawnCelebrationParticles(originX, originY, count = 35) {
+function spawnCelebrationParticles(originX, originY, count = 25) {
   initParticleCanvas();
-  playHapticSound('coin');
 
   const x = originX || window.innerWidth / 2;
   const y = originY || window.innerHeight / 2;
@@ -157,22 +156,22 @@ function spawnCelebrationParticles(originX, originY, count = 35) {
 
   for (let i = 0; i < count; i++) {
     const angle = Math.random() * Math.PI * 2;
-    const speed = 3 + Math.random() * 9;
-    const isEmoji = Math.random() > 0.65;
+    const speed = 3 + Math.random() * 8;
+    const isEmoji = Math.random() > 0.7;
 
     particles.push({
       x: x,
       y: y,
       vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed - 2.5,
+      vy: Math.sin(angle) * speed - 2,
       color: colors[Math.floor(Math.random() * colors.length)],
       emoji: isEmoji ? emojis[Math.floor(Math.random() * emojis.length)] : null,
-      size: isEmoji ? 18 : (3 + Math.random() * 5),
+      size: isEmoji ? 16 : (3 + Math.random() * 4),
       rotation: Math.random() * 360,
-      vRot: (Math.random() - 0.5) * 12,
+      vRot: (Math.random() - 0.5) * 10,
       alpha: 1,
-      gravity: 0.22,
-      decay: 0.016 + Math.random() * 0.015
+      gravity: 0.25,
+      decay: 0.025 + Math.random() * 0.02
     });
   }
 
@@ -210,8 +209,6 @@ function renderParticles() {
       particleCtx.fillText(p.emoji, 0, 0);
     } else {
       particleCtx.fillStyle = p.color;
-      particleCtx.shadowColor = p.color;
-      particleCtx.shadowBlur = 8;
       particleCtx.beginPath();
       particleCtx.arc(0, 0, p.size, 0, Math.PI * 2);
       particleCtx.fill();
@@ -228,14 +225,9 @@ function renderParticles() {
   }
 }
 
-// --- 4. Celebratory Button Micro-Bursts ---
+// Micro-bursts removed from standard UI buttons to ensure zero input latency
 function initButtonMicroBursts() {
-  document.querySelectorAll('.hero-action.primary, .btn.primary, .home-add-mini, #quick-composer-submit').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const rect = btn.getBoundingClientRect();
-      spawnCelebrationParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, 18);
-    });
-  });
+  // No-op for maximum button responsiveness
 }
 
 // Auto-initialize when DOM loads

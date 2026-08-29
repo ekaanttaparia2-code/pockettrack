@@ -1439,17 +1439,8 @@ function flyCoinToRewards(originEl){
 }
 
 function celebrateEntryLogged(btnId){
-  const btn=document.getElementById(btnId);
-  flyCoinToRewards(btn);
   renderRewards();
   checkMilestoneCelebration();
-  if (typeof spawnCelebrationParticles === 'function') {
-    const rect = btn ? btn.getBoundingClientRect() : null;
-    spawnCelebrationParticles(
-      rect ? rect.left + rect.width / 2 : window.innerWidth / 2,
-      rect ? rect.top + rect.height / 2 : window.innerHeight / 2
-    );
-  }
 }
 
 function setTab(t){
@@ -1458,9 +1449,6 @@ function setTab(t){
     if(el){
       if(x===t){
         el.style.display='block';
-        el.classList.remove('tab-enter');
-        void el.offsetWidth; // force reflow so the animation replays every time
-        el.classList.add('tab-enter');
       } else {
         el.style.display='none';
       }

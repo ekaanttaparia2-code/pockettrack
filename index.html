@@ -20,24 +20,8 @@
 <script>
 function launchPocketTrackApp(e) {
   if (e && e.preventDefault) e.preventDefault();
-  try {
-    localStorage.setItem('pockettrack_landing_seen', 'true');
-  } catch (err) {}
-  var loc = window.location;
-  if (loc.protocol === 'file:') {
-    var p = loc.pathname;
-    loc.href = (p.indexOf('/website/') !== -1 || p.indexOf('\\website\\') !== -1) ? '../app.html' : 'app.html';
-    return false;
-  }
-  var path = loc.pathname || '/';
-  var wIdx = path.indexOf('/website');
-  if (wIdx !== -1) {
-    var repo = path.substring(0, wIdx);
-    loc.href = (repo ? repo : '') + '/app.html';
-    return false;
-  }
-  var repoPath = path.substring(0, path.lastIndexOf('/'));
-  loc.href = (repoPath ? repoPath : '') + '/app.html';
+  try { localStorage.setItem('pockettrack_landing_seen', 'true'); } catch (err) {}
+  window.location.assign('app.html');
   return false;
 }
 
@@ -47,21 +31,7 @@ function launchPocketTrackSandbox(e) {
     localStorage.setItem('pockettrack_landing_seen', 'true');
     localStorage.setItem('pockettrack_sandbox_mode', 'true');
   } catch (err) {}
-  var loc = window.location;
-  if (loc.protocol === 'file:') {
-    var p = loc.pathname;
-    loc.href = (p.indexOf('/website/') !== -1 || p.indexOf('\\website\\') !== -1) ? '../app.html?guest=true' : 'app.html?guest=true';
-    return false;
-  }
-  var path = loc.pathname || '/';
-  var wIdx = path.indexOf('/website');
-  if (wIdx !== -1) {
-    var repo = path.substring(0, wIdx);
-    loc.href = (repo ? repo : '') + '/app.html?guest=true';
-    return false;
-  }
-  var repoPath = path.substring(0, path.lastIndexOf('/'));
-  loc.href = (repoPath ? repoPath : '') + '/app.html?guest=true';
+  window.location.assign('app.html?guest=true');
   return false;
 }
 </script>
