@@ -880,17 +880,15 @@ window.renderSmartInsights = function() {
   const topCatPct = totalSpent > 0 ? Math.round((topCatAmount / totalSpent) * 100) : 0;
 
   // 3. Simple Monthly Budget Calculation
-  const totalBudget = window.getSavedTotalBudget();
+  const safeData = (typeof computeCurrentSafeToSpend === 'function')
+    ? computeCurrentSafeToSpend()
+    : { dailyAllowance: 50, remainingDays: 1, budgetPool: window.getSavedTotalBudget(), monthSpent: totalSpent };
+  const safeDailySpend = safeData.dailyAllowance;
+  const remainingDays = safeData.remainingDays;
+  const totalBudget = safeData.budgetPool;
   const budgetMode = localStorage.getItem('pockettrack_budget_mode') || 'simple';
   const budgetSpentPct = Math.min(100, Math.round((totalSpent / totalBudget) * 100));
   const isOverBudget = totalSpent > totalBudget;
-
-  const now = new Date();
-  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  const currentDay = now.getDate();
-  const remainingDays = Math.max(1, daysInMonth - currentDay);
-  const remainingBudget = Math.max(0, totalBudget - totalSpent);
-  const safeDailySpend = Math.round(remainingBudget / remainingDays);
 
   host.innerHTML = `
     <!-- Budget Mode Switcher Card -->

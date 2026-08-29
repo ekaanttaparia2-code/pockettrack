@@ -1104,18 +1104,11 @@ function renderBudgetEditor(){
     const budgetSpentPct = totalBudget > 0 ? Math.min(100, Math.round((totalSpent / totalBudget) * 100)) : 0;
     const isOverBudget = totalSpent > totalBudget;
 
-    const now = new Date();
-    let remainingDays = 1;
-    if (isWeek) {
-      const day = now.getDay();
-      remainingDays = Math.max(1, 7 - (day === 0 ? 7 : day));
-    } else {
-      const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-      const currentDay = now.getDate();
-      remainingDays = Math.max(1, daysInMonth - currentDay);
-    }
-    const remainingBudget = Math.max(0, totalBudget - totalSpent);
-    const safeDailySpend = Math.round(remainingBudget / remainingDays);
+    const safeData = (typeof computeCurrentSafeToSpend === 'function')
+      ? computeCurrentSafeToSpend()
+      : { dailyAllowance: 50, remainingDays: 1, budgetPool: totalBudget, monthSpent: totalSpent };
+    const safeDailySpend = safeData.dailyAllowance;
+    const remainingDays = safeData.remainingDays;
 
     host.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
@@ -3138,9 +3131,7 @@ window.renderSimpleModePassbook = function() {
   const balEl = document.getElementById('simple-home-balance');
   const incEl = document.getElementById('simple-home-income');
   const expEl = document.getElementById('simple-home-spent');
-  if (!container) return;
-
-  const rawEntries = (typeof mainEntries === 'function') ? mainEntries() : ((typeof window !== 'undefined' && window.entries) ? window.entries : []);
+  let rawEntries = (typeof allRawMainEntries === 'function') ? allRawMainEntries() : ((typeof mainEntries === 'function') ? mainEntries() : ((typeof window !== 'undefined' && window.entries) ? window.entries : []));
   const sortedOldestFirst = [...rawEntries].filter(e => !e.event).sort((a,b) => String(a.date||'').localeCompare(String(b.date||'')));
 
   let runningBal = 0;

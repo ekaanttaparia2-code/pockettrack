@@ -100,57 +100,19 @@
 })();
 
 function computeSafeToSpend() {
-  const entries = (typeof mainEntries === 'function') ? mainEntries() : [];
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth(); // 0-11
-  
-  // Days in current month
-  const totalDays = new Date(currentYear, currentMonth + 1, 0).getDate();
-  const currentDay = now.getDate();
-  const remainingDays = Math.max(1, totalDays - currentDay + 1); // including today
-
-  let monthIncome = 0;
-  let monthSpent = 0;
-  let todaySpent = 0;
-  const todayStrVal = (typeof todayStr === 'function') ? todayStr() : new Date().toISOString().split('T')[0];
-
-  entries.forEach(e => {
-    if (!e || !e.date || typeof e.date !== 'string') return;
-    const parts = e.date.split('-');
-    if (parts.length !== 3) return;
-    const y = parseInt(parts[0], 10);
-    const m = parseInt(parts[1], 10) - 1;
-    const amt = parseFloat(e.amt) || 0;
-
-    if (y === currentYear && m === currentMonth) {
-      if (e.type === 'income') monthIncome += amt;
-      else if (e.type === 'expense') {
-        monthSpent += amt;
-        if (e.date === todayStrVal) todaySpent += amt;
-      }
-    }
-  });
-
-  // Effective budget pool
-  let budgetPool = monthIncome;
-  if (typeof weeklyBudget !== 'undefined' && weeklyBudget > 0) {
-    budgetPool = Math.max(budgetPool, weeklyBudget * 4.2);
+  if (typeof computeCurrentSafeToSpend === 'function') {
+    return computeCurrentSafeToSpend();
   }
-  if (budgetPool <= 0) budgetPool = 25000; // Sensible default student/young-pro benchmark
-
-  const remainingMonthPool = Math.max(0, budgetPool - monthSpent + todaySpent);
-  const dailyAllowance = Math.max(100, Math.round(remainingMonthPool / remainingDays));
-  const todayRemaining = dailyAllowance - todaySpent;
-  const burnPercent = Math.min(100, Math.round((todaySpent / dailyAllowance) * 100));
-
+  if (typeof window !== 'undefined' && typeof window.computeCurrentSafeToSpend === 'function') {
+    return window.computeCurrentSafeToSpend();
+  }
   return {
-    remainingDays,
-    dailyAllowance,
-    todaySpent,
-    todayRemaining,
-    burnPercent,
-    isSafe: todayRemaining >= 0
+    remainingDays: 1,
+    dailyAllowance: 1000,
+    todaySpent: 0,
+    todayRemaining: 1000,
+    burnPercent: 0,
+    isSafe: true
   };
 }
 

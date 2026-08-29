@@ -147,18 +147,15 @@ function incrementVoiceEntriesUsed() {
 }
 
 function canUseVoiceEntry() {
-  if (proEnabled()) return true;
-  return getVoiceEntriesUsed() < PT_FREE_LIMITS.voiceTransactions;
+  return true;
 }
 
 function canAddLedgerContact(currentCount) {
-  if (proEnabled()) return true;
-  return currentCount < PT_FREE_LIMITS.ledgerContacts;
+  return true;
 }
 
 function canCreateSpace(currentCount) {
-  if (proEnabled()) return true;
-  return currentCount < PT_FREE_LIMITS.spacesCount;
+  return true;
 }
 
 function showProLimitModal(featureName, freeLimitText) {
@@ -228,7 +225,7 @@ const PT_THEMES = [
 ];
 
 // ---- Pro state -------------------------------------------------------
-function proEnabled(){ return localStorage.getItem(PT_STORE.pro) === '1'; }
+function proEnabled(){ return true; }
 
 function setPro(on){
   if (on) localStorage.setItem(PT_STORE.pro, '1');
@@ -640,49 +637,16 @@ function ptUnGateAll(){
   ['tab-ledger','tab-upi'].forEach(id=>ptUnGateTab(id));
 }
 
-// Gate the Report tab's Copy/Export buttons only (view stays free).
+// Free exports for all users
 function ptGateReportExports(){
   const tab = document.getElementById('tab-report');
   if(!tab) return;
-  const row = tab.querySelector('.btn-row');
-  if(!row) return;
-  // Preview mode: exports are unlocked for testers. Live mode: only Pro can export.
-  const isPro = proEnabled() || ptTestMode();
-  row.querySelectorAll('button').forEach(b=>{
-    const oc = (b.getAttribute('onclick') || '');
-    const isExport = oc.indexOf('exportPDF') !== -1 || oc.indexOf('copyReport') !== -1;
-    if(isExport){
-      b.style.filter = isPro ? '' : 'blur(4px)';
-      b.style.opacity = isPro ? '' : '0.55';
-      b.style.pointerEvents = isPro ? '' : 'none';
-    }
-  });
-  let chip = row.querySelector('.pt-export-gate');
-  if(isPro){ if(chip) chip.remove(); return; }
-  if(!chip){
-    chip = document.createElement('div');
-    chip.className = 'pt-export-gate';
-    chip.innerHTML = ptTestMode()
-      ? `<span style="font-size:11px;color:var(--text-dim)">${mon('export_uc')}</span>`
-      : `
-      <span style="font-size:11px;color:var(--text-dim)">${mon('export_pro')}</span>
-      <button class="btn primary" style="padding:6px 12px;font-size:12px" onclick="openProCheckout()"><i class="ti ti-crown"></i> ${mon('unlock')}</button>`;
-    row.appendChild(chip);
-  }
+  const chip = tab.querySelector('.pt-export-gate');
+  if(chip) chip.remove();
 }
 
-// Refresh every gate against the current Pro state (call after pro toggles).
-// PREVIEW MODE: features are UNLOCKED for testers (they can try Ledger, Smart
-// Logger, export, Health Score, Leak Detector) — only the Pro & Themes purchase
-// stays under construction. Live mode: non-Pro users see the blur gates.
 function ptSyncGates(){
-  if(typeof proEnabled !== 'function') return;
-  if(!ptTestMode() && !proEnabled()){
-    ptGateTab('tab-ledger','📒',mon('gate_ledger_title'),mon('gate_ledger_desc'));
-    ptGateTab('tab-upi','📋',mon('gate_smart_title'),mon('gate_smart_desc'));
-  } else {
-    ptUnGateAll();
-  }
+  ptUnGateAll();
   ptGateReportExports();
 }
 
