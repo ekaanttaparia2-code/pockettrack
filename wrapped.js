@@ -138,9 +138,9 @@ window.getWrappedShareText = function() {
     return `🎬 My PocketTrack Money Wrapped — ${mName}\n\n💰 Tracked: ₹${d.totalAmount.toLocaleString('en-IN')} across ${d.totalTxns} transactions\n🍔 Top spend: ${capitalize(catName)} (₹${d.topCatAmt.toLocaleString('en-IN')} — ${d.topCatPercent}%)\n💀 That's ₹${d.yearlyOppAmt.toLocaleString('en-IN')}/year — enough for ${d.oppItem}\n🧬 Financial DNA: ${dnaEmoji} ${dnaName}\n📊 Health Score: ${d.healthScore}/100\n\nKnow where YOUR money goes → PocketTrack`;
 }
 
-window.generateWrappedShareImage = function() {
-    if (!wrappedData) return null;
-    const d = wrappedData;
+window.generateWrappedShareImage = function(overrideData) {
+    const d = overrideData || wrappedData || (typeof window !== 'undefined' ? window.wrappedData : null);
+    if (!d) return null;
     const canvas = document.createElement('canvas');
     canvas.width = 1080;
     canvas.height = 1350;
