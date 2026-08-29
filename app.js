@@ -259,6 +259,46 @@ function updateSmartLogPlaceholder(){
   if(entry) ta.placeholder = entry[currentLang] || entry.en;
 }
 
+function toggleTheme() {
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light' || document.body.classList.contains('light-theme');
+  const nextTheme = isLight ? 'dark' : 'light';
+  setAppTheme(nextTheme);
+}
+window.toggleTheme = toggleTheme;
+
+function setAppTheme(theme) {
+  const icon = document.getElementById('theme-icon');
+  const metaTheme = document.querySelector('meta[name="theme-color"]');
+  if (theme === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+    if (document.body) document.body.classList.add('light-theme');
+    if (icon) icon.textContent = '🌙';
+    if (metaTheme) metaTheme.setAttribute('content', '#f8fafc');
+    localStorage.setItem('pocketTrackTheme', 'light');
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+    if (document.body) document.body.classList.remove('light-theme');
+    if (icon) icon.textContent = '☀️';
+    if (metaTheme) metaTheme.setAttribute('content', '#070414');
+    localStorage.setItem('pocketTrackTheme', 'dark');
+  }
+}
+window.setAppTheme = setAppTheme;
+
+// Auto-initialize theme from storage (default to 'light' per user preference)
+try {
+  const savedTheme = localStorage.getItem('pocketTrackTheme') || 'light';
+  if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => setAppTheme(savedTheme));
+    } else {
+      setAppTheme(savedTheme);
+    }
+  }
+} catch (e) {
+  console.warn('Theme init error:', e);
+}
+
 const SUPPORTED_LANGS = {
   en: 'English',
   hi: 'हिंदी (Hindi)',

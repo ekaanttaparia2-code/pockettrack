@@ -172,6 +172,9 @@
       </div>
     </div>
     <div class="brand-actions">
+      <button class="pill theme-toggle-pill" id="theme-toggle-pill" onclick="toggleTheme()" title="Toggle Light / Dark Mode">
+        <span id="theme-icon">☀️</span>
+      </button>
       <button class="mode-toggle-pill" id="header-mode-toggle" onclick="toggleAppMode()" title="Switch Simple (40+) / Power Mode">
         <span id="mode-icon">⚡</span> <span id="mode-label">Power</span>
       </button>
@@ -195,10 +198,20 @@
     </div>
   </div>
 
-  <div class="stat-pills slim-pills" id="header-stat-pills" aria-hidden="true" style="display:none">
-    <div class="stat-pill"><span class="stat-pill-label" data-i18n="stat_income">Income</span><span class="stat-pill-val green" id="hdr-income">₹0</span></div>
-    <div class="stat-pill"><span class="stat-pill-label" data-i18n="stat_spent">Spent</span><span class="stat-pill-val red" id="hdr-spent">₹0</span></div>
-    <div class="stat-pill"><span class="stat-pill-label" data-i18n="stat_entries">Entries</span><span class="stat-pill-val" id="hdr-count">0</span></div>
+  <!-- Highlighted Top Stat Pills (Income, Spent, Entries) -->
+  <div class="stat-pills header-stat-pills" id="header-stat-pills" style="display:flex;gap:8px;margin-bottom:12px;">
+    <div class="stat-pill stat-pill-inc">
+      <span class="stat-pill-label" data-i18n="stat_income">Income</span>
+      <span class="stat-pill-val green" id="hdr-income">+₹0</span>
+    </div>
+    <div class="stat-pill stat-pill-exp">
+      <span class="stat-pill-label" data-i18n="stat_spent">Spent</span>
+      <span class="stat-pill-val red" id="hdr-spent">-₹0</span>
+    </div>
+    <div class="stat-pill stat-pill-cnt">
+      <span class="stat-pill-label" data-i18n="stat_entries">Entries</span>
+      <span class="stat-pill-val purple" id="hdr-count">0</span>
+    </div>
   </div>
 
   <div id="tab-log">

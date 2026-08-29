@@ -780,25 +780,167 @@ footer{text-align:center;color:var(--text-faint);font-size:11.5px;margin-top:2re
 }
 
 /* =====================================================================
-   MONETIZATION & PRO THEMES  (Slice 1)
+   CLEAN PREMIUM LIGHT THEME (Fintech Glass & Clean Slate)
    ===================================================================== */
-body{ transition: background .45s ease; }
-
-/* Emerald Luxury */
-body[data-theme="emerald"]{
-  --bg1:#04120e; --bg2:#0b3a23; --bg3:#0f5634;
-  --accent:#34d399; --accent2:#a7f3d0;
-  --card:rgba(16,185,129,0.10); --card-solid:#0a291d;
-  --border:rgba(167,243,208,0.16);
-  --text:#ecfdf5; --text-dim:#bfe9d4; --text-faint:#74a894;
-  --green:#34d399; --red:#fb7185; --amber:#fbbf24;
+:root[data-theme="light"],
+body[data-theme="light"],
+body.light-theme {
+  --bg1: #f8fafc;
+  --bg2: #f1f5f9;
+  --bg3: #e2e8f0;
+  --accent: #4f46e5;
+  --accent-bright: #6366f1;
+  --accent2: #ec4899;
+  --accent-soft: rgba(79, 70, 229, 0.08);
+  --card: #ffffff;
+  --card-hover: #f8fafc;
+  --card-solid: #ffffff;
+  --panel-bg: rgba(255, 255, 255, 0.95);
+  --panel-border: rgba(15, 23, 42, 0.08);
+  --border: rgba(15, 23, 42, 0.09);
+  --border-strong: rgba(79, 70, 229, 0.35);
+  --text: #0f172a;
+  --text-dim: #475569;
+  --text-faint: #94a3b8;
+  --green: #059669;
+  --green-soft: rgba(5, 150, 105, 0.10);
+  --red: #e11d48;
+  --red-soft: rgba(225, 29, 72, 0.10);
+  --amber: #d97706;
+  --amber-soft: rgba(217, 119, 6, 0.10);
+  --cyan: #0284c7;
+  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 6px 20px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 16px 40px rgba(15, 23, 42, 0.12);
+  --shadow-glow: 0 8px 24px rgba(79, 70, 229, 0.20);
+  color: #0f172a !important;
   background:
-    radial-gradient(circle at 15% 10%, rgba(16,185,129,0.28), transparent 45%),
-    radial-gradient(circle at 85% 5%, rgba(20,184,166,0.22), transparent 42%),
-    radial-gradient(circle at 50% 100%, rgba(16,185,129,0.28), transparent 50%),
-    linear-gradient(160deg, var(--bg1), var(--bg2) 55%, var(--bg3));
-  background-attachment:fixed;
+    radial-gradient(620px 420px at 8% -4%, rgba(79, 70, 229, 0.08), transparent 64%),
+    radial-gradient(520px 420px at 100% 8%, rgba(236, 72, 153, 0.06), transparent 62%),
+    radial-gradient(500px 520px at 50% 110%, rgba(59, 130, 246, 0.08), transparent 64%),
+    linear-gradient(155deg, #f8fafc, #f1f5f9 52%, #e2e8f0) !important;
+  background-attachment: fixed !important;
 }
+:root[data-theme="light"] body::before,
+body.light-theme::before {
+  background-image: radial-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px);
+}
+
+/* Light Theme Card Overrides */
+[data-theme="light"] .card,
+body.light-theme .card,
+[data-theme="light"] .recent-card,
+body.light-theme .recent-card,
+[data-theme="light"] .stat-pill,
+body.light-theme .stat-pill,
+[data-theme="light"] .quick-action-card,
+body.light-theme .quick-action-card,
+[data-theme="light"] .transaction-composer,
+body.light-theme .transaction-composer,
+[data-theme="light"] .modal-box,
+body.light-theme .modal-box,
+[data-theme="light"] .bottom-tab-bar,
+body.light-theme .bottom-tab-bar {
+  background: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+  color: #0f172a !important;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06) !important;
+}
+
+[data-theme="light"] .brand h1,
+body.light-theme .brand h1 {
+  background: linear-gradient(120deg, #1e1b4b 30%, #4f46e5) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+[data-theme="light"] .pill,
+body.light-theme .pill {
+  background: rgba(15, 23, 42, 0.05) !important;
+  border-color: rgba(15, 23, 42, 0.10) !important;
+  color: #334155 !important;
+}
+
+[data-theme="light"] .home-entry-row,
+body.light-theme .home-entry-row,
+[data-theme="light"] .entry-row,
+body.light-theme .entry-row {
+  border-bottom-color: rgba(15, 23, 42, 0.06) !important;
+}
+
+[data-theme="light"] .home-entry-main strong,
+body.light-theme .home-entry-main strong,
+[data-theme="light"] .entry-title,
+body.light-theme .entry-title {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .sec-title,
+body.light-theme .sec-title,
+[data-theme="light"] h1,
+body.light-theme h1,
+[data-theme="light"] h2,
+body.light-theme h2,
+[data-theme="light"] h3,
+body.light-theme h3 {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] input,
+body.light-theme input,
+[data-theme="light"] select,
+body.light-theme select,
+[data-theme="light"] textarea,
+body.light-theme textarea {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+  border-color: rgba(15, 23, 42, 0.14) !important;
+}
+
+[data-theme="light"] .bottom-tab,
+body.light-theme .bottom-tab {
+  color: #64748b !important;
+}
+[data-theme="light"] .bottom-tab.active,
+body.light-theme .bottom-tab.active {
+  color: #4f46e5 !important;
+}
+
+/* Highlighted Stat Pills Above Balance Card */
+.header-stat-pills {
+  display: flex !important;
+  gap: 8px !important;
+  margin-bottom: 12px !important;
+  width: 100% !important;
+}
+.header-stat-pills .stat-pill {
+  flex: 1 !important;
+  padding: 9px 11px !important;
+  border-radius: 15px !important;
+  background: rgba(255, 255, 255, 0.07) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  text-align: left !important;
+  backdrop-filter: blur(12px) !important;
+}
+.header-stat-pills .stat-pill-label {
+  font-size: 9.5px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.6px !important;
+  color: var(--text-dim, #94a3b8) !important;
+  font-weight: 700 !important;
+}
+.header-stat-pills .stat-pill-val {
+  font-family: 'Space Grotesk', sans-serif !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+}
+.header-stat-pills .stat-pill-val.green { color: #34d399 !important; }
+.header-stat-pills .stat-pill-val.red { color: #f87171 !important; }
+.header-stat-pills .stat-pill-val.purple { color: #c084fc !important; }
 
 /* Sunset Glow */
 body[data-theme="sunset"]{
