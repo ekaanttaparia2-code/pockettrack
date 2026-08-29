@@ -121,6 +121,22 @@ function startGuestSandboxMode(){
 }
 window.startGuestSandboxMode = startGuestSandboxMode;
 
+if (typeof window !== 'undefined') {
+  window.addEventListener('DOMContentLoaded', () => {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('guest') === 'true' || localStorage.getItem('pockettrack_sandbox_mode') === 'true') {
+        localStorage.removeItem('pockettrack_sandbox_mode');
+        setTimeout(() => {
+          if (!currentUser && typeof startGuestSandboxMode === 'function') {
+            startGuestSandboxMode();
+          }
+        }, 150);
+      }
+    } catch(e) {}
+  });
+}
+
 function showAuthScreen(){
   const authScreen = document.getElementById('auth-screen');
   if (authScreen) authScreen.style.display = 'flex';

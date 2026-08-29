@@ -40,6 +40,30 @@ function launchPocketTrackApp(e) {
   loc.href = (repoPath ? repoPath : '') + '/app.html';
   return false;
 }
+
+function launchPocketTrackSandbox(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  try {
+    localStorage.setItem('pockettrack_landing_seen', 'true');
+    localStorage.setItem('pockettrack_sandbox_mode', 'true');
+  } catch (err) {}
+  var loc = window.location;
+  if (loc.protocol === 'file:') {
+    var p = loc.pathname;
+    loc.href = (p.indexOf('/website/') !== -1 || p.indexOf('\\website\\') !== -1) ? '../app.html?guest=true' : 'app.html?guest=true';
+    return false;
+  }
+  var path = loc.pathname || '/';
+  var wIdx = path.indexOf('/website');
+  if (wIdx !== -1) {
+    var repo = path.substring(0, wIdx);
+    loc.href = (repo ? repo : '') + '/app.html?guest=true';
+    return false;
+  }
+  var repoPath = path.substring(0, path.lastIndexOf('/'));
+  loc.href = (repoPath ? repoPath : '') + '/app.html?guest=true';
+  return false;
+}
 </script>
 </head>
 <body>
@@ -47,9 +71,9 @@ function launchPocketTrackApp(e) {
 <div class="top-bar-live">
   <span>⚡ 100% Free Forever</span>
   <span>·</span>
-  <span>🟢 Works Offline</span>
+  <span>🟢 Works 100% Offline</span>
   <span>·</span>
-  <span>📱 No App Store Needed</span>
+  <span>🔒 On-Device Privacy</span>
 </div>
 
 <div class="aurora-bg">
@@ -67,8 +91,9 @@ function launchPocketTrackApp(e) {
     <ul class="nav-links">
       <li><a href="index.html" class="nav-link active">Home</a></li>
       <li><a href="website/features.html" class="nav-link">Features</a></li>
-      <li><a href="website/pricing.html" class="nav-link">Pricing &amp; Simulator</a></li>
+      <li><a href="website/pricing.html" class="nav-link">Pricing</a></li>
       <li><a href="website/privacy.html" class="nav-link">Privacy</a></li>
+      <li><a href="#" onclick="launchPocketTrackSandbox(event);return false;" class="btn" style="padding:10px 18px;font-size:13.5px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:12px;">🎮 Sandbox Demo</a></li>
       <li><a href="#" onclick="launchPocketTrackApp(event);return false;" class="btn btn-primary" style="padding:10px 22px;font-size:14px;">Launch App →</a></li>
     </ul>
   </header>
@@ -76,18 +101,18 @@ function launchPocketTrackApp(e) {
   <main>
     <!-- 1. Hero Section -->
     <section class="hero">
-      <div class="pill-badge">✨ Simple. Free. Works Offline.</div>
-      <h1 class="hero-title">You spent ₹1,48,000 on food delivery last year.<br>You just didn't know it.</h1>
-      <p class="hero-desc">PocketTrack shows you exactly where every rupee goes. Log expenses in 2 seconds. See your Money Wrapped every month. Know your Financial DNA. That's it. No complexity. No subscriptions. No BS.</p>
+      <div class="pill-badge">✨ India's Fastest, Calmest Money Tracker</div>
+      <h1 class="hero-title">Stop wondering where your salary disappeared.</h1>
+      <p class="hero-desc">1-Tap UPI notification auto-paste. Live Daily Safe-to-Spend limit. Splitwise-grade roomie debts with 1-tap WhatsApp settlements. 100% private, zero ads, and works offline.</p>
       
-      <div class="hero-cta-group">
-        <a href="#" onclick="launchPocketTrackApp(event);return false;" class="btn btn-primary" style="padding:18px 40px;font-size:17px;"><i class="ti ti-rocket"></i> Start Tracking — It's Free</a>
-        <a href="#test-drive" class="btn btn-glass" style="padding:18px 30px;font-size:17px;">See How It Works ↓</a>
+      <div class="hero-cta-group" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <a href="#" onclick="launchPocketTrackApp(event);return false;" class="btn btn-primary" style="padding:18px 36px;font-size:16.5px;"><i class="ti ti-rocket"></i> Start Tracking Free</a>
+        <a href="#" onclick="launchPocketTrackSandbox(event);return false;" class="btn btn-glass" style="padding:18px 30px;font-size:16.5px;"><i class="ti ti-device-gamepad-2"></i> Try Sandbox Demo (No Sign-Up)</a>
       </div>
 
       <div class="social-proof">
         <span class="stars">★★★★★</span>
-        <span>Join 4,800+ people who finally know where their money goes</span>
+        <span>Trusted by students, working professionals &amp; families across India</span>
       </div>
 
       <!-- Interactive Phone Mockup Showcase -->
@@ -111,6 +136,16 @@ function launchPocketTrackApp(e) {
                 <span class="mock-chip">₹</span>
               </div>
               <div class="mock-balance">₹42,450</div>
+              
+              <!-- Mini Safe to Spend Indicator -->
+              <div style="background:rgba(52,211,153,0.14);border:1px solid rgba(52,211,153,0.3);border-radius:12px;padding:6px 10px;margin-bottom:8px;display:flex;align-items:center;gap:8px;">
+                <span style="font-size:14px;">🎯</span>
+                <div style="text-align:left;">
+                  <strong style="font-size:11.5px;color:#34d399;display:block;">₹1,415/day</strong>
+                  <span style="font-size:9px;color:rgba(255,255,255,0.6);">On track (3d left)</span>
+                </div>
+              </div>
+
               <div class="mock-flow-strip">
                 <span style="color:#34d399;">🟢 +₹45,000</span>
                 <span style="color:rgba(255,255,255,0.2);">|</span>
@@ -131,11 +166,11 @@ function launchPocketTrackApp(e) {
                 </div>
                 <div class="mock-pill-item">
                   <div class="mock-circle voice">🎙️</div>
-                  <span>Voice AI</span>
+                  <span>Voice</span>
                 </div>
                 <div class="mock-pill-item">
-                  <div class="mock-circle transfer">⇄</div>
-                  <span>Transfer</span>
+                  <div class="mock-circle transfer" style="background:rgba(139,92,246,0.2);color:#c4b5fd;">📋</div>
+                  <span>UPI Paste</span>
                 </div>
               </div>
             </div>
@@ -258,97 +293,37 @@ function launchPocketTrackApp(e) {
       </div>
     </section>
 
-    <!-- 4. Six Core Superpowers -->
+    <!-- 4. Four Core Pillars -->
     <section class="superpowers-section" style="padding:40px 0;">
       <div class="section-head">
-        <div class="pill-badge">⚡ Flagship Engineering</div>
-        <h2 class="section-title">Built like a Formula 1 car for your wallet</h2>
-        <p class="section-subtitle">Everything you need to track, split, and grow your money with zero friction.</p>
+        <div class="pill-badge">⚡ Core Superpowers</div>
+        <h2 class="section-title">Built for how Indians actually manage money</h2>
+        <p class="section-subtitle">No feature bloat. No complex setup. Just lightning-fast tracking, trustworthy numbers, and effortless splitting.</p>
       </div>
 
-      <div class="grid-features">
-        <div class="card-glass">
-          <div class="card-icon-wrap">🧠</div>
-          <h3 class="card-title">Phase 4 Intent Engine</h3>
-          <p class="card-text">Never waste time picking categories or tags. Type <i>"Paid Rahul 500 for dinner"</i> and PocketTrack connects it to Rahul's Ledger and adjusts his balance automatically.</p>
+      <div class="grid-features" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;">
+        <div class="card-glass" style="border-color:rgba(139,92,246,0.35);background:rgba(139,92,246,0.06);">
+          <div class="card-icon-wrap" style="background:rgba(139,92,246,0.25);">📋</div>
+          <h3 class="card-title">1-Tap Clipboard UPI Paste</h3>
+          <p class="card-text">Copy any payment alert or bank SMS from GPay, PhonePe, Paytm, CRED, SBI, HDFC, ICICI, or Axis. PocketTrack extracts amount, merchant, and category in &lt;10ms with zero typing.</p>
         </div>
 
-        <div class="card-glass">
-          <div class="card-icon-wrap">🎙️</div>
-          <h3 class="card-title">Smart Voice Money Log</h3>
-          <p class="card-text">Speak naturally in English or Hindi while on the go. Tap the floating purple mic and say <i>"Spent 450 on fuel"</i> — parsed and logged in under 400ms.</p>
+        <div class="card-glass" style="border-color:rgba(52,211,153,0.35);background:rgba(52,211,153,0.06);">
+          <div class="card-icon-wrap" style="background:rgba(52,211,153,0.25);">🎯</div>
+          <h3 class="card-title">Daily Safe-to-Spend Engine</h3>
+          <p class="card-text">Transparent daily limit calculated live: <i>(Remaining Budget − Spent) ÷ Days Left</i>. Tap to see the exact breakdown so you never face month-end cash shortages.</p>
         </div>
 
-        <div class="card-glass">
-          <div class="card-icon-wrap">📑</div>
-          <h3 class="card-title">P2P Debt Ledger</h3>
-          <p class="card-text">Keep track of who owes you and what you owe friends, flatmates, or colleagues with complete transaction cards and 1-tap settlement receipts.</p>
+        <div class="card-glass" style="border-color:rgba(96,165,250,0.35);background:rgba(96,165,250,0.06);">
+          <div class="card-icon-wrap" style="background:rgba(96,165,250,0.25);">👥</div>
+          <h3 class="card-title">Splitwise-Grade P2P Ledger</h3>
+          <p class="card-text">Track hostel roomie debts, Goa trips, and group dinners. Greedy algorithm minimizes circular transactions to zero debt. 1-tap WhatsApp settlement slips with UPI deep-links.</p>
         </div>
 
-        <div class="card-glass">
-          <div class="card-icon-wrap">👥</div>
-          <h3 class="card-title">Splitwise-Killer Spaces</h3>
-          <p class="card-text">Plan Goa trips, house expenses, or parties. Add members, log shared costs, and our greedy graph settlement algorithm minimizes transactions to zero debt.</p>
-        </div>
-
-        <div class="card-glass">
-          <div class="card-icon-wrap">⚡</div>
-          <h3 class="card-title">Smart UPI Notification Logger</h3>
-          <p class="card-text">Copy any payment confirmation from GPay, PhonePe, Paytm, or CRED. PocketTrack detects the merchant, amount, and category instantly with zero typing.</p>
-        </div>
-
-        <div class="card-glass" style="border-color:rgba(139,92,246,0.45);background:rgba(139,92,246,0.06);">
-          <div class="card-icon-wrap" style="background:rgba(139,92,246,0.25);">🔮</div>
-          <h3 class="card-title">AuraSense™ &amp; Time Machine</h3>
-          <p class="card-text">Our flagship competition-winning X-Factor: A real-time holographic cash runway orb that calculates your daily burn velocity, plus a Time Machine to forecast your wealth 3, 6, and 12 months forward.</p>
-        </div>
-
-        <div class="card-glass" style="border-color:rgba(244,63,94,0.45);background:rgba(244,63,94,0.06);">
-          <div class="card-icon-wrap" style="background:rgba(244,63,94,0.25);">🎬</div>
-          <h3 class="card-title">Monthly Money Wrapped™</h3>
-          <p class="card-text">Like Spotify Wrapped, but for your money. Swipeable story cards calculate your opportunity costs — <i>"Your Swiggy habit = 1 iPhone 16 Pro"</i> — ready to share on Instagram in one tap.</p>
-        </div>
-
-        <div class="card-glass" style="border-color:rgba(52,211,153,0.45);background:rgba(52,211,153,0.06);">
-          <div class="card-icon-wrap" style="background:rgba(52,211,153,0.25);">🧬</div>
-          <h3 class="card-title">Financial DNA™ Profiler</h3>
-          <p class="card-text">Behavioral economics that uncovers your money personality: Strategist, Social Spender, Invisible Leaker, Rollercoaster, or People's Bank — with personalized daily habits to win.</p>
-        </div>
-
-        <div class="card-glass" style="border-color:rgba(139,92,246,0.45);background:rgba(139,92,246,0.06);">
-          <div class="card-icon-wrap" style="background:rgba(139,92,246,0.25);">👥</div>
-          <h3 class="card-title">Multi-Member Shared Portfolios</h3>
-          <p class="card-text">Track expenses together with flatmates, couples, or Goa trip groups. Live group balance sheets, fair share per person, and 1-tap WhatsApp settlement summaries.</p>
-        </div>
-
-        <div class="card-glass" style="border-color:rgba(16,185,129,0.45);background:rgba(16,185,129,0.06);">
-          <div class="card-icon-wrap" style="background:rgba(16,185,129,0.25);">🎯</div>
-          <h3 class="card-title">Safe-to-Spend Daily Radar</h3>
-          <p class="card-text">Divides your remaining monthly budget by days left in the month to calculate your exact daily spending limit. Stay in the green and watch your savings compound.</p>
-        </div>
-
-        <div class="card-glass" style="border-color:rgba(251,191,36,0.45);background:rgba(251,191,36,0.06);">
-          <div class="card-icon-wrap" style="background:rgba(251,191,36,0.25);">⚡</div>
-          <h3 class="card-title">1-Tap UPI QR &amp; WhatsApp Settle</h3>
-          <p class="card-text">Generate universal scannable QR codes for GPay, PhonePe, Paytm, or send instant WhatsApp reminders with pre-filled payment links when friends owe you money.</p>
-        </div>
-
-        <div class="card-glass" style="border-color:rgba(245,158,11,0.45);background:rgba(245,158,11,0.06);">
-          <div class="card-icon-wrap" style="background:rgba(245,158,11,0.25);">🪙</div>
-          <h3 class="card-title">Digital Chillar Round-Up Vault</h3>
-          <p class="card-text">Painless micro-savings simulation that rounds up every daily transaction to the nearest ₹10 or ₹50. Build a digital spare change wealth piggy bank silently.</p>
-        </div>
-
-        <div class="card-glass" style="border-color:rgba(6,182,212,0.45);background:rgba(6,182,212,0.06);">
-          <div class="card-icon-wrap" style="background:rgba(6,182,212,0.25);">🎯</div>
-          <h3 class="card-title">Goal &amp; SIP Wealth Compounding</h3>
-          <p class="card-text">Interactive wealth simulator for laptops, trips, or emergency funds. Simulates 12% CAGR mutual fund growth and pins progress bars to your home dashboard.</p>
-        </div>
-
-        <div class="card-glass">
-          <div class="card-icon-wrap">☁️</div>
-          <h3 class="card-title">100% True Offline Persistence</h3>
-          <p class="card-text">Fly on airplane mode or commute in low-signal subways. Entries save locally to IndexedDB and automatically sync with Firebase Cloud the moment you reconnect.</p>
+        <div class="card-glass" style="border-color:rgba(251,191,36,0.35);background:rgba(251,191,36,0.06);">
+          <div class="card-icon-wrap" style="background:rgba(251,191,36,0.25);">👵</div>
+          <h3 class="card-title">55+ Senior Hindi Bahi-Khata</h3>
+          <p class="card-text">Pure natural Hindi, extra-large touch targets, and a traditional passbook showing running bank balance after every transaction. 1-tap voice entry with zero confusing jargon.</p>
         </div>
       </div>
     </section>

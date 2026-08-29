@@ -2698,6 +2698,8 @@ window.MERCHANT_CATEGORY_MAP = MERCHANT_CATEGORY_MAP;
 function parseUpiNotification(text) {
   if (!text || !text.trim()) return null;
   const raw = text.trim();
+
+  // 1. Detect App or Bank Source
   let app = 'UPI App';
   if (/google\s*pay|gpay/i.test(raw)) app = 'Google Pay';
   else if (/phonepe|phone\s*pe/i.test(raw)) app = 'PhonePe';
@@ -2705,33 +2707,104 @@ function parseUpiNotification(text) {
   else if (/bhim/i.test(raw)) app = 'BHIM';
   else if (/amazon\s*pay|amazon/i.test(raw)) app = 'Amazon Pay';
   else if (/cred/i.test(raw)) app = 'CRED';
+  else if (/sbi|state\s*bank/i.test(raw)) app = 'SBI';
+  else if (/hdfc/i.test(raw)) app = 'HDFC Bank';
+  else if (/icici/i.test(raw)) app = 'ICICI Bank';
+  else if (/axis/i.test(raw)) app = 'Axis Bank';
+  else if (/kotak/i.test(raw)) app = 'Kotak Bank';
+  else if (/pnb|punjab\s*national/i.test(raw)) app = 'PNB';
+  else if (/indusind/i.test(raw)) app = 'IndusInd';
+  else if (/canara/i.test(raw)) app = 'Canara Bank';
+  else if (/bank\s*of\s*baroda|bob\b/i.test(raw)) app = 'Bank of Baroda';
 
+  // 2. Detect Direction (Credit/Income vs Debit/Expense)
   let direction = 'sent';
-  if (/reciev|receiv|rsvd|rs\s*rcvd|rcv|credit|deposited|प्राप्त|क्रेडिट|जमा हुआ|rcvd|recvd/i.test(raw)) direction = 'received';
+  if (/credited|credit\b|deposited|reciev|receiv|received|rsvd|rs\s*rcvd|rcv|salary|जमा\s*किया|प्राप्त|क्रेडिट|mila|mile|aaye|aaya/i.test(raw)) {
+    direction = 'received';
+  }
 
+  // 3. Amount Extraction (Handling all Indian Bank and UPI regexes)
   let amount = null;
   const amountPatterns = [
-    /(?:₹|रु\.?|Rs\.?|INR)\s*(\d+(?:,\d{2,3})*(?:\.\d{1,2})?)/i,
-    /(?:paid|sent|received|transferred|reciev|reieved|debited)\s+(?:₹|Rs\.?|INR)?\s*(\d+(?:,\d{2,3})*(?:\.\d{1,2})?)/i,
-    /(\d+(?:,\d{2,3})*(?:\.\d{1,2})?)\s*(?:to|se|from|ko|via)/i,
+    // "debited by 450.0", "credited by Rs. 50,000.00", "debited for Rs.500.00"
+    /(?:debited(?:\s+by|\s+for)?|credited(?:\s+by|\s+for)?|transferred|spent|paid|sent|received)\s+(?:of\s+)?(?:₹|Rs\.?|INR|रु\.?)?\s*([0-9]+(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?)/i,
+    // "INR 240.00", "Rs. 350.00", "₹1,499"
+    /(?:₹|रु\.?|Rs\.?|INR)\s*([0-9]+(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?)/i,
+    // "450.00 debited", "50000 credited"
+    /([0-9]+(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?)\s*(?:₹|Rs\.?|INR|rupees?|rupaye|रुपये|debited|credited)/i,
+    // "by 450.0 on"
+    /(?:by|for)\s+([0-9]+(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?)\s*(?:on|to|from|via|dated|\.|\n|$)/i,
+    // general "200 to Rahul"
+    /([0-9]+(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?)\s*(?:to|se|from|ko|via)/i
   ];
+
   for (const pat of amountPatterns) {
     const match = raw.match(pat);
-    if (match) { amount = parseFloat(match[1].replace(/,/g, '')); if (amount > 0 && amount <= 10000000) break; amount = null; }
+    if (match && match[1]) {
+      const val = parseFloat(match[1].replace(/,/g, ''));
+      if (val > 0 && val <= 100000000) {
+        amount = val;
+        break;
+      }
+    }
   }
 
+  // 4. Merchant Extraction
   let merchant = '';
-  const merchantPatterns = [/(?:to|ko|को)\s+([A-Za-z0-9\s@._-]{3,40}?)(?:\s+on|\s+via|\s+UPI|\s+Ref)/i, /(?:from|se|से)\s+([A-Za-z0-9\s@._-]{3,40}?)(?:\s+on|\s+via|\s+UPI)/i];
+  const merchantPatterns = [
+    /(?:trf to|transfer to|transferred to|to VPA|paid to|sent to|at|to|ko|को)\s+([A-Za-z0-9\s&'.-]{2,45}?)(?:\s+(?:on|via|using|UPI|Ref|Ref\.?|A\/c|by|through|dated|\.|\n|$))/i,
+    /(?:received from|transferred from|from|se|से)\s+([A-Za-z0-9\s&'.-]{2,45}?)(?:\s+(?:on|via|using|UPI|Ref|Ref\.?|A\/c|by|through|dated|\.|\n|$))/i,
+    /(?:for|towards|on)\s+([A-Za-z0-9\s&'.-]{2,45}?)(?:\s+(?:on|via|using|UPI|Ref|\.|\n|$))/i
+  ];
+
   for (const pat of merchantPatterns) {
     const match = raw.match(pat);
-    if (match && match[1]) { merchant = match[1].trim().replace(/\s*(via|using|on|UPI|Ref).*$/i, '').trim(); if (merchant.length > 1 && merchant.length < 40) break; merchant = ''; }
+    if (match && match[1]) {
+      let mName = match[1].trim();
+      // Clean up common noise
+      mName = mName.replace(/\s*(via|using|on|UPI|Ref|Ref\.?|A\/c|XX\d+|\*\d+|@.*).*$/i, '').trim();
+      mName = mName.replace(/^(VPA|A\/c|A\/C)\s+/i, '').trim();
+      if (mName.length >= 2 && mName.length <= 40 && !/^\d+$/.test(mName)) {
+        // Title Case formatting
+        merchant = mName.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+        break;
+      }
+    }
   }
 
-  let suggestedCat = 'other';
-  const lowerRaw = (raw + ' ' + merchant).toLowerCase();
-  for (const [cat, config] of Object.entries(MERCHANT_CATEGORY_MAP)) {
-    if (config.keywords.some(kw => lowerRaw.includes(kw))) { suggestedCat = cat; break; }
+  // Fallback merchant if empty
+  if (!merchant) {
+    if (direction === 'received') {
+      merchant = /salary/i.test(raw) ? 'Monthly Salary' : 'UPI Received';
+    } else {
+      merchant = 'UPI Payment';
+    }
   }
+
+  // 5. Category Suggestion from 100+ Indian Merchant Taxonomy
+  let suggestedCat = (direction === 'received') ? 'income' : 'other';
+  const lowerRaw = (raw + ' ' + merchant).toLowerCase();
+
+  if (direction === 'received') {
+    if (/freelance|client|upwork|fiverr|invoice|consultancy|stipend|bonus/i.test(lowerRaw)) {
+      suggestedCat = 'work';
+    } else {
+      suggestedCat = 'income';
+    }
+  } else {
+    for (const [cat, config] of Object.entries(MERCHANT_CATEGORY_MAP)) {
+      if (config.keywords.some(kw => {
+        if (kw === 'cred' || kw === 'vi ' || kw === 'pw') {
+          return new RegExp(`\\b${kw.trim()}\\b`, 'i').test(lowerRaw);
+        }
+        return lowerRaw.includes(kw);
+      })) {
+        suggestedCat = cat;
+        break;
+      }
+    }
+  }
+
   return { amount, direction, merchant, app, suggestedCat, raw };
 }
 window.parseUpiNotification = parseUpiNotification;
@@ -2767,30 +2840,53 @@ window.pasteFromClipboardAndLog = async function() {
       if (upiInput) upiInput.value = text;
       setTab('upi');
       if (typeof onSmartLogInput === 'function') onSmartLogInput();
-      toast('Text pasted into Smart UPI Logger. Please review.', 'info');
+      toast('Could not extract exact amount. Please review pasted text.', 'info');
       return;
     }
 
     const entryType = parsed.direction === 'received' ? 'income' : 'expense';
-    const entryLabel = parsed.merchant || (parsed.direction === 'received' ? 'UPI Received' : 'UPI Payment');
-    const entryCat = parsed.suggestedCat || 'other';
+    const entryLabel = parsed.merchant || (entryType === 'income' ? 'UPI Received' : 'UPI Payment');
+    const entryCat = parsed.suggestedCat || (entryType === 'income' ? 'income' : 'other');
+    const dateStr = (typeof todayStr === 'function') ? todayStr() : new Date().toISOString().split('T')[0];
 
-    if (typeof openQuickComposer === 'function') {
+    const payload = {
+      type: entryType,
+      cat: entryCat,
+      label: entryLabel,
+      note: `Via ${parsed.app || 'UPI'}`,
+      tag: parsed.app ? `#${parsed.app.replace(/\s+/g,'')}` : '#UPI',
+      amt: parsed.amount,
+      walletId: 'bank',
+      date: dateStr
+    };
+
+    if (typeof saveEntry === 'function') {
+      await saveEntry(payload);
+      if (typeof updateHeaderStats === 'function') updateHeaderStats();
+      if (typeof renderEntries === 'function') renderEntries();
+      if (typeof renderHomeSnapshot === 'function') renderHomeSnapshot();
+      if (typeof updateHomeSafeToSpendUI === 'function') updateHomeSafeToSpendUI();
+
+      const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
+      const msg = isHi
+        ? `⚡ दर्ज हुआ: ₹${parsed.amount.toLocaleString('en-IN')} (${entryLabel})`
+        : `⚡ Instant Logged: ₹${parsed.amount.toLocaleString('en-IN')} (${entryLabel})`;
+
+      toast(msg, 'success', 4500);
+
+      if (typeof maybeOfferRecurring === 'function') {
+        maybeOfferRecurring(payload);
+      }
+    } else {
       openQuickComposer(entryType);
       const amtEl = document.getElementById('composer-amount');
       const noteEl = document.getElementById('composer-note');
       const tagEl = document.getElementById('composer-tag');
       if (amtEl) amtEl.value = parsed.amount;
       if (noteEl) noteEl.value = entryLabel;
-      if (tagEl) tagEl.value = parsed.app ? `#${parsed.app.replace(/\s+/g,'')}` : '#UPI';
-
+      if (tagEl) tagEl.value = payload.tag;
       if (typeof selectComposerWalletById === 'function') selectComposerWalletById('bank');
       if (typeof selectComposerCategoryById === 'function') selectComposerCategoryById(entryCat);
-
-      const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
-      toast(isHi 
-        ? `📋 ₹${parsed.amount} पहचान लिया गया (${entryLabel})` 
-        : `📋 Detected ₹${parsed.amount} (${entryLabel})`, 'success');
     }
   } catch (err) {
     console.warn('Clipboard read error:', err.message);

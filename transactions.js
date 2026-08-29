@@ -75,10 +75,88 @@ function computeCurrentSafeToSpend() {
     todaySpent,
     todayRemaining,
     burnPercent,
-    isSafe: todayRemaining >= 0
+    isSafe: todayRemaining >= 0,
+    budgetPool,
+    monthSpent,
+    remainingMonthPool,
+    monthIncome
   };
 }
 window.computeCurrentSafeToSpend = computeCurrentSafeToSpend;
+
+function openSafeSpendExplainer() {
+  let backdrop = document.getElementById('safe-spend-explainer-backdrop');
+  if (!backdrop) {
+    backdrop = document.createElement('div');
+    backdrop.id = 'safe-spend-explainer-backdrop';
+    backdrop.style.cssText = 'position:fixed;inset:0;background:rgba(7,4,20,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;animation:fadeIn 0.2s ease;';
+    document.body.appendChild(backdrop);
+  }
+
+  const data = computeCurrentSafeToSpend();
+  const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
+  const now = new Date();
+  const monthName = now.toLocaleString(isHi ? 'hi-IN' : 'en-US', { month: 'long' });
+
+  backdrop.innerHTML = `
+    <div class="card" style="max-width:440px;width:100%;background:linear-gradient(160deg,#1a133d,#0d0a21);border:1px solid rgba(139,92,246,0.4);border-radius:26px;padding:24px 20px;box-shadow:0 25px 70px rgba(0,0,0,0.85);color:#fff;text-align:left;position:relative;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:24px;">🎯</span>
+          <h3 style="margin:0;font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:800;">
+            ${isHi ? 'दैनिक सुरक्षित सीमा का गणित' : 'How Safe-to-Spend is Calculated'}
+          </h3>
+        </div>
+        <button onclick="document.getElementById('safe-spend-explainer-backdrop')?.remove()" style="background:transparent;border:none;color:#94a3b8;font-size:20px;cursor:pointer;padding:4px 8px;">✕</button>
+      </div>
+
+      <p style="font-size:12px;color:#cbd5e1;line-height:1.45;margin:0 0 16px;">
+        ${isHi 
+          ? 'यह नंबर आपके पूरे महीने के बजट और खर्च को ट्रैक करके बताता है कि बिना महीने के अंत में तंगी हुए आप आज कितना खर्च कर सकते हैं।' 
+          : 'Your transparent daily spending limit based on remaining budget and days left in the month.'}
+      </p>
+
+      <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:18px;padding:16px;margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:13px;">
+          <span style="color:#94a3b8;">${isHi ? 'मासिक बजट आधार' : 'Monthly Budget / Income Base'}</span>
+          <strong style="color:var(--green,#34d399);font-family:'Space Grotesk',sans-serif;">+₹${data.budgetPool.toLocaleString('en-IN')}</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:13px;">
+          <span style="color:#94a3b8;">${isHi ? `${monthName} में कुल खर्च` : `Spent so far in ${monthName}`}</span>
+          <strong style="color:var(--red,#f87171);font-family:'Space Grotesk',sans-serif;">-₹${data.monthSpent.toLocaleString('en-IN')}</strong>
+        </div>
+        <div style="height:1px;background:rgba(255,255,255,0.1);margin:10px 0;"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:13px;">
+          <span style="color:#c4b5fd;font-weight:700;">${isHi ? 'उपलब्ध शेष राशि (Remaining Pool)' : 'Remaining Flexible Pool'}</span>
+          <strong style="color:#fff;font-size:15px;font-family:'Space Grotesk',sans-serif;">₹${data.remainingMonthPool.toLocaleString('en-IN')}</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
+          <span style="color:#94a3b8;">${isHi ? 'महीने में बचे दिन' : 'Days Remaining in Month'}</span>
+          <strong style="color:#60a5fa;font-family:'Space Grotesk',sans-serif;">÷ ${data.remainingDays} ${isHi ? 'दिन' : 'days'}</strong>
+        </div>
+      </div>
+
+      <div style="background:rgba(52,211,153,0.12);border:1.5px solid rgba(52,211,153,0.35);border-radius:18px;padding:16px;text-align:center;margin-bottom:16px;">
+        <div style="font-size:11px;color:#a7f3d0;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;">
+          ${isHi ? '🎯 आपका दैनिक सुरक्षित बजट' : '🎯 YOUR SAFE DAILY ALLOWANCE'}
+        </div>
+        <div style="font-size:32px;font-weight:800;color:#34d399;font-family:'Space Grotesk',sans-serif;margin:4px 0;">
+          ₹${data.dailyAllowance.toLocaleString('en-IN')}${isHi ? '/दिन' : '/day'}
+        </div>
+        <div style="font-size:12px;color:#cbd5e1;">
+          ${data.todaySpent > data.dailyAllowance 
+            ? (isHi ? `आज ₹${(data.todaySpent - data.dailyAllowance).toLocaleString('en-IN')} अधिक खर्च हुआ है` : `₹${(data.todaySpent - data.dailyAllowance).toLocaleString('en-IN')} over target today`) 
+            : (isHi ? `आज के लिए अभी ₹${data.todayRemaining.toLocaleString('en-IN')} सुरक्षित बाकी है` : `₹${data.todayRemaining.toLocaleString('en-IN')} available today`)}
+        </div>
+      </div>
+
+      <button onclick="document.getElementById('safe-spend-explainer-backdrop')?.remove()" class="btn primary" style="width:100%;padding:12px;border-radius:14px;font-weight:700;">
+        ${isHi ? 'समझ गया ✓' : 'Got it ✓'}
+      </button>
+    </div>
+  `;
+}
+window.openSafeSpendExplainer = openSafeSpendExplainer;
 
 function updateHomeSafeToSpendUI() {
   const pillEl = document.getElementById('hero-safe-spend-pill');

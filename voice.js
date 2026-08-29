@@ -227,13 +227,18 @@ function parseVoiceInput(text) {
     type = 'income';
   }
   
-  // Determine category (maps to the app's real category set: food/travel/friends/home/other)
+  // Determine category (maps to the app's real category set: food/travel/friends/home/shopping/health/education/bills/work/other)
   let category = 'other';
   if (type === 'expense') {
-    if (/food|grocer|meal|snack|restaurant|lunch|dinner|tea|coffee|biryani|pizza|खाना|चाय|नाश्ता|होटल/.test(text)) category = 'food';
-    else if (/auto|petrol|fuel|transport|bus|train|cab|taxi|uber|ola|metro|पेट्रोल|बस|टैक्सी/.test(text)) category = 'travel';
-    else if (/friends|party|cafe|movie|game|show|ticket|treat|दोस्त|पार्टी|मूवी/.test(text)) category = 'friends';
-    else if (/rent|home|house|bill|electricity|water|wifi|internet|recharge|grocery|shop|कमरा|बिल|घर/.test(text)) category = 'home';
+    if (/food|grocer|meal|snack|restaurant|lunch|dinner|tea|coffee|biryani|pizza|burger|chai|sutta|sutte|samosa|canteen|mess|dmart|zepto|blinkit|instamart|swiggy|zomato|doodh|milk|sabji|खाना|चाय|नाश्ता|होटल|सब्जी|दूध|राशन/.test(text)) category = 'food';
+    else if (/auto|petrol|fuel|transport|bus|train|cab|taxi|uber|ola|rapido|namma yatri|metro|diesel|cng|toll|fastag|पेट्रोल|बस|टैक्सी|किराया|ऑटो/.test(text)) category = 'travel';
+    else if (/friends|party|cafe|movie|game|show|ticket|treat|pvr|cinema|netflix|spotify|दोस्त|पार्टी|मूवी|सिनेमा/.test(text)) category = 'friends';
+    else if (/rent|home|house|bill|electricity|water|wifi|internet|recharge|maid|cook|kamwali|dhobi|maintenance|bijli|kiraya|कमरा|बिल|घर|कामवाली|बिजली|किराया/.test(text)) category = 'home';
+    else if (/dawai|medicine|doctor|clinic|hospital|chemist|apollo|1mg|cult|gym|दवाई|डॉक्टर|अस्पताल|जिम/.test(text)) category = 'health';
+    else if (/fee|fees|tuition|books|xerox|photocopy|coaching|school|college|फीस|ट्यूशन|किताब/.test(text)) category = 'education';
+    else if (/emi|loan|insurance|lic|credit card|cred|किस्त|ऋण|बीमा/.test(text)) category = 'bills';
+    else if (/client|freelance|project|work|office|प्रोजेक्ट|काम/.test(text)) category = 'work';
+    else if (/amazon|flipkart|myntra|shopping|dress|clothes|shoes|कपड़े|शॉपिंग/.test(text)) category = 'shopping';
   }
 
   // Detect a spoken date if the user mentioned one ("yesterday", "on the 5th", "5 july", "last monday"…)
