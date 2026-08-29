@@ -25,6 +25,56 @@
   <script src="offline.js"></script>
   <script>
     window.currentAppMode = localStorage.getItem('pockettrack_app_mode') || 'power';
+    window.currentAppTheme = localStorage.getItem('pocketTrackTheme') || 'light';
+
+    function applyAppTheme(theme) {
+      var isLight = (theme === 'light');
+      if (document.documentElement) {
+        if (isLight) {
+          document.documentElement.setAttribute('data-theme', 'light');
+          document.documentElement.classList.add('light-theme');
+        } else {
+          document.documentElement.removeAttribute('data-theme');
+          document.documentElement.classList.remove('light-theme');
+        }
+      }
+      if (document.body) {
+        document.body.classList.toggle('light-theme', isLight);
+        if (isLight) document.body.setAttribute('data-theme', 'light');
+        else document.body.removeAttribute('data-theme');
+      }
+      var icon = document.getElementById('theme-icon');
+      if (icon) icon.textContent = isLight ? '🌙' : '☀️';
+      var metaTheme = document.querySelector('meta[name="theme-color"]');
+      if (metaTheme) metaTheme.setAttribute('content', isLight ? '#f8fafc' : '#070414');
+    }
+
+    function setAppTheme(theme, save) {
+      if (save === undefined) save = true;
+      window.currentAppTheme = theme;
+      applyAppTheme(theme);
+      if (save) {
+        localStorage.setItem('pocketTrackTheme', theme);
+        if (typeof toast === 'function') toast(theme === 'light' ? 'Light Theme activated ☀️' : 'Dark Theme activated 🌙', 'info');
+      }
+    }
+    window.setAppTheme = setAppTheme;
+
+    function toggleTheme() {
+      var isLight = (document.documentElement && document.documentElement.getAttribute('data-theme') === 'light') || 
+                    (document.body && document.body.classList.contains('light-theme')) || 
+                    (window.currentAppTheme === 'light');
+      var next = isLight ? 'dark' : 'light';
+      setAppTheme(next, true);
+    }
+    window.toggleTheme = toggleTheme;
+
+    // Apply immediately to prevent flash of dark theme
+    if (window.currentAppTheme === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+      document.documentElement.classList.add('light-theme');
+    }
+
     function applyAppModeClass(mode) {
       var isSimple = (mode === 'simple');
       if (document.documentElement) document.documentElement.classList.toggle('app-mode-simple', isSimple);

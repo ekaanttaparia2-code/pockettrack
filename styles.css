@@ -3419,3 +3419,182 @@ body.auth-active .voice-fab {
   border: 1px solid rgba(139, 92, 246, 0.35) !important;
 }
 
+/* =====================================================================
+   LIGHT THEME MASTER OVERRIDES (100% Guaranteed High Specificity)
+   ===================================================================== */
+html[data-theme="light"],
+html.light-theme,
+body.light-theme,
+body[data-theme="light"] {
+  --bg1: #f8fafc !important;
+  --bg2: #f1f5f9 !important;
+  --bg3: #e2e8f0 !important;
+  --accent: #4f46e5 !important;
+  --accent-bright: #6366f1 !important;
+  --accent2: #ec4899 !important;
+  --accent-soft: rgba(79, 70, 229, 0.08) !important;
+  --card: #ffffff !important;
+  --card-hover: #f8fafc !important;
+  --card-solid: #ffffff !important;
+  --panel-bg: rgba(255, 255, 255, 0.95) !important;
+  --panel-border: rgba(15, 23, 42, 0.08) !important;
+  --border: rgba(15, 23, 42, 0.09) !important;
+  --border-strong: rgba(79, 70, 229, 0.35) !important;
+  --text: #0f172a !important;
+  --text-dim: #475569 !important;
+  --text-faint: #94a3b8 !important;
+  --green: #059669 !important;
+  --green-soft: rgba(5, 150, 105, 0.10) !important;
+  --red: #e11d48 !important;
+  --red-soft: rgba(225, 29, 72, 0.10) !important;
+  --amber: #d97706 !important;
+  --amber-soft: rgba(217, 119, 6, 0.10) !important;
+  --cyan: #0284c7 !important;
+  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.05) !important;
+  --shadow-md: 0 6px 20px rgba(15, 23, 42, 0.08) !important;
+  --shadow-lg: 0 16px 40px rgba(15, 23, 42, 0.12) !important;
+}
+
+html[data-theme="light"] body,
+html.light-theme body,
+body.light-theme,
+body[data-theme="light"] {
+  color: #0f172a !important;
+  background:
+    radial-gradient(620px 420px at 8% -4%, rgba(79, 70, 229, 0.08), transparent 64%),
+    radial-gradient(520px 420px at 100% 8%, rgba(236, 72, 153, 0.06), transparent 62%),
+    radial-gradient(500px 520px at 50% 110%, rgba(59, 130, 246, 0.08), transparent 64%),
+    linear-gradient(155deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%) !important;
+  background-attachment: fixed !important;
+}
+
+html[data-theme="light"] body::before,
+html.light-theme body::before,
+body.light-theme::before {
+  background-image: radial-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px) !important;
+  opacity: 0.7 !important;
+}
+
+html[data-theme="light"] .card, body.light-theme .card,
+html[data-theme="light"] .recent-card, body.light-theme .recent-card,
+html[data-theme="light"] .streak-card, body.light-theme .streak-card,
+html[data-theme="light"] .stat-pill, body.light-theme .stat-pill,
+html[data-theme="light"] .insights-top-bar, body.light-theme .insights-top-bar,
+html[data-theme="light"] .transaction-composer, body.light-theme .transaction-composer,
+html[data-theme="light"] .modal-box, body.light-theme .modal-box,
+html[data-theme="light"] .pt-sheet-panel, body.light-theme .pt-sheet-panel {
+  background: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  color: #0f172a !important;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06) !important;
+}
+
+html[data-theme="light"] .brand h1,
+body.light-theme .brand h1 {
+  background: linear-gradient(120deg, #1e1b4b 20%, #4f46e5 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+html[data-theme="light"] .brand p,
+body.light-theme .brand p {
+  color: #64748b !important;
+}
+
+html[data-theme="light"] .pill,
+body.light-theme .pill,
+html[data-theme="light"] .theme-toggle-pill,
+body.light-theme .theme-toggle-pill {
+  background: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.12) !important;
+  color: #334155 !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04) !important;
+}
+
+html[data-theme="light"] .mode-toggle-pill,
+body.light-theme .mode-toggle-pill {
+  background: rgba(79, 70, 229, 0.10) !important;
+  border: 1px solid rgba(79, 70, 229, 0.3) !important;
+  color: #4338ca !important;
+}
+
+html[data-theme="light"] .home-entry-row,
+body.light-theme .home-entry-row,
+html[data-theme="light"] .entry-row,
+body.light-theme .entry-row,
+html[data-theme="light"] .entry-card,
+body.light-theme .entry-card {
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06) !important;
+}
+
+html[data-theme="light"] .home-entry-main strong,
+body.light-theme .home-entry-main strong,
+html[data-theme="light"] .entry-title,
+body.light-theme .entry-title,
+html[data-theme="light"] .entry-label,
+body.light-theme .entry-label {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .home-entry-main span,
+body.light-theme .home-entry-main span,
+html[data-theme="light"] .entry-meta,
+body.light-theme .entry-meta {
+  color: #64748b !important;
+}
+
+html[data-theme="light"] .sec-title,
+body.light-theme .sec-title,
+html[data-theme="light"] h1,
+body.light-theme h1,
+html[data-theme="light"] h2,
+body.light-theme h2,
+html[data-theme="light"] h3,
+body.light-theme h3,
+html[data-theme="light"] h4,
+body.light-theme h4 {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .eyebrow,
+body.light-theme .eyebrow,
+html[data-theme="light"] .section-kicker,
+body.light-theme .section-kicker {
+  color: #6366f1 !important;
+}
+
+html[data-theme="light"] .streak-card strong,
+body.light-theme .streak-card strong {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] input,
+body.light-theme input,
+html[data-theme="light"] select,
+body.light-theme select,
+html[data-theme="light"] textarea,
+body.light-theme textarea {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+  border-color: rgba(15, 23, 42, 0.14) !important;
+}
+
+html[data-theme="light"] .bottom-tab-bar,
+body.light-theme .bottom-tab-bar {
+  background: rgba(255, 255, 255, 0.94) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(15, 23, 42, 0.1) !important;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1) !important;
+}
+
+html[data-theme="light"] .bottom-tab,
+body.light-theme .bottom-tab {
+  color: #64748b !important;
+}
+
+html[data-theme="light"] .bottom-tab.active,
+body.light-theme .bottom-tab.active {
+  color: #4f46e5 !important;
+}
+
