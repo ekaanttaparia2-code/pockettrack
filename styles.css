@@ -52,14 +52,13 @@
   --surface-solid-2:rgba(25,17,52,0.94);
   --panel-border:rgba(255,255,255,0.15);
 }
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;max-width:100%;overflow-x:hidden}
 ::selection{background:rgba(139,92,246,0.45);color:#fff}
 :focus-visible{outline:2px solid var(--accent-bright);outline-offset:2px;border-radius:6px}
-::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.16);border-radius:10px;border:2px solid transparent;background-clip:content-box}
-::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.28);background-clip:content-box}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.16);border-radius:10px}
 body{
   font-family:var(--body);
   font-size:var(--t-md);
@@ -72,10 +71,12 @@ body{
     radial-gradient(800px 500px at 105% 0%, rgba(255,126,179,0.18), transparent 55%),
     radial-gradient(700px 600px at 50% 118%, rgba(139,92,246,0.22), transparent 60%),
     linear-gradient(170deg, var(--bg1) 0%, var(--bg2) 52%, var(--bg3) 100%);
-  background-attachment:fixed;
-  padding-bottom:3rem;
+  padding-bottom:calc(92px + env(safe-area-inset-bottom, 16px));
   position:relative;
   overflow-x:hidden;
+  touch-action:manipulation;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-y:contain;
 }
 body::before{
   content:'';
@@ -2028,12 +2029,18 @@ textarea{
 
 /* Phone-width polish. */
 @media (max-width:600px){
-  .shell{padding-top:calc(10px + env(safe-area-inset-top,0px))}
+  .shell{padding-top:calc(10px + env(safe-area-inset-top,0px));padding-left:12px;padding-right:12px;}
   header{align-items:flex-start}
   .brand{min-width:0;flex:1}
   .brand p{font-size:11px}
   .pill{max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .grid2,.grid3,.insights-hero-stats{grid-template-columns:1fr !important}
+  .grid3,.insights-hero-stats{grid-template-columns:1fr !important}
+  .card, .hero-card, .recent-card{
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+    background:rgba(20, 14, 46, 0.92);
+    transform:translateZ(0);
+  }
   .hero-actions{grid-template-columns:1fr 1fr !important}
   .hero-action.voice-action{grid-column:1 / -1}
   .composer-head h2{font-size:20px}
