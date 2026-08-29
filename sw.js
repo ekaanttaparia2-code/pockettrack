@@ -1,4 +1,4 @@
-const CACHE = 'pockettrack-v14-full-suite';
+const CACHE = 'pockettrack-v16-polish-10';
 const SHELL = [
   './',
   './index.html',
