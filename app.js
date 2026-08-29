@@ -241,6 +241,7 @@ function applyLanguage(){
   checkBudget();
   renderStreak();
   if(typeof renderHomeSnapshot==='function') renderHomeSnapshot();
+  if(typeof renderHomeContextualNudge==='function') renderHomeContextualNudge();
   if(typeof renderFinancialDNACard==='function') renderFinancialDNACard();
   if(typeof renderWrappedButton==='function') renderWrappedButton();
   if(typeof renderDailyBurnMeter==='function') renderDailyBurnMeter();
@@ -349,24 +350,63 @@ window.TT = TT;
 // --- Money-saving tips (rotates a random tip each time, bilingual) ---
 const MONEY_TIPS = [
   {en:"Try the 50/30/20 rule: 50% needs, 30% wants, 20% savings. It's simple and keeps you on track without tracking every rupee.",hi:"50/30/20 नियम आज़माएं: 50% ज़रूरतें, 30% इच्छाएं, 20% बचत। यह सरल है और हर रुपया ट्रैक किए बिना भी आपको सही राह पर रखता है।"},
-  {en:"Wait 24 hours before any non-essential purchase over ₹500. Most urges fade — and you'll save without even trying.",hi:"₹500 से ज़्यादा की किसी भी गैर-ज़रूरी खरीद से पहले 24 घंटे रुकें। ज़्यादातर इच्छाएं खुद खत्म हो जाती हैं — और आप बिना कोशिश किए बचत कर लेंगे।"},
+  {en:"Wait 24 hours before any non-essential purchase over ₹500. Most impulse urges fade by the next day.",hi:"₹500 से ज़्यादा की किसी भी गैर-ज़रूरी खरीद से पहले 24 घंटे रुकें। ज़्यादातर अनचाहे खर्च खुद टल जाते हैं।"},
+  {en:"Watch out for ₹20-50 UPI micro-leaks. Daily small chai/snacks can quietly total over ₹2,500 every month.",hi:"₹20-50 के छोटे UPI खर्चों पर नज़र रखें। रोज़ाना की छोटी चाय-नाश्ता मिलकर महीने में ₹2,500 से अधिक हो सकता है।"},
   {en:"Round up every expense to the nearest ₹10 and put the difference aside. Small change adds up faster than you'd think.",hi:"हर खर्च को नज़दीकी ₹10 तक राउंड करें और बचा हुआ पैसा अलग रख दें। छोटी बचत सोच से जल्दी बढ़ती है।"},
-  {en:"Set a weekly budget (you already can, right here!) — people who track weekly, not just monthly, catch overspending 3x faster.",hi:"साप्ताहिक बजट सेट करें (आप यह यहीं कर सकते हैं!) — जो लोग सिर्फ महीने भर की बजाय हर हफ्ते ट्रैक करते हैं, वे अधिक खर्च को 3 गुना तेज़ी से पकड़ लेते हैं।"},
-  {en:"Before subscribing to anything, ask: 'Would I pay for this again next month?' If you hesitate, skip it.",hi:"किसी भी सब्सक्रिप्शन से पहले खुद से पूछें: 'क्या मैं अगले महीने भी इसके लिए भुगतान करूंगा?' अगर झिझक हो, तो छोड़ दें।"},
+  {en:"Cancel recurring subscriptions you haven't used in 30 days. Don't pay for what you don't actively enjoy.",hi:"पिछले 30 दिनों में इस्तेमाल न किए गए सब्सक्रिप्शन रद्द करें। जिसका उपयोग न करें, उसका पैसा न भरें।"},
   {en:"Cook one extra meal at home each week instead of ordering — over a year, that alone can save thousands.",hi:"हर हफ्ते बाहर से मंगाने की बजाय एक अतिरिक्त बार घर पर खाना बनाएं — साल भर में यह अकेला हज़ारों रुपये बचा सकता है।"},
-  {en:"Keep small cash gifts and change in a separate 'no-spend' jar — out of sight often means it actually gets saved.",hi:"छोटे नकद उपहार और बचे हुए पैसे एक अलग 'नो-स्पेंड' डिब्बे में रखें — आंखों से दूर होने पर अक्सर वह सच में बच जाता है।"},
-  {en:"Review your category breakdown here once a week — just seeing where money goes tends to naturally reduce overspending.",hi:"यहां अपनी श्रेणी अनुसार खर्च की सूची हफ्ते में एक बार देखें — बस यह देखना कि पैसा कहां जा रहा है, अक्सर अपने आप ज़्यादा खर्च को कम कर देता है।"},
-  {en:"Use the Events feature for big occasions — separating event spending from daily spending stops one wedding from wrecking your monthly budget.",hi:"बड़े मौकों के लिए Events फीचर का उपयोग करें — इवेंट के खर्च को रोज़ के खर्च से अलग रखने से एक शादी आपके महीने के बजट को नहीं बिगाड़ती।"},
-  {en:"Name your savings goal (even something small like 'new shoes'). Money saved toward a named goal is far less likely to get spent on impulse.",hi:"अपने बचत लक्ष्य को एक नाम दें (जैसे 'नए जूते')। किसी नामित लक्ष्य के लिए बचाया गया पैसा जल्दी खर्च होने की संभावना बहुत कम होती है।"},
+  {en:"Always clear your full credit card bill before the due date. Minimum payment fees are wealth destroyers.",hi:"क्रेडिट कार्ड का पूरा बिल हमेशा नियत तारीख से पहले भरें। न्यूनतम भुगतान का ब्याज आपकी बचत को नुकसान पहुंचाता है।"},
+  {en:"Set a weekly budget here — people who track weekly catch overspending 3x faster than monthly trackers.",hi:"साप्ताहिक बजट सेट करें — जो लोग हर हफ्ते ट्रैक करते हैं, वे अधिक खर्च को 3 गुना तेज़ी से पकड़ लेते हैं।"},
+  {en:"Keep an emergency buffer equal to 3 months of essential expenses in a high-yield liquid account.",hi:"किसी भी आपात स्थिति के लिए कम से कम 3 महीने के बुनियादी खर्च का फंड हमेशा सुरक्षित रखें।"},
+  {en:"Name your savings goal (like 'Emergency Fund' or 'New Laptop'). Goal-oriented money is 70% less likely to be spent.",hi:"अपने बचत लक्ष्य को नाम दें (जैसे 'इमरजेंसी फंड' या 'नया लैपटॉप')। लक्षित पैसा फिजूलखर्ची से 70% अधिक सुरक्षित रहता है।"}
 ];
-let lastTipIndex=-1;
+let lastTipIndex = -1;
+
 function showNextTip(){
+  if (!Array.isArray(MONEY_TIPS) || MONEY_TIPS.length === 0) return '';
   let idx;
-  do{ idx=Math.floor(Math.random()*MONEY_TIPS.length); }while(idx===lastTipIndex && MONEY_TIPS.length>1);
-  lastTipIndex=idx;
-  const tipEl=document.getElementById('money-tip-text');
-  if(tipEl) tipEl.textContent = MONEY_TIPS[idx][currentLang] || MONEY_TIPS[idx].en;
+  do { 
+    idx = Math.floor(Math.random() * MONEY_TIPS.length); 
+  } while (idx === lastTipIndex && MONEY_TIPS.length > 1);
+  lastTipIndex = idx;
+  
+  const lang = (typeof currentLang !== 'undefined' ? currentLang : (localStorage.getItem('pocketTrackLang') || 'en'));
+  const tipObj = MONEY_TIPS[idx];
+  const tipText = (tipObj && (tipObj[lang] || tipObj.hi || tipObj.en)) || '';
+
+  // 1. Update in Insights tab if present
+  const tipEl = document.getElementById('money-tip-text');
+  if (tipEl) {
+    tipEl.style.transition = 'opacity 0.15s ease, transform 0.15s ease';
+    tipEl.style.opacity = '0';
+    tipEl.style.transform = 'translateY(-2px)';
+    setTimeout(() => {
+      tipEl.textContent = tipText;
+      tipEl.style.opacity = '1';
+      tipEl.style.transform = 'translateY(0)';
+    }, 150);
+  }
+
+  // 2. Update in Home contextual nudge if present
+  const homeTipEl = document.getElementById('home-tip-text') || document.querySelector('#home-contextual-nudge p');
+  if (homeTipEl) {
+    homeTipEl.style.transition = 'opacity 0.15s ease, transform 0.15s ease';
+    homeTipEl.style.opacity = '0';
+    homeTipEl.style.transform = 'translateY(-2px)';
+    setTimeout(() => {
+      homeTipEl.textContent = tipText;
+      homeTipEl.style.opacity = '1';
+      homeTipEl.style.transform = 'translateY(0)';
+    }, 150);
+  } else {
+    if (typeof renderHomeContextualNudge === 'function') {
+      renderHomeContextualNudge();
+    }
+  }
+
+  return tipText;
 }
+window.showNextTip = showNextTip;
 
 const CAT_COLORS = {food:'#4ade80',travel:'#60a5fa',friends:'#ffb84d',home:'#ff7eb3',shopping:'#c084fc',entertainment:'#f472b6',health:'#fb7185',education:'#fbbf24',work:'#22d3ee',other:'#9b95c2',custom:'#c4a8ff'};
 window.CAT_COLORS = CAT_COLORS;
@@ -1560,7 +1600,16 @@ function renderHomeContextualNudge() {
   }
 
   // 4. Fallback: Money-saving tip
-  const tipText = document.getElementById('money-tip-text')?.textContent || (isHi ? '50-30-20 नियम का पालन करें: 50% जरूरत, 30% इच्छाएं और 20% बचत।' : 'Follow the 50/30/20 rule: 50% for needs, 30% for wants, and 20% for savings.');
+  let tipText = '';
+  if (lastTipIndex >= 0 && MONEY_TIPS[lastTipIndex]) {
+    const lang = (typeof currentLang !== 'undefined' ? currentLang : (localStorage.getItem('pocketTrackLang') || 'en'));
+    tipText = MONEY_TIPS[lastTipIndex][lang] || MONEY_TIPS[lastTipIndex].hi || MONEY_TIPS[lastTipIndex].en;
+  } else {
+    const lang = (typeof currentLang !== 'undefined' ? currentLang : (localStorage.getItem('pocketTrackLang') || 'en'));
+    lastTipIndex = Math.floor(Math.random() * MONEY_TIPS.length);
+    tipText = MONEY_TIPS[lastTipIndex][lang] || MONEY_TIPS[lastTipIndex].hi || MONEY_TIPS[lastTipIndex].en;
+  }
+
   const tipNudge = {
     type: 'info',
     icon: '💡',
@@ -1581,10 +1630,10 @@ function renderHomeContextualNudge() {
         <span style="font-size:22px;line-height:1;display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);flex-shrink:0;">${activeNudge.icon}</span>
         <div>
           <div style="font-size:13px;font-weight:800;color:#fff;margin-bottom:2px;">${escapeHTML(activeNudge.title)}</div>
-          <p style="font-size:11.5px;color:rgba(255,255,255,0.7);margin:0;line-height:1.35;">${escapeHTML(activeNudge.text)}</p>
+          <p id="${activeNudge === tipNudge ? 'home-tip-text' : ''}" style="font-size:11.5px;color:rgba(255,255,255,0.7);margin:0;line-height:1.35;">${escapeHTML(activeNudge.text)}</p>
         </div>
       </div>
-      ${activeNudge.actionTab ? `<button class="btn btn-sm" onclick="setTab('${activeNudge.actionTab}')" style="font-size:11.5px;font-weight:700;padding:6px 14px;border-radius:10px;white-space:nowrap;flex-shrink:0;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.22);color:#fff;">${activeNudge.actionText}</button>` : (activeNudge.actionFn ? `<button class="btn btn-sm" onclick="${activeNudge.actionFn}" style="font-size:11.5px;font-weight:700;padding:6px 14px;border-radius:10px;white-space:nowrap;flex-shrink:0;background:linear-gradient(135deg,#9b5cff,#ff3db8);color:#fff;border:none;box-shadow:0 4px 14px rgba(155,92,255,0.35);">${activeNudge.actionText}</button>` : '')}
+      ${activeNudge.actionTab ? `<button class="btn btn-sm" onclick="setTab('${activeNudge.actionTab}')" style="font-size:11.5px;font-weight:700;padding:6px 14px;border-radius:10px;white-space:nowrap;flex-shrink:0;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.22);color:#fff;">${activeNudge.actionText}</button>` : (activeNudge.actionFn ? `<button class="btn btn-sm" onclick="${activeNudge.actionFn}" style="font-size:11.5px;font-weight:700;padding:6px 14px;border-radius:10px;white-space:nowrap;flex-shrink:0;background:linear-gradient(135deg,#9b5cff,#ff3db8);color:#fff;border:none;box-shadow:0 4px 14px rgba(155,92,255,0.35);cursor:pointer;">${activeNudge.actionText}</button>` : '')}
     </div>
   `;
 }
