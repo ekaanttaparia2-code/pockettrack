@@ -1439,7 +1439,7 @@ function setTab(t){
     btn.classList.toggle('active', btn.dataset.tab===t);
   });
   const statPills = document.getElementById('header-stat-pills');
-  if (statPills) statPills.style.display = (t==='log'||t==='entries') ? 'flex' : 'none';
+  if (statPills) statPills.style.display = (t==='entries') ? 'flex' : 'none';
   if(t==='log'){
     if(typeof renderHomeContextualNudge==='function') renderHomeContextualNudge();
     if(typeof updateHeaderStats==='function') updateHeaderStats();
