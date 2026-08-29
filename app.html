@@ -254,11 +254,20 @@
         </div>
       </div>
 
-      <!-- 2. Recent Activity / Khata -->
-      <div class="home-section-head" style="margin-top:14px;">
+      <!-- 2. Streak Badge Card (From Original Design) -->
+      <div class="card streak-card" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:18px;margin-top:12px;margin-bottom:12px;">
+        <span style="font-size:22px;">🔥</span>
+        <div>
+          <strong style="font-size:13.5px;color:#fff;display:block;" id="home-streak-text">1 day streak</strong>
+          <span style="font-size:11px;color:var(--text-dim,#94a3b8);">Log something every day to keep it going</span>
+        </div>
+      </div>
+
+      <!-- 3. Recent Activity / Khata -->
+      <div class="home-section-head" style="margin-top:10px;">
         <div>
           <p class="section-kicker" data-i18n="home_recent_kicker">RECENT TRANSACTIONS</p>
-          <h3 data-i18n="home_recent_title">Passbook &amp; Entries</h3>
+          <h3 data-i18n="home_recent_title">What moved your money?</h3>
         </div>
         <button class="text-action" onclick="setTab('entries')"><span data-i18n="home_view_all">View all</span> <i class="ti ti-arrow-right"></i></button>
       </div>
