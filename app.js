@@ -5,8 +5,8 @@ const TRANSLATIONS = {
   tagline:{en:'Track income & expenses, know your balance',hi:'आय और खर्च को ट्रैक करें, अपना बैलेंस जानें'},
   home_glance:{en:'Your money, at a glance.',hi:'आपका पैसा, एक नज़र में।'},
   home_available:{en:'Available across your tracked money',hi:'आपके ट्रैक किए गए पैसों का उपलब्ध बैलेंस'},
-  home_add_expense:{en:'Add expense',hi:'खर्च जोड़ें'},
-  home_add_income:{en:'Add income',hi:'आय जोड़ें'},
+  home_add_expense:{en:'Expense',hi:'खर्च'},
+  home_add_income:{en:'Income',hi:'आय'},
   home_voice:{en:'Voice',hi:'वॉइस'},
   home_recent_kicker:{en:'Recent activity',hi:'हाल की गतिविधि'},
   home_recent_title:{en:'What moved your money?',hi:'आपके पैसे में क्या बदलाव आया?'},
@@ -1576,13 +1576,15 @@ function renderHomeContextualNudge() {
   nudgeEl.style.display = 'block';
   nudgeEl.className = `card home-nudge-card home-nudge-${activeNudge.type}`;
   nudgeEl.innerHTML = `
-    <div style="display:flex;align-items:flex-start;gap:12px;">
-      <span style="font-size:24px;line-height:1;margin-top:2px;">${activeNudge.icon}</span>
-      <div style="flex:1;">
-        <div style="font-size:13.5px;font-weight:700;color:#fff;margin-bottom:3px;">${escapeHTML(activeNudge.title)}</div>
-        <p style="font-size:12px;color:var(--text-dim,#b9aee3);margin:0;line-height:1.4;">${escapeHTML(activeNudge.text)}</p>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:180px;">
+        <span style="font-size:22px;line-height:1;display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);flex-shrink:0;">${activeNudge.icon}</span>
+        <div>
+          <div style="font-size:13px;font-weight:800;color:#fff;margin-bottom:2px;">${escapeHTML(activeNudge.title)}</div>
+          <p style="font-size:11.5px;color:rgba(255,255,255,0.7);margin:0;line-height:1.35;">${escapeHTML(activeNudge.text)}</p>
+        </div>
       </div>
-      ${activeNudge.actionTab ? `<button class="btn btn-sm" onclick="setTab('${activeNudge.actionTab}')" style="font-size:11px;padding:5px 10px;white-space:nowrap;">${activeNudge.actionText}</button>` : (activeNudge.actionFn ? `<button class="btn btn-sm" onclick="${activeNudge.actionFn}" style="font-size:11px;padding:5px 10px;white-space:nowrap;">${activeNudge.actionText}</button>` : '')}
+      ${activeNudge.actionTab ? `<button class="btn btn-sm" onclick="setTab('${activeNudge.actionTab}')" style="font-size:11.5px;font-weight:700;padding:6px 14px;border-radius:10px;white-space:nowrap;flex-shrink:0;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.22);color:#fff;">${activeNudge.actionText}</button>` : (activeNudge.actionFn ? `<button class="btn btn-sm" onclick="${activeNudge.actionFn}" style="font-size:11.5px;font-weight:700;padding:6px 14px;border-radius:10px;white-space:nowrap;flex-shrink:0;background:linear-gradient(135deg,#9b5cff,#ff3db8);color:#fff;border:none;box-shadow:0 4px 14px rgba(155,92,255,0.35);">${activeNudge.actionText}</button>` : '')}
     </div>
   `;
 }

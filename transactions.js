@@ -77,7 +77,10 @@ function renderHomeSnapshot(){
     const wBadge = (typeof getWalletBadgeHtml === 'function') ? getWalletBadgeHtml(e) : '';
     return `<div class="home-entry-row">
       <span class="home-entry-icon ${income?'income':'expense'}"><i class="ti ${income?'ti-arrow-down-left':'ti-arrow-up-right'}"></i></span>
-      <div class="home-entry-main"><strong>${escapeHTML(title)} ${wBadge}</strong><span>${escapeHTML(label)} · ${escapeHTML(date)}</span></div>
+      <div class="home-entry-main">
+        <strong>${escapeHTML(title)}</strong>
+        <span>${escapeHTML(label)} ${wBadge ? `· ${wBadge}` : ''} · ${escapeHTML(date)}</span>
+      </div>
       <strong class="home-entry-amt ${income?'income':'expense'}">${income?'+':'−'}₹${Number(e.amt||0).toLocaleString('en-IN')}</strong>
     </div>`;
   }).join('');
