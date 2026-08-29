@@ -192,20 +192,50 @@
       <div class="hero-card hero-card-v2" id="hero-balance-card">
         <div class="hero-top">
           <div>
-            <span class="hero-label" data-i18n="stat_balance">Balance</span>
-            <p class="hero-caption" data-i18n="home_available">Available across your tracked money</p>
+            <span class="hero-label" data-i18n="stat_balance">TOTAL BALANCE</span>
+            <p class="hero-caption" data-i18n="home_available">Across all active wallets</p>
           </div>
-          <span class="hero-chip">₹</span>
+          <span class="hero-chip" title="Wallet Currency">₹</span>
         </div>
         <p class="hero-balance" id="hdr-balance">₹0</p>
-        <div class="hero-metrics">
-          <div><span data-i18n="stat_income">Income</span><strong class="green" id="hero-income">₹0</strong></div>
-          <div><span data-i18n="stat_spent">Spent</span><strong class="red" id="hero-spent">₹0</strong></div>
-          <div><span data-i18n="stat_entries">Entries</span><strong id="hero-count">0</strong></div>
+        
+        <div class="hero-flow-strip">
+          <div class="flow-item flow-inc">
+            <span class="flow-dot green-dot"></span>
+            <span class="flow-label" data-i18n="stat_income">Income</span>
+            <strong class="green" id="hero-income">+₹0</strong>
+          </div>
+          <div class="flow-divider"></div>
+          <div class="flow-item flow-exp">
+            <span class="flow-dot red-dot"></span>
+            <span class="flow-label" data-i18n="stat_spent">Spent</span>
+            <strong class="red" id="hero-spent">-₹0</strong>
+          </div>
+          <div class="flow-divider"></div>
+          <div class="flow-item flow-cnt">
+            <span class="flow-dot purple-dot"></span>
+            <span class="flow-label" data-i18n="stat_entries">Entries</span>
+            <strong id="hero-count">0</strong>
+          </div>
         </div>
-        <div class="hero-actions">
-          <button class="hero-action primary" onclick="openQuickComposer('expense')"><i class="ti ti-arrow-up-right"></i> <span data-i18n="home_add_expense">Add expense</span></button>
-          <button class="hero-action" onclick="openQuickComposer('income')"><i class="ti ti-arrow-down-left"></i> <span data-i18n="home_add_income">Add income</span></button>
+
+        <div class="hero-actions-grid">
+          <button class="hero-action-btn primary-exp" onclick="openQuickComposer('expense')">
+            <span class="action-btn-icon"><i class="ti ti-arrow-up-right"></i></span>
+            <span data-i18n="home_add_expense">Expense</span>
+          </button>
+          <button class="hero-action-btn primary-inc" onclick="openQuickComposer('income')">
+            <span class="action-btn-icon"><i class="ti ti-arrow-down-left"></i></span>
+            <span data-i18n="home_add_income">Income</span>
+          </button>
+          <button class="hero-action-btn voice-btn" onclick="startVoiceRecognition()">
+            <span class="action-btn-icon"><i class="ti ti-microphone"></i></span>
+            <span>Voice AI</span>
+          </button>
+          <button class="hero-action-btn transfer-btn" onclick="openTransferModal()">
+            <span class="action-btn-icon"><i class="ti ti-arrows-left-right"></i></span>
+            <span>Transfer</span>
+          </button>
         </div>
       </div>
 
