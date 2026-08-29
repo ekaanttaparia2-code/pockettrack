@@ -33,14 +33,15 @@
   --shadow-md:0 10px 32px rgba(0,0,0,0.30);
   --shadow-lg:0 22px 60px rgba(0,0,0,0.45);
   --shadow-glow:0 8px 28px rgba(139,92,246,0.38);
-  /* --- Type scale (mobile-first, clamp) --- */
-  --t-xs:11px;
-  --t-sm:12.5px;
-  --t-md:14px;
-  --t-lg:17px;
-  --t-xl:22px;
-  --t-2xl:28px;
-  --t-3xl:36px;
+  /* --- Type scale (mobile-first, clamp with multiplier) --- */
+  --font-scale-multiplier: 1;
+  --t-xs: calc(11px * var(--font-scale-multiplier, 1));
+  --t-sm: calc(12.5px * var(--font-scale-multiplier, 1));
+  --t-md: calc(14px * var(--font-scale-multiplier, 1));
+  --t-lg: calc(17px * var(--font-scale-multiplier, 1));
+  --t-xl: calc(22px * var(--font-scale-multiplier, 1));
+  --t-2xl: calc(28px * var(--font-scale-multiplier, 1));
+  --t-3xl: calc(36px * var(--font-scale-multiplier, 1));
   --heading:'Space Grotesk',sans-serif;
   --body:'Inter',sans-serif;
   /* --- Motion --- */

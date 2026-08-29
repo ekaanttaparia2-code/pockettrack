@@ -214,6 +214,47 @@ function selectComposerChip(btn,value){
   btn.classList.add('active');
 }
 
+function promptAddCustomTag(){
+  const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
+  const tag = prompt(isHi ? 'नया कस्टम टैग / श्रेणी का नाम दर्ज करें:' : 'Enter custom tag / category name:');
+  if (!tag || !tag.trim()) return;
+  const cleanTag = tag.trim().slice(0, 25);
+  composerSelection = cleanTag;
+
+  const targetContainerId = composerMode === 'expense' ? 'composer-expense-fields' : 'composer-income-fields';
+  const container = document.querySelector(`#${targetContainerId} .composer-chips`);
+  if (container) {
+    const customBtn = document.createElement('button');
+    customBtn.type = 'button';
+    customBtn.className = 'composer-chip active';
+    if (composerMode === 'expense') customBtn.dataset.cat = cleanTag;
+    else customBtn.dataset.source = cleanTag;
+    customBtn.innerHTML = `✨ ${escapeHTML(cleanTag)}`;
+    customBtn.onclick = function(){ selectComposerChip(this, cleanTag); };
+    
+    // Insert before the '+ Tag' button
+    const plusBtn = container.querySelector('.custom-tag-btn');
+    if (plusBtn) container.insertBefore(customBtn, plusBtn);
+    else container.appendChild(customBtn);
+    
+    selectComposerChip(customBtn, cleanTag);
+  }
+}
+window.promptAddCustomTag = promptAddCustomTag;
+
+function resetEntriesFilters(){
+  const searchInput = document.getElementById('entries-search');
+  const catFilter = document.getElementById('entries-cat-filter');
+  const fromInput = document.getElementById('entries-date-from');
+  const toInput = document.getElementById('entries-date-to');
+  if (searchInput) searchInput.value = '';
+  if (catFilter) catFilter.value = 'all';
+  if (fromInput) fromInput.value = '';
+  if (toInput) toInput.value = '';
+  if (typeof renderEntries === 'function') renderEntries();
+}
+window.resetEntriesFilters = resetEntriesFilters;
+
 async function submitTransactionComposer(){
   const amt=parseFloat(document.getElementById('composer-amount')?.value);
   const date=document.getElementById('composer-date')?.value||todayStr();

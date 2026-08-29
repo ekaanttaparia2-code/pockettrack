@@ -2576,8 +2576,43 @@ function parseUpiNotification(text) {
 
 function pasteFromClipboard() {
   if (navigator.clipboard && navigator.clipboard.readText) {
-    navigator.clipboard.readText().then(text => { document.getElementById('smart-log-input').value = text; onSmartLogInput(); }).catch(() => toast('Paste manually','error'));
-  } else { toast('Paste manually','error'); }
+    navigator.clipboard.readText().then(text => {
+      document.getElementById('smart-log-input').value = text;
+      onSmartLogInput();
+      toast(currentLang==='hi' ? 'क्लिपबोर्ड से पढ़ा गया 🔒 (सुरक्षित रूप से प्रोसेस)' : 'Pasted from clipboard 🔒 (Processed securely on-device)', 'success');
+    }).catch(() => toast('Please paste manually', 'error'));
+  } else { toast('Please paste manually', 'error'); }
+}
+
+// =====================================================================
+// ACCESSIBILITY & FONT SCALE ENGINE
+// =====================================================================
+window.currentFontScale = (typeof localStorage !== 'undefined' && parseFloat(localStorage.getItem('pockettrack_font_scale'))) || 1.0;
+window.setFontScale = function(scale) {
+  window.currentFontScale = scale;
+  try { if (typeof localStorage !== 'undefined') localStorage.setItem('pockettrack_font_scale', String(scale)); } catch(e){}
+  if (typeof document !== 'undefined' && document.documentElement && document.documentElement.style) {
+    if (typeof document.documentElement.style.setProperty === 'function') {
+      document.documentElement.style.setProperty('--font-scale-multiplier', String(scale));
+    } else {
+      document.documentElement.style['--font-scale-multiplier'] = String(scale);
+    }
+  }
+  if (typeof document !== 'undefined' && document.body && document.body.classList) {
+    if (scale > 1.1) document.body.classList.add('large-text-mode');
+    else document.body.classList.remove('large-text-mode');
+  }
+  if (typeof toast === 'function') {
+    const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
+    toast(isHi ? `फ़ॉन्ट आकार: ${Math.round(scale * 100)}%` : `Font Scale: ${Math.round(scale * 100)}%`, 'info');
+  }
+};
+if (typeof document !== 'undefined' && document.documentElement && document.documentElement.style) {
+  if (typeof document.documentElement.style.setProperty === 'function') {
+    document.documentElement.style.setProperty('--font-scale-multiplier', String(window.currentFontScale));
+  } else {
+    document.documentElement.style['--font-scale-multiplier'] = String(window.currentFontScale);
+  }
 }
 function onSmartLogInput() {
   const input = document.getElementById('smart-log-input');

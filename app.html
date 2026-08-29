@@ -143,11 +143,26 @@
       <span data-i18n="btn_google">Continue with Google</span>
     </button>
 
+    <div style="margin-top:12px;text-align:center;">
+      <button class="btn auth-guest-btn" onclick="startGuestSandboxMode()" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.16);color:#fff;border-radius:14px;padding:10px 14px;font-weight:700;font-size:12.5px;display:flex;align-items:center;justify-content:center;gap:6px;">
+        <i class="ti ti-sparkles" style="color:var(--accent-bright,#c4b5fd)"></i>
+        <span>Explore as Guest (Sandbox Demo)</span>
+      </button>
+    </div>
+
     <p class="auth-footer-note" data-i18n="auth_footer_note">Your data is stored securely in the cloud and synced across your devices.</p>
   </div>
 </div>
 
 <div class="shell">
+  <!-- GUEST SANDBOX BANNER -->
+  <div class="card" id="guest-mode-banner" style="display:none;background:linear-gradient(135deg,rgba(139,92,246,0.18),rgba(59,130,246,0.12));border:1px solid rgba(139,92,246,0.35);padding:10px 14px;margin-bottom:0.75rem;border-radius:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+      <p style="font-size:12px;margin:0;color:#e2e8f0;"><i class="ti ti-sparkles" style="color:#c084fc;"></i> <strong>Guest Sandbox Mode</strong> · Testing locally. Sign in whenever to enable cloud backup.</p>
+      <button class="btn btn-sm" onclick="showAuthScreen()" style="font-size:11.5px;padding:4px 12px;border-radius:10px;background:#fff;color:#0f0928;font-weight:800;">Sign in to Sync</button>
+    </div>
+  </div>
+
   <header>
     <div class="brand">
       <div class="brand-icon brand-logo-wrap"><img class="brand-logo-img" src="icon-192.png" alt="PocketTrack" width="36" height="36"></div>
@@ -802,6 +817,7 @@
           <button class="composer-chip" data-cat="home" onclick="selectComposerChip(this,'home')">🏠 Home</button>
           <button class="composer-chip" data-cat="shopping" onclick="selectComposerChip(this,'shopping')">🛍️ Shopping</button>
           <button class="composer-chip" data-cat="other" onclick="selectComposerChip(this,'other')">📦 Other</button>
+          <button type="button" class="composer-chip custom-tag-btn" onclick="promptAddCustomTag()" style="border-style:dashed;">🏷️ + Tag</button>
         </div>
       </div>
 
@@ -812,6 +828,7 @@
           <button class="composer-chip" data-source="Allowance" onclick="selectComposerChip(this,'Allowance')">🎁 Allowance</button>
           <button class="composer-chip" data-source="Rent received" onclick="selectComposerChip(this,'Rent received')">🏠 Rent</button>
           <button class="composer-chip" data-source="Other" onclick="selectComposerChip(this,'Other')">✨ Other</button>
+          <button type="button" class="composer-chip custom-tag-btn" onclick="promptAddCustomTag()" style="border-style:dashed;">🏷️ + Source</button>
         </div>
       </div>
 

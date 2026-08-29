@@ -513,14 +513,19 @@ function showPersonDetail(personId) {
     </div>
 
     ${personBalance !== 0 ? `
-    <div style="display:flex; gap:8px; margin-bottom:14px;">
-      ${personBalance > 0 ? `
-      <button class="btn" style="flex:1.2; padding:11px; background:#25D366; color:#fff; border:none; font-weight:700; border-radius:12px; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer;" onclick="sendPersonWhatsAppReminder('${personId}', ${personBalance})">
-        💬 WhatsApp Reminder
-      </button>` : ''}
-      <button class="btn" style="flex:1; padding:11px; background:rgba(52,211,153,0.18); color:var(--green,#34d399); border:1px solid rgba(52,211,153,0.4); font-weight:700; border-radius:12px; cursor:pointer;" onclick="settlePersonDebt('${personId}', ${personBalance})">
-        🤝 Settle Up
+    <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px;">
+      <button class="btn" style="width:100%; padding:11px; background:linear-gradient(135deg,#8b5cf6,#3b82f6); color:#fff; border:none; font-weight:800; border-radius:12px; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer;" onclick="openUPISettlementModal('${personId}', ${personBalance})">
+        ⚡ ${isHi ? 'UPI / QR से भुगतान या मांग' : 'Pay / Request via UPI & QR'}
       </button>
+      <div style="display:flex; gap:8px;">
+        ${personBalance > 0 ? `
+        <button class="btn" style="flex:1.2; padding:10px; background:#25D366; color:#fff; border:none; font-weight:700; border-radius:12px; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer;" onclick="sendPersonWhatsAppReminder('${personId}', ${personBalance})">
+          💬 WhatsApp Reminder
+        </button>` : ''}
+        <button class="btn" style="flex:1; padding:10px; background:rgba(52,211,153,0.18); color:var(--green,#34d399); border:1px solid rgba(52,211,153,0.4); font-weight:700; border-radius:12px; cursor:pointer;" onclick="settlePersonDebt('${personId}', ${personBalance})">
+          🤝 Settle Up
+        </button>
+      </div>
     </div>` : ''}
 
     <div style="font-size:11.5px; font-weight:700; color:var(--text-dim); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">${TT('ledger_history')}</div>
@@ -598,6 +603,61 @@ if (window.firebase && firebase.auth()) {
   });
 }
 
+window.generateUPIDeepLink = function(participantName, amount, upiId) {
+  const targetUpi = (upiId || (typeof getUserUpiId === 'function' ? getUserUpiId() : '') || 'pockettrack@upi').trim();
+  const name = participantName || 'Friend';
+  const amt = Number(amount || 0).toFixed(2);
+  return `upi://pay?pa=${encodeURIComponent(targetUpi)}&pn=${encodeURIComponent(name)}&am=${amt}&cu=INR&tn=${encodeURIComponent('PocketTrack Settlement')}`;
+};
+
+window.openUPISettlementModal = function(personId, amount) {
+  const list = getLedgerPeopleList();
+  const person = list.find(p => p._id === personId);
+  if (!person) return;
+  const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
+  const absAmt = Math.abs(Number(amount || 0));
+  const userUpi = (typeof getUserUpiId === 'function' ? getUserUpiId() : '') || 'pockettrack@upi';
+  const upiLink = window.generateUPIDeepLink(person.name, absAmt, userUpi);
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(upiLink)}`;
+
+  const modalHtml = `
+    <div style="text-align:center; padding:6px 0;">
+      <div style="width:50px; height:50px; border-radius:16px; background:linear-gradient(135deg,#8b5cf6,#3b82f6); color:#fff; display:grid; place-items:center; font-size:24px; margin:0 auto 12px; box-shadow:0 8px 24px rgba(139,92,246,0.35);">
+        ⚡
+      </div>
+      <h3 style="margin:0 0 4px; font-family:'Space Grotesk',sans-serif; font-size:20px; font-weight:800;">
+        ${isHi ? 'UPI से तुरंत भुगतान करें' : 'Instant UPI Settlement'}
+      </h3>
+      <p style="font-size:12.5px; color:var(--text-dim); margin-bottom:14px;">
+        ${escapeHTML(person.name)} · <strong>₹${absAmt.toLocaleString('en-IN')}</strong>
+      </p>
+
+      <div style="background:#ffffff; border-radius:18px; padding:12px; display:inline-block; margin-bottom:14px; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+        <img src="${qrUrl}" alt="UPI QR Code" width="180" height="180" style="display:block; border-radius:10px;" />
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px;">
+        <a href="${upiLink}" class="btn primary" style="padding:12px; font-size:13px; font-weight:800; border-radius:14px; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:8px;">
+          <i class="ti ti-brand-google"></i> ${isHi ? 'GPay / PhonePe / Paytm से खोलें' : 'Open in PhonePe / GPay / Paytm'}
+        </a>
+        <button class="btn" style="padding:10px; font-size:12px; border-radius:12px;" onclick="navigator.clipboard.writeText('${upiLink}').then(()=>toast('${isHi ? 'UPI लिंक कॉपी हो गया' : 'UPI Link copied to clipboard'}','success'))">
+          📋 ${isHi ? 'UPI लिंक कॉपी करें' : 'Copy UPI Link'}
+        </button>
+      </div>
+
+      <div style="display:flex; gap:8px;">
+        <button class="btn" style="flex:1; background:rgba(52,211,153,0.15); color:var(--green,#34d399); border:1px solid rgba(52,211,153,0.35); font-weight:700; border-radius:12px; padding:10px;" onclick="settlePersonDebt('${personId}', ${amount})">
+          🤝 ${isHi ? 'चुकता मार्क करें' : 'Mark as Settled'}
+        </button>
+        <button class="btn" style="padding:10px 16px; border-radius:12px;" onclick="showPersonDetail('${personId}')">
+          ${isHi ? 'वापस' : 'Back'}
+        </button>
+      </div>
+    </div>
+  `;
+  openLedgerModal(modalHtml);
+};
+
 window.sendPersonWhatsAppReminder = function(personId, amount) {
   const list = getLedgerPeopleList();
   const person = list.find(p => p._id === personId);
@@ -613,4 +673,4 @@ window.sendPersonWhatsAppReminder = function(personId, amount) {
   const phoneTarget = person.phone ? person.phone.replace(/[^0-9]/g, '') : '';
   const waUrl = phoneTarget ? `https://wa.me/91${phoneTarget}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`;
   window.open(waUrl, '_blank');
-};
+};;

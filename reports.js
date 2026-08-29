@@ -912,4 +912,150 @@ window.promptEditTotalBudget = function() {
   }
 };
 
+// =====================================================================
+// NET WORTH & BALANCE SHEET ENGINE
+// =====================================================================
+window.calculateNetWorth = function() {
+  const allWallets = (typeof userWallets !== 'undefined' && Array.isArray(userWallets) && userWallets.length)
+    ? userWallets
+    : ((typeof window !== 'undefined' && Array.isArray(window.userWallets) && window.userWallets.length)
+      ? window.userWallets
+      : ((typeof getActiveWallets === 'function') ? getActiveWallets() : []));
+
+  const walletAssets = allWallets.reduce((sum, w) => sum + Math.max(0, Number(w.balance || 0)), 0);
+  
+  // Outstanding debts and receivables from Ledger
+  const ledgerList = (typeof getLedgerPeopleList === 'function')
+    ? getLedgerPeopleList()
+    : ((typeof window !== 'undefined' && Array.isArray(window.ledgerPeople)) ? window.ledgerPeople : []);
+
+  let debtsOwed = 0;
+  let receivables = 0;
+
+  ledgerList.forEach(p => {
+    let bal = 0;
+    if (typeof p.balance === 'number') {
+      bal = p.balance;
+    } else if (Array.isArray(p.transactions)) {
+      p.transactions.forEach(tx => {
+        if (tx.type === 'gave') bal += Number(tx.amount || 0);
+        else if (tx.type === 'received') bal -= Number(tx.amount || 0);
+      });
+    }
+    if (bal < 0) debtsOwed += Math.abs(bal);
+    else if (bal > 0) receivables += bal;
+  });
+
+  const totalAssets = walletAssets + receivables;
+  const totalLiabilities = debtsOwed;
+  const netWorth = totalAssets - totalLiabilities;
+
+  return { walletAssets, receivables, totalAssets, totalLiabilities, netWorth };
+};
+
+window.renderNetWorthTracker = function() {
+  const host = document.getElementById('net-worth-overview-container');
+  if (!host) return;
+  const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
+  const nw = window.calculateNetWorth();
+
+  host.innerHTML = `
+    <div class="card" style="margin-bottom:14px; border-radius:24px; padding:20px; border:1px solid rgba(139,92,246,0.3); background:linear-gradient(155deg,#1b1242 0%,#0f0a28 60%,#09051c 100%); box-shadow:0 18px 45px rgba(0,0,0,0.5);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <span style="font-size:11px; font-weight:800; color:var(--accent-bright,#c4b5fd); text-transform:uppercase; letter-spacing:1px;">
+          💎 ${isHi ? 'कुल कुल संपत्ति (NET WORTH)' : 'TOTAL NET WORTH'}
+        </span>
+        <span style="font-size:11.5px; padding:3px 10px; border-radius:10px; background:rgba(52,211,153,0.15); color:var(--green,#34d399); font-weight:700;">
+          🟢 ${isHi ? 'सक्रिय' : 'Live Calculated'}
+        </span>
+      </div>
+
+      <div style="font-family:'Space Grotesk',sans-serif; font-size:36px; font-weight:800; color:#ffffff; letter-spacing:-1.2px; margin-bottom:14px;">
+        ₹${nw.netWorth.toLocaleString('en-IN')}
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <div style="background:rgba(255,255,255,0.05); padding:10px 12px; border-radius:14px; border:1px solid rgba(255,255,255,0.08);">
+          <span style="font-size:10px; color:rgba(255,255,255,0.6); text-transform:uppercase; font-weight:600;">${isHi ? 'कुल संपत्तियां (Assets)' : 'Assets (Cash & Bank)'}</span>
+          <strong style="display:block; font-size:15px; color:var(--green,#34d399); margin-top:2px; font-family:'Space Grotesk',sans-serif;">+₹${nw.totalAssets.toLocaleString('en-IN')}</strong>
+        </div>
+        <div style="background:rgba(255,255,255,0.05); padding:10px 12px; border-radius:14px; border:1px solid rgba(255,255,255,0.08);">
+          <span style="font-size:10px; color:rgba(255,255,255,0.6); text-transform:uppercase; font-weight:600;">${isHi ? 'देनदारियां (Debts Owed)' : 'Liabilities (Debts)'}</span>
+          <strong style="display:block; font-size:15px; color:var(--red,#f87171); margin-top:2px; font-family:'Space Grotesk',sans-serif;">-₹${nw.totalLiabilities.toLocaleString('en-IN')}</strong>
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+// =====================================================================
+// CSV STATEMENT & GOOGLE SHEETS IMPORTER
+// =====================================================================
+window.importCSVEntries = function(csvText) {
+  if (!csvText || typeof csvText !== 'string') return 0;
+  const lines = csvText.trim().split(/\r?\n/);
+  if (lines.length < 2) return 0;
+
+  const header = lines[0].toLowerCase().split(',').map(h => h.trim().replace(/^["']|["']$/g, ''));
+  const dateIdx = header.findIndex(h => h.includes('date') || h.includes('दिनांक'));
+  const descIdx = header.findIndex(h => h.includes('desc') || h.includes('label') || h.includes('title') || h.includes('particular') || h.includes('merchant'));
+  const amtIdx = header.findIndex(h => h.includes('amount') || h.includes('amt') || h.includes('रुपये') || h.includes('rupee'));
+  const typeIdx = header.findIndex(h => h.includes('type') || h.includes('cr/dr') || h.includes('credit') || h.includes('debit'));
+  const catIdx = header.findIndex(h => h.includes('cat') || h.includes('category') || h.includes('श्रेणी'));
+
+  let importedCount = 0;
+  const todayStr = new Date().toISOString().slice(0, 10);
+
+  for (let i = 1; i < lines.length; i++) {
+    const row = lines[i].split(',').map(c => c.trim().replace(/^["']|["']$/g, ''));
+    if (row.length < 2) continue;
+
+    const rawAmt = amtIdx !== -1 ? row[amtIdx] : (row[1] || row[0]);
+    const numAmt = parseFloat(String(rawAmt).replace(/[^0-9.-]/g, ''));
+    if (isNaN(numAmt) || numAmt <= 0) continue;
+
+    const label = descIdx !== -1 ? (row[descIdx] || 'CSV Transaction') : 'CSV Transaction';
+    let date = dateIdx !== -1 ? row[dateIdx] : todayStr;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      const parsedD = new Date(date);
+      date = !isNaN(parsedD.getTime()) ? parsedD.toISOString().slice(0, 10) : todayStr;
+    }
+
+    let type = 'expense';
+    if (typeIdx !== -1) {
+      const tVal = String(row[typeIdx]).toLowerCase();
+      if (tVal.includes('cr') || tVal.includes('credit') || tVal.includes('income') || tVal.includes('deposit')) type = 'income';
+    }
+
+    const cat = catIdx !== -1 ? (row[catIdx] || (type === 'income' ? 'income' : 'other')) : (type === 'income' ? 'income' : 'other');
+
+    const entryObj = {
+      _id: 'csv_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+      label: label.slice(0, 80),
+      amt: numAmt,
+      type: type,
+      cat: cat,
+      date: date,
+      walletId: 'bank'
+    };
+
+    if (typeof entries !== 'undefined' && Array.isArray(entries)) {
+      entries.push(entryObj);
+      importedCount++;
+    }
+  }
+
+  if (importedCount > 0) {
+    if (typeof window !== 'undefined') window.entries = entries;
+    try { localStorage.setItem('pockettrack_entries', JSON.stringify(entries)); } catch(e){}
+    if (typeof updateHeaderStats === 'function') updateHeaderStats();
+    if (typeof renderHomeSnapshot === 'function') renderHomeSnapshot();
+    if (typeof renderEntries === 'function') renderEntries();
+    if (typeof renderSimpleModePassbook === 'function') renderSimpleModePassbook();
+    toast(`${importedCount} transactions imported successfully! 🎉`, 'success');
+  }
+
+  return importedCount;
+};
+
 
