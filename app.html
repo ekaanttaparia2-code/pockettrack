@@ -217,33 +217,18 @@
         
         <!-- Daily Safe-to-Spend Live Indicator -->
         <div class="hero-safe-spend-pill" id="hero-safe-spend-pill" onclick="openSafeSpendExplainer()" style="cursor:pointer;" title="Tap to view exact Daily Safe-to-Spend calculation">
-          <div style="display:flex;align-items:center;justify-content:space-between;width:100%;gap:10px;">
-            <div style="display:flex;align-items:center;gap:10px;">
-              <div class="safe-spend-badge" id="hero-safe-spend-badge">
-                <span id="hero-safe-spend-icon">🎯</span>
-              </div>
-              <div class="safe-spend-info">
-                <div class="safe-spend-label" id="hero-safe-spend-label">Daily Safe-to-Spend</div>
-                <div class="safe-spend-val-row">
-                  <strong class="safe-spend-val" id="hero-safe-spend-val">₹0/day</strong>
-                  <span class="safe-spend-sub" id="hero-safe-spend-sub">· Calculating...</span>
-                </div>
-              </div>
-            </div>
-            <div class="safe-spend-action">
-              <span style="font-size:11px;color:var(--accent-bright,#c4b5fd);font-weight:700;margin-right:2px;">Math Sheet</span>
-              <i class="ti ti-chevron-right"></i>
+          <div class="safe-spend-badge" id="hero-safe-spend-badge">
+            <span id="hero-safe-spend-icon">🎯</span>
+          </div>
+          <div class="safe-spend-info">
+            <div class="safe-spend-label" id="hero-safe-spend-label">Daily Safe-to-Spend</div>
+            <div class="safe-spend-val-row">
+              <strong class="safe-spend-val" id="hero-safe-spend-val">₹0/day</strong>
+              <span class="safe-spend-sub" id="hero-safe-spend-sub">· Calculating...</span>
             </div>
           </div>
-          
-          <!-- Live Daily Burn Progress Bar -->
-          <div style="width:100%;height:6px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden;margin:10px 0 6px;">
-            <div id="hero-safe-spend-meter-fill" style="width:0%;height:100%;background:linear-gradient(90deg,#10b981,#34d399);border-radius:4px;transition:width 0.6s ease, background 0.4s ease;"></div>
-          </div>
-          
-          <!-- Live Emotional Guidance Sentence -->
-          <div id="hero-safe-spend-sentence" style="font-size:12px;color:#e2e8f0;font-weight:500;line-height:1.35;margin-top:2px;">
-            Calculating your daily spending allowance...
+          <div class="safe-spend-action">
+            <i class="ti ti-chevron-right"></i>
           </div>
         </div>
         
