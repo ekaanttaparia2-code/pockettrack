@@ -3623,3 +3623,30 @@ body.light-theme .bottom-tab.active {
   color: #4f46e5 !important;
 }
 
+html[data-theme="light"] .simple-bahi-list,
+body.light-theme .simple-bahi-list {
+  background: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06) !important;
+}
+html[data-theme="light"] .bahi-row-main strong,
+body.light-theme .bahi-row-main strong {
+  color: #0f172a !important;
+}
+html[data-theme="light"] .bahi-row-main span,
+body.light-theme .bahi-row-main span {
+  color: #64748b !important;
+}
+html[data-theme="light"] .bahi-date-divider,
+body.light-theme .bahi-date-divider {
+  color: #4f46e5 !important;
+  border-bottom-color: rgba(15, 23, 42, 0.06) !important;
+}
+html[data-theme="light"] .senior-chip-btn,
+body.light-theme .senior-chip-btn {
+  background: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.1) !important;
+  color: #0f172a !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04) !important;
+}
+
