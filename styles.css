@@ -145,6 +145,31 @@ header{
   gap: 6px;
   flex-shrink: 0;
 }
+.theme-toggle-pill {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  border-radius: 11px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  font-size: 15px !important;
+  cursor: pointer !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  box-shadow: var(--shadow-sm) !important;
+  transition: transform 0.15s ease, background 0.15s ease !important;
+  flex-shrink: 0 !important;
+  line-height: 1 !important;
+}
+.theme-toggle-pill:hover {
+  background: rgba(255, 255, 255, 0.14) !important;
+  transform: scale(1.05) !important;
+}
+.theme-toggle-pill:active {
+  transform: scale(0.92) !important;
+}
 .mode-toggle-pill {
   font-size: 11px;
   padding: 5px 9px;

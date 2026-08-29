@@ -3217,12 +3217,15 @@ window.renderSimpleModePassbook = function() {
   if (incEl) incEl.textContent = '₹' + totalInc.toLocaleString('en-IN');
   if (expEl) expEl.textContent = '₹' + totalExp.toLocaleString('en-IN');
 
-  const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
+  const isHi = (typeof currentLang !== 'undefined' && (currentLang === 'hi' || currentLang === 'hinglish'));
 
   if (!entriesWithRunning.length) {
-    container.innerHTML = `<div class="empty-mini" style="padding:36px 14px;font-size:15px;color:var(--text-dim,#94a3b8);text-align:center;">${isHi ? 'अभी तक कोई हिसाब नहीं लिखा गया। ऊपर माइक दबाकर बोलें!' : 'No entries yet. Tap the microphone button above to speak!'}</div>`;
+    if (container) {
+      container.innerHTML = `<div class="empty-mini" style="padding:36px 14px;font-size:15px;color:var(--text-dim,#94a3b8);text-align:center;">${isHi ? 'अभी तक कोई हिसाब नहीं लिखा गया। ऊपर माइक दबाकर बोलें!' : 'No entries yet. Tap the microphone button above to speak!'}</div>`;
+    }
     return;
   }
+  if (!container) return;
 
   // Reverse to show newest on top
   const displayList = [...entriesWithRunning].reverse();

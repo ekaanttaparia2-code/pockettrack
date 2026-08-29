@@ -219,6 +219,9 @@ function updateHeaderStats(){
     animateNumber('hero-income', income);
     animateNumber('hero-spent', spent);
     animateNumber('hero-count', list.length, '', '');
+    animateNumber('simple-home-balance', balance);
+    animateNumber('simple-home-income', income);
+    animateNumber('simple-home-spent', spent);
   } else {
     const elInc = document.getElementById('hdr-income');
     const elExp = document.getElementById('hdr-spent');
@@ -235,9 +238,20 @@ function updateHeaderStats(){
     if(heroSpent)heroSpent.textContent='₹'+spent;
     if(heroCount)heroCount.textContent=list.length;
   }
+
+  // Direct sync for Simple Senior Mode
+  const simpleBal = document.getElementById('simple-home-balance');
+  const simpleInc = document.getElementById('simple-home-income');
+  const simpleExp = document.getElementById('simple-home-spent');
+  if (simpleBal) simpleBal.textContent = '₹' + balance.toLocaleString('en-IN');
+  if (simpleInc) simpleInc.textContent = '₹' + income.toLocaleString('en-IN');
+  if (simpleExp) simpleExp.textContent = '₹' + spent.toLocaleString('en-IN');
+
   updateHomeSafeToSpendUI();
   renderHomeSnapshot();
-  if (typeof renderSimpleModePassbook === 'function') renderSimpleModePassbook();
+  if (typeof renderSimpleModePassbook === 'function') {
+    try { renderSimpleModePassbook(); } catch(e){ console.warn('Simple passbook render warn:', e.message); }
+  }
 }
 window.updateHeaderStats = updateHeaderStats;
 
