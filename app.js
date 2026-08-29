@@ -1297,11 +1297,15 @@ const REWARD_MILESTONES = [
 
 // Longest run of consecutive logged days ever achieved (not just the live streak — this is what points are based on)
 function getLongestStreakEver(){
-  const days=[...new Set(mainEntries().map(e=>e.date))].sort();
+  const days=[...new Set(mainEntries().map(e=>e.date).filter(d => Boolean(d) && typeof d === 'string'))].sort();
   if(!days.length)return 0;
   let longest=1, run=1;
+  const dayMs=s=>{
+    if(!s||typeof s!=='string') return 0;
+    const p=s.split('-').map(Number);
+    return Date.UTC(p[0],(p[1]||1)-1,p[2]||1);
+  };
   for(let i=1;i<days.length;i++){
-    const dayMs=s=>{const p=s.split('-').map(Number);return Date.UTC(p[0],p[1]-1,p[2])};
     const diff=(dayMs(days[i])-dayMs(days[i-1]))/86400000;
     if(diff===1){ run++; } else { run=1; }
     if(run>longest) longest=run;
@@ -1318,7 +1322,7 @@ function calculateRewardPoints(){
 }
 
 function getTotalActiveDays(){
-  return new Set(mainEntries().map(e=>e.date)).size;
+  return new Set(mainEntries().map(e=>e.date).filter(d => Boolean(d) && typeof d === 'string')).size;
 }
 
 function renderRewards(){
@@ -1411,7 +1415,7 @@ function celebrateEntryLogged(btnId){
 }
 
 function setTab(t){
-  ['log','entries','report','events','rewards','upi','language','pro','ledger'].forEach((x)=>{
+  ['log','entries','report','events','rewards','upi','language','pro','ledger','hub'].forEach((x)=>{
     const el=document.getElementById('tab-'+x);
     if(el){
       if(x===t){
@@ -1432,6 +1436,11 @@ function setTab(t){
   });
   const statPills = document.getElementById('header-stat-pills');
   if (statPills) statPills.style.display = (t==='log'||t==='entries') ? 'flex' : 'none';
+  if(t==='log'){
+    if(typeof renderHomeContextualNudge==='function') renderHomeContextualNudge();
+    if(typeof updateHeaderStats==='function') updateHeaderStats();
+    if(typeof renderHomeSnapshot==='function') renderHomeSnapshot();
+  }
   if(t==='entries'){
     if(typeof renderEntries==='function') renderEntries();
   }
@@ -1440,6 +1449,8 @@ function setTab(t){
     if(typeof showNextTip==='function') showNextTip();
     if(typeof renderBudgetEditor==='function') renderBudgetEditor();
     if(typeof ptSyncGates === 'function') ptSyncGates();
+    if(typeof updateDailyBurnMeterUI === 'function') updateDailyBurnMeterUI();
+    if(typeof renderFinancialDNA === 'function') renderFinancialDNA();
   }
   if(t==='events'){
     if(typeof showEventsListView==='function') showEventsListView();
@@ -1448,6 +1459,15 @@ function setTab(t){
   if(t==='ledger'){
     if(typeof ptSyncGates === 'function') ptSyncGates();
     if(typeof renderLedger === 'function') renderLedger();
+  }
+  if(t==='hub'){
+    if(typeof renderWalletSwitcher === 'function') renderWalletSwitcher();
+    if(typeof updateDigitalVaultUI === 'function') updateDigitalVaultUI();
+    if(typeof renderGoalWidget === 'function') renderGoalWidget();
+    if(typeof renderRewards === 'function') renderRewards();
+    if(typeof renderProTab === 'function') renderProTab();
+    if(typeof updateLanguageTabUI === 'function') updateLanguageTabUI();
+    if(typeof ptSyncGates === 'function') ptSyncGates();
   }
   if(t==='upi'){
     if(typeof ptSyncGates === 'function') ptSyncGates();
@@ -1464,6 +1484,104 @@ function setTab(t){
   if(typeof closeMenu==='function') closeMenu();
 }
 window.setTab = setTab;
+
+function renderHomeContextualNudge() {
+  const nudgeEl = document.getElementById('home-contextual-nudge');
+  if (!nudgeEl) return;
+
+  const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
+  
+  // 1. Check if any budget category is exceeded or > 90%
+  let budgetWarning = null;
+  if (typeof budgetableCats === 'function' && typeof getPeriodExpenseByCat === 'function') {
+    try {
+      const spentByCat = getPeriodExpenseByCat();
+      const cats = budgetableCats();
+      for (const c of cats) {
+        const b = Number(categoryBudgets[c] || 0);
+        const spent = Number(spentByCat[c] || 0);
+        if (b > 0 && spent >= b) {
+          const catName = (typeof CAT_LABELS !== 'undefined' && CAT_LABELS[c]) ? CAT_LABELS[c] : c;
+          budgetWarning = {
+            type: 'danger',
+            icon: '⚠️',
+            title: isHi ? `बजट अलर्ट: ${catName}` : `Budget Alert: ${catName}`,
+            text: isHi ? `आपने ₹${b} का बजट पार कर लिया है (कुल खर्च ₹${spent})।` : `You have exceeded your ₹${b} budget (Spent ₹${spent}).`,
+            actionText: isHi ? 'बजट देखें' : 'View Budget',
+            actionTab: 'report'
+          };
+          break;
+        }
+      }
+    } catch(e) {}
+  }
+
+  // 2. If no budget warning, check streak
+  let streakNudge = null;
+  if (!budgetWarning) {
+    const streak = (typeof currentStreakDays !== 'undefined' && currentStreakDays > 0) ? currentStreakDays : (typeof getStreakCount === 'function' ? getStreakCount() : 0);
+    if (streak > 0) {
+      streakNudge = {
+        type: 'warning',
+        icon: '🔥',
+        title: isHi ? `${streak} दिन की स्ट्रीक!` : `${streak}-Day Streak!`,
+        text: isHi ? 'शानदार! दैनिक एंट्रीज़ जारी रखें और नए बैज अनलॉक करें।' : 'Great momentum! Keep logging daily to unlock badges & rewards.',
+        actionText: isHi ? 'रिवॉर्ड्स' : 'Rewards',
+        actionTab: 'hub'
+      };
+    }
+  }
+
+  // 3. Fallback: Money-saving tip
+  const tipText = document.getElementById('money-tip-text')?.textContent || (isHi ? '50-30-20 नियम का पालन करें: 50% जरूरत, 30% इच्छाएं और 20% बचत।' : 'Follow the 50/30/20 rule: 50% for needs, 30% for wants, and 20% for savings.');
+  const tipNudge = {
+    type: 'info',
+    icon: '💡',
+    title: isHi ? 'आज का स्मार्ट टिप' : 'Smart Money Tip',
+    text: tipText,
+    actionText: isHi ? 'अगला टिप' : 'Next Tip',
+    actionFn: 'showNextTip()'
+  };
+
+  const activeNudge = budgetWarning || streakNudge || tipNudge;
+
+  nudgeEl.style.display = 'block';
+  nudgeEl.className = `card home-nudge-card home-nudge-${activeNudge.type}`;
+  nudgeEl.innerHTML = `
+    <div style="display:flex;align-items:flex-start;gap:12px;">
+      <span style="font-size:24px;line-height:1;margin-top:2px;">${activeNudge.icon}</span>
+      <div style="flex:1;">
+        <div style="font-size:13.5px;font-weight:700;color:#fff;margin-bottom:3px;">${escapeHTML(activeNudge.title)}</div>
+        <p style="font-size:12px;color:var(--text-dim,#b9aee3);margin:0;line-height:1.4;">${escapeHTML(activeNudge.text)}</p>
+      </div>
+      ${activeNudge.actionTab ? `<button class="btn btn-sm" onclick="setTab('${activeNudge.actionTab}')" style="font-size:11px;padding:5px 10px;white-space:nowrap;">${activeNudge.actionText}</button>` : (activeNudge.actionFn ? `<button class="btn btn-sm" onclick="${activeNudge.actionFn}" style="font-size:11px;padding:5px 10px;white-space:nowrap;">${activeNudge.actionText}</button>` : '')}
+    </div>
+  `;
+}
+window.renderHomeContextualNudge = renderHomeContextualNudge;
+
+function switchLedgerSubView(view) {
+  const peopleBtn = document.getElementById('ledger-sub-people-btn');
+  const eventsBtn = document.getElementById('ledger-sub-events-btn');
+  const peopleView = document.getElementById('ledger-people-subview');
+  const eventsView = document.getElementById('ledger-events-subview');
+
+  if (view === 'events') {
+    if (peopleBtn) peopleBtn.classList.remove('active');
+    if (eventsBtn) eventsBtn.classList.add('active');
+    if (peopleView) peopleView.style.display = 'none';
+    if (eventsView) eventsView.style.display = 'block';
+    if (typeof showEventsListView === 'function') showEventsListView();
+    if (typeof renderEventsList === 'function') renderEventsList();
+  } else {
+    if (peopleBtn) peopleBtn.classList.add('active');
+    if (eventsBtn) eventsBtn.classList.remove('active');
+    if (peopleView) peopleView.style.display = 'block';
+    if (eventsView) eventsView.style.display = 'none';
+    if (typeof renderLedger === 'function') renderLedger();
+  }
+}
+window.switchLedgerSubView = switchLedgerSubView;
 
 // Side menu removed — these stay as safe no-ops for legacy callers.
 function openMenu(){}
@@ -2762,20 +2880,5 @@ window.openFirstTimeModeSelector = function() {
 document.addEventListener('DOMContentLoaded', () => {
   const savedMode = localStorage.getItem('pockettrack_app_mode') || 'power';
   window.setAppMode(savedMode, false);
-  
-  // Prompt user for age group if not already set
-  if (!localStorage.getItem('pockettrack_age_group') && !localStorage.getItem('pockettrack_app_mode_chosen')) {
-    const onboardingEl = document.getElementById('onboarding-screen');
-    const isOnboardingActive = onboardingEl && onboardingEl.style.display !== 'none';
-    if (!isOnboardingActive) {
-      setTimeout(() => {
-        const authEl = document.getElementById('auth-screen');
-        const isAuthShowing = authEl && authEl.style.display !== 'none';
-        if (!isAuthShowing && typeof window.openAgeModeModal === 'function') {
-          window.openAgeModeModal();
-        }
-      }, 400);
-    }
-  }
 });
 

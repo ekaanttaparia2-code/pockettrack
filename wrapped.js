@@ -182,7 +182,7 @@ window.openMoneyWrapped = function(monthOffset = 0) {
     
     // Filter to month entries
     const monthEntries = entries.filter(e => {
-        if (!e.date) return false;
+        if (!e || !e.date || typeof e.date !== 'string') return false;
         const parts = e.date.split('-');
         if (parts.length !== 3) return false;
         const y = parseInt(parts[0], 10);

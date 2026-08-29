@@ -186,24 +186,6 @@
   </div>
 
   <div id="tab-log">
-    <!-- Portfolio Switcher Pill Bar -->
-    <div class="portfolio-switcher-bar" id="portfolio-switcher-bar">
-      <button class="portfolio-pill active" id="port-pill-personal" onclick="switchActivePortfolio('personal')">
-        <span>👤 Personal Vault</span>
-      </button>
-      <div id="portfolio-pills-list" style="display:inline-flex;gap:8px;"></div>
-      <button class="portfolio-pill add-pill" onclick="openNewPortfolioModal()">
-        <i class="ti ti-plus"></i> <span>Shared Space</span>
-      </button>
-    </div>
-
-    <!-- Wallet / Account Switcher Bar -->
-    <div class="wallet-switcher-bar" id="wallet-switcher-bar">
-      <div id="wallet-pills-list" style="display:inline-flex;gap:8px;"></div>
-    </div>
-
-    <div id="home-shared-portfolio-slot"></div>
-
     <!-- 1. Hero Balance Card -->
     <div class="hero-card hero-card-v2" id="hero-balance-card">
       <div class="hero-top">
@@ -226,7 +208,7 @@
       </div>
     </div>
 
-    <!-- 2. Recent Activity / Khata (Promoted directly under Balance) -->
+    <!-- 2. Recent Activity / Khata -->
     <div class="home-section-head" style="margin-top:14px;">
       <div>
         <p class="section-kicker" data-i18n="home_recent_kicker">RECENT TRANSACTIONS</p>
@@ -238,154 +220,8 @@
       <div class="empty-mini">Your latest entries will appear here.</div>
     </div>
 
-    <!-- 3. Financial Power Hub & Shortcuts -->
-    <div class="card home-command-center home-power-hub-section" id="more-features-card" style="background:linear-gradient(145deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));border:1px solid rgba(139,92,246,0.25);border-radius:22px;padding:16px 14px;margin-top:14px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-        <div style="display:flex;align-items:center;gap:6px;">
-          <span style="font-size:15px;">⚡</span>
-          <span style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;color:#fff;" data-i18n="home_command_hub">Financial Power Hub</span>
-        </div>
-        <button onclick="openCommandHubModal()" style="background:transparent;border:none;color:var(--primary-bright);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:3px;">
-          <span data-i18n="home_view_all">View all</span> →
-        </button>
-      </div>
-      <div class="home-shortcuts-v2" style="display:grid;grid-template-columns:repeat(5, 1fr);gap:6px;margin-bottom:4px;">
-        <button class="shortcut-btn-v2" onclick="openNewPortfolioModal()" style="background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.45);border-radius:14px;padding:10px 2px;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;">
-          <span style="font-size:18px;">👥</span>
-          <span style="font-size:9.5px;font-weight:700;color:var(--accent-bright,#a78bfa);">Spaces</span>
-        </button>
-        <button class="shortcut-btn-v2" onclick="setTab('ledger')" style="background:rgba(255,255,255,0.04);border:1px solid rgba(52,211,153,0.3);border-radius:14px;padding:10px 2px;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;">
-          <span style="font-size:18px;">📑</span>
-          <span style="font-size:9.5px;font-weight:600;">Ledger</span>
-        </button>
-        <button class="shortcut-btn-v2" onclick="openUpiQrModal()" style="background:rgba(255,255,255,0.04);border:1px solid rgba(251,191,36,0.3);border-radius:14px;padding:10px 2px;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;">
-          <span style="font-size:18px;">⚡</span>
-          <span style="font-size:9.5px;font-weight:600;">My QR</span>
-        </button>
-        <button class="shortcut-btn-v2" onclick="openGoalPlannerModal()" style="background:rgba(255,255,255,0.04);border:1px solid rgba(16,185,129,0.3);border-radius:14px;padding:10px 2px;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;">
-          <span style="font-size:18px;">🎯</span>
-          <span style="font-size:9.5px;font-weight:600;">Goals</span>
-        </button>
-        <button class="shortcut-btn-v2" onclick="setTab('pro')" style="background:rgba(236,72,153,0.08);border:1px solid rgba(236,72,153,0.35);border-radius:14px;padding:10px 2px;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;">
-          <span style="font-size:18px;">👑</span>
-          <span style="font-size:9.5px;font-weight:700;color:#f472b6;">Pro</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- 4. Power Widgets Grid (Safe-to-Spend, Chillar, Goals, DNA) -->
-    <div id="home-daily-burn-slot"></div>
-    <div class="home-power-widgets-row" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));gap:10px;margin:10px 0;">
-      <div id="home-dna-slot"></div>
-      <div id="home-vault-slot"></div>
-      <div id="home-goal-slot"></div>
-    </div>
-
-    <div id="home-wrapped-slot"></div>
-
-    <div class="card streak-card" id="streak-card" style="display:none;cursor:pointer" onclick="setTab('rewards')">
-      <div class="streak-row">
-        <span class="streak-emoji">🔥</span>
-        <div>
-          <p class="streak-title" id="streak-count-text">0 day streak</p>
-          <p class="streak-sub" data-i18n="streak_sub">Log something every day to keep it going</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="card add-panel" style="display:none">
-      <input type="radio" name="addmode" id="addmode-inc" class="addmode-radio" checked/>
-      <input type="radio" name="addmode" id="addmode-exp" class="addmode-radio"/>
-      <div class="seg-toggle" role="tablist" aria-label="Add entry">
-        <label for="addmode-inc" class="seg-option"><i class="ti ti-arrow-down-circle"></i><span data-i18n="sec_add_income">Add income</span></label>
-        <label for="addmode-exp" class="seg-option"><i class="ti ti-arrow-up-circle"></i><span data-i18n="sec_add_expense">Add expense</span></label>
-      </div>
-
-      <button type="button" class="rec-manage-btn" onclick="toggleRecurringSheet()">
-        <span class="rec-manage-main">🔁 Recurring expenses</span>
-        <span class="rec-manage-sub">rent · bills · subs — auto-logged</span>
-      </button>
-
-      <div class="add-form" id="income-add-form">
-      <div class="grid3">
-        <div>
-          <label data-i18n="lbl_source">Source</label>
-          <select id="inc-src" onchange="toggleAddCustomField('inc')">
-            <option value="Salary" data-hi="वेतन">Salary</option>
-            <option value="Allowance" data-hi="भत्ता">Allowance</option>
-            <option value="Rent received" data-hi="किराया प्राप्त">Rent received</option>
-            <option value="__add_new__" data-hi="स्रोत जोड़ें">+ Add Source</option>
-          </select>
-        </div>
-        <div>
-          <label data-i18n="lbl_amount">Amount (₹)</label>
-          <input type="number" id="inc-amt" placeholder="300" min="0.01" step="0.01"/>
-        </div>
-        <div>
-          <label data-i18n="lbl_date">Date</label>
-          <input type="date" id="inc-date"/>
-        </div>
-      </div>
-      <div style="margin:10px 0 6px;">
-        <label>Account / Wallet</label>
-        <select id="inc-wallet"></select>
-      </div>
-      <div id="inc-custom-wrap" style="display:none">
-        <label data-i18n="lbl_custom_source">New source name</label>
-        <input type="text" id="inc-custom" placeholder="e.g. Tuition income" maxlength="40" data-i18n-ph="ph_inc_custom"/>
-      </div>
-      <p id="inc-manage-link" class="manage-link" style="display:none"><a href="#" onclick="openManageOptions('income');return false;" data-i18n="lnk_manage_sources">Manage your custom sources</a></p>
-      <label data-i18n="lbl_note">Note (optional)</label>
-      <input type="text" id="inc-note" placeholder="e.g. Monthly allowance" maxlength="60" data-i18n-ph="ph_inc_note"/>
-      <div class="btn-row">
-        <button class="btn primary" id="add-income-btn" onclick="addIncome()"><i class="ti ti-plus"></i> <span id="inc-btn-label" data-i18n="btn_add_income">Add income</span></button>
-      </div>
-    </div>
-
-    <div class="add-form" id="expense-add-form">
-      <div class="grid3">
-        <div>
-          <label data-i18n="lbl_category">Category</label>
-          <select id="exp-cat" onchange="toggleAddCustomField('exp')">
-            <option value="food" data-hi="खाना और नाश्ता">Food & snacks</option>
-            <option value="travel" data-hi="यात्रा">Travel/Convenience</option>
-            <option value="friends" data-hi="दोस्त और सोशल">Friends & social</option>
-            <option value="home" data-hi="घर और बिल">Home & bills</option>
-            <option value="shopping" data-hi="शॉपिंग">Shopping</option>
-            <option value="entertainment" data-hi="मनोरंजन">Entertainment</option>
-            <option value="health" data-hi="स्वास्थ्य">Health</option>
-            <option value="education" data-hi="शिक्षा">Education</option>
-            <option value="work" data-hi="काम">Work</option>
-            <option value="__add_new__" data-hi="श्रेणी जोड़ें">+ Add Category</option>
-          </select>
-        </div>
-        <div>
-          <label data-i18n="lbl_amount">Amount (₹)</label>
-          <input type="number" id="exp-amt" placeholder="50" min="0.01" step="0.01"/>
-        </div>
-        <div>
-          <label data-i18n="lbl_date">Date</label>
-          <input type="date" id="exp-date"/>
-        </div>
-      </div>
-      <div style="margin:10px 0 6px;">
-        <label>Paid via / Wallet</label>
-        <select id="exp-wallet"></select>
-      </div>
-      <div id="exp-custom-wrap" style="display:none">
-        <label data-i18n="lbl_custom_category">New category name</label>
-        <input type="text" id="exp-custom" placeholder="e.g. Medical, Repairs" maxlength="40" data-i18n-ph="ph_exp_custom"/>
-      </div>
-      <p id="exp-manage-link" class="manage-link" style="display:none"><a href="#" onclick="openManageOptions('expense');return false;" data-i18n="lnk_manage_categories">Manage your custom categories</a></p>
-      <label data-i18n="lbl_desc">Description (optional)</label>
-      <input type="text" id="exp-desc" placeholder="e.g. Samosa at school, Auto to market..." maxlength="60" data-i18n-ph="ph_exp_desc"/>
-      <div class="btn-row">
-        <button class="btn primary" id="add-expense-btn" onclick="addExpense()"><i class="ti ti-plus"></i> <span id="exp-btn-label" data-i18n="btn_add_expense">Add expense</span></button>
-        <button class="btn" id="cancel-edit-btn" style="display:none" onclick="cancelEdit()"><i class="ti ti-x"></i> <span data-i18n="btn_cancel_edit">Cancel edit</span></button>
-      </div>
-    </div>
-    </div>
-
+    <!-- 3. Contextual Smart Nudge (ONLY ONE) -->
+    <div id="home-contextual-nudge" style="margin-top:14px;"></div>
   </div>
 
   <div id="tab-entries" style="display:none">
@@ -481,11 +317,15 @@
       <div id="budget-editor"></div>
     </div>
 
+    <div id="home-daily-burn-slot" style="margin-bottom:1.1rem"></div>
+
     <div class="card">
       <p class="sec-title"><i class="ti ti-chart-pie"></i><span data-i18n="sec_cat">Spending by category</span></p>
       <div id="cat-pie-wrap" class="pie-wrap"></div>
       <div id="cat-breakdown"></div>
     </div>
+
+    <div id="home-dna-slot" style="margin-bottom:1.1rem"></div>
 
     <div class="card">
       <p class="sec-title"><i class="ti ti-history"></i><span data-i18n="sec_full">Full breakdown</span></p>
@@ -499,209 +339,195 @@
     </div>
   </div>
 
-  <div id="tab-events" style="display:none">
-    <!-- EVENTS LIST VIEW -->
-    <div id="events-list-view">
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-          <p class="sec-title" style="margin:0"><i class="ti ti-calendar-event"></i><span data-i18n="sec_your_events">Your events</span></p>
-          <button class="btn primary btn-sm" onclick="toggleAddEventForm()"><i class="ti ti-plus"></i> <span data-i18n="btn_add_event">Add event</span></button>
-        </div>
-        <p class="events-desc" data-i18n="events_desc">Track a birthday, wedding, trip or any occasion as its own mini ledger — with its own log, entries and totals.</p>
-      </div>
-
-      <div class="card" id="add-event-form" style="display:none">
-        <p class="sec-title" id="event-form-title"><i class="ti ti-sparkles"></i><span data-i18n="sec_create_event">Create a new event</span></p>
-        <div class="grid3">
-          <div>
-            <label data-i18n="lbl_event_type">Event type</label>
-            <select id="new-event-type">
-              <option value="Birthday" data-hi="🎂 जन्मदिन">🎂 Birthday</option>
-              <option value="Wedding" data-hi="💍 शादी">💍 Wedding</option>
-              <option value="Trip" data-hi="✈️ यात्रा">✈️ Trip</option>
-              <option value="Festival" data-hi="🎆 त्योहार">🎆 Festival</option>
-              <option value="Party" data-hi="🎉 पार्टी">🎉 Party</option>
-              <option value="Other">📌 Other</option>
-            </select>
-          </div>
-          <div style="grid-column:span 2">
-            <label data-i18n="lbl_event_name">Event name</label>
-            <input type="text" id="new-event-name" placeholder="e.g. Riya's Birthday Bash" maxlength="40" data-i18n-ph="ph_event_name"/>
-          </div>
-        </div>
-        <div class="grid3">
-          <div>
-            <label data-i18n="lbl_from">From</label>
-            <input type="date" id="new-event-from"/>
-          </div>
-          <div>
-            <label data-i18n="lbl_till">Till</label>
-            <input type="date" id="new-event-till"/>
-          </div>
-        </div>
-        <label data-i18n="lbl_desc_opt">Description (optional)</label>
-        <input type="text" id="new-event-desc" placeholder="e.g. Turning 16, small get-together at home" maxlength="100" data-i18n-ph="ph_event_desc"/>
-        <div class="btn-row">
-          <button class="btn primary" id="event-form-submit-btn" onclick="createNewEvent()"><i class="ti ti-check"></i> <span data-i18n="btn_create_event">Create event</span></button>
-          <button class="btn" onclick="toggleAddEventForm()" data-i18n="btn_cancel">Cancel</button>
-        </div>
-      </div>
-
-      <div id="events-list"></div>
+  <!-- TAB: LEDGER (Person Ledgers + Events Mini-Ledgers) -->
+  <div id="tab-ledger" style="display:none" class="tab-content">
+    <div class="split-toggle" id="ledger-subview-toggle" style="display:flex;gap:6px;background:rgba(255,255,255,0.06);padding:4px;border-radius:14px;margin-bottom:14px;border:1px solid rgba(255,255,255,0.1);">
+      <button class="btn btn-sm active" id="ledger-sub-people-btn" onclick="switchLedgerSubView('people')" style="flex:1;border-radius:10px;padding:8px 6px;font-size:12px;font-weight:600;"><i class="ti ti-users"></i> <span data-i18n="nav_ledger">Person Ledgers</span></button>
+      <button class="btn btn-sm" id="ledger-sub-events-btn" onclick="switchLedgerSubView('events')" style="flex:1;border-radius:10px;padding:8px 6px;font-size:12px;font-weight:600;"><i class="ti ti-calendar-event"></i> <span data-i18n="sec_your_events">Events & Trips</span></button>
     </div>
 
-    <!-- EVENT DETAIL VIEW (mini app inside app) -->
-    <div id="event-detail-view" style="display:none">
-      <button class="btn" style="margin-bottom:12px" onclick="backToEventsList()"><i class="ti ti-arrow-left"></i> Back to events</button>
-
-      <div class="card">
-        <p class="sec-title" id="event-detail-title" style="margin-bottom:2px"></p>
-        <p id="event-detail-desc" class="event-detail-desc"></p>
+    <!-- SUBVIEW 1: PERSON LEDGERS -->
+    <div id="ledger-people-subview">
+      <div class="tab-head" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <h2 class="sec-title" style="margin:0"><i class="ti ti-notebook"></i> <span data-i18n="nav_ledger">Ledger Accounts</span></h2>
+        <button class="btn primary btn-sm" onclick="showAddPersonModal()"><i class="ti ti-plus"></i> <span data-i18n="btn_add_person">Add Person</span></button>
       </div>
-
-      <div class="stat-pills">
-        <div class="stat-pill"><span class="stat-pill-label" data-i18n="stat_income">Income</span><span class="stat-pill-val green" id="ev-income">₹0</span></div>
-        <div class="stat-pill"><span class="stat-pill-label" data-i18n="stat_spent">Spent</span><span class="stat-pill-val red" id="ev-spent">₹0</span></div>
-        <div class="stat-pill"><span class="stat-pill-label" data-i18n="stat_balance">Balance</span><span class="stat-pill-val amber" id="ev-balance">₹0</span></div>
-        <div class="stat-pill"><span class="stat-pill-label" data-i18n="stat_entries">Entries</span><span class="stat-pill-val" id="ev-count">0</span></div>
-      </div>
-
-      <!-- PARTICIPANTS MANAGEMENT -->
-      <div class="card">
-        <p class="sec-title"><i class="ti ti-users"></i><span data-i18n="sec_participants">Participants</span></p>
-        <p class="participants-desc" data-i18n="participants_desc">Add your friends to split shared expenses and track who owes whom.</p>
-        <div id="participants-tags-display" style="margin-bottom:10px"></div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <div style="flex:1">
-            <input type="text" id="new-participant-name" placeholder="Friend's name" maxlength="20"/>
+      <div class="card ledger-hero">
+        <div class="grid2">
+          <div class="metric">
+            <div class="metric-label" data-i18n="ledger_total_owed_to_you">Total Owed to You</div>
+            <div class="metric-val green" id="ledger-total-owed">₹0</div>
           </div>
-          <button class="btn" onclick="addParticipant()" style="white-space:nowrap"><i class="ti ti-plus"></i> <span data-i18n="btn_add">Add</span></button>
-        </div>
-        <p id="manage-participants-link" style="display:none;font-size:12px;margin:8px 0 0"><a href="#" onclick="openManageParticipants();return false;" style="color:var(--accent);text-decoration:none" data-i18n="lnk_manage_participants">Manage your participants</a></p>
-      </div>
-
-      <!-- PARTICIPANTS MANAGE MODAL -->
-      <div id="manage-participants-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:899;align-items:center;justify-content:center;padding:20px">
-        <div style="width:100%;max-width:380px;max-height:80vh;overflow-y:auto;background:var(--card-solid,#1f1840);border:1px solid var(--border);border-radius:18px;padding:22px;box-shadow:0 20px 50px rgba(0,0,0,0.5)">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-            <p style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:16px;margin:0" data-i18n="manage_participants_title">Manage participants</p>
-            <button class="icon-btn" onclick="closeManageParticipants()" aria-label="close">✕</button>
-          </div>
-          <div id="manage-participants-list"></div>
-        </div>
-      </div>
-
-      <!-- SETTLEMENT SECTION -->
-      <div class="card" id="settlement-section" style="display:none">
-        <p class="sec-title"><i class="ti ti-arrows-exchange"></i><span data-i18n="sec_settlement">Settlement</span></p>
-        <p style="font-size:12px;color:var(--text-dim);margin:0 0 10px" data-i18n="settlement_desc">Smart calculation — minimizes the number of payments needed.</p>
-        <div id="settlement-balances"></div>
-        <div id="settlement-transfers"></div>
-        <div id="settlement-settled" style="display:none;text-align:center;padding:16px;color:var(--green)">
-          <p style="font-size:28px;margin:0">✅</p>
-          <p style="font-size:13px;margin:4px 0 0" data-i18n="all_settled">All settled up!</p>
-        </div>
-      </div>
-
-      <!-- SHARED EXPENSE TOGGLE (inside existing expense form) -->
-      <div class="card">
-        <p class="sec-title"><i class="ti ti-cash"></i><span data-i18n="sec_add_income_event">Add income to this event</span></p>
-        <div class="split-toggle" id="income-type-toggle">
-          <button class="active" onclick="setIncomeType('personal')" id="inc-type-personal">🧑 <span data-i18n="exp_type_personal">Personal</span></button>
-          <button onclick="setIncomeType('shared')" id="inc-type-shared">👥 <span data-i18n="exp_type_shared">Shared / Split</span></button>
-        </div>
-        <!-- SHARED INCOME FIELDS (hidden by default) -->
-        <div id="shared-income-fields" style="display:none">
-          <label data-i18n="lbl_received_by">Received by</label>
-          <select id="ev-inc-received-by"></select>
-          <label data-i18n="lbl_split_among">Split among</label>
-          <div id="ev-inc-split-among" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px"></div>
-        </div>
-        <div class="grid3">
-          <div>
-            <label data-i18n="lbl_source">Source</label>
-            <select id="ev-inc-src" onchange="toggleAddCustomField('ev-inc')">
-              <option value="Cash gift" data-hi="नकद उपहार">Cash gift</option>
-              <option value="Contribution" data-hi="योगदान">Contribution</option>
-              <option value="__add_new__" data-hi="स्रोत जोड़ें">+ Add Source</option>
-            </select>
-          </div>
-          <div>
-            <label data-i18n="lbl_amount">Amount (₹)</label>
-            <input type="number" id="ev-inc-amt" placeholder="500" min="0.01" step="0.01"/>
-          </div>
-          <div>
-            <label data-i18n="lbl_date">Date</label>
-            <input type="date" id="ev-inc-date"/>
+          <div class="metric">
+            <div class="metric-label" data-i18n="ledger_total_you_owe">You Owe</div>
+            <div class="metric-val red" id="ledger-total-owe">₹0</div>
           </div>
         </div>
-        <div id="ev-inc-custom-wrap" style="display:none">
-          <label data-i18n="lbl_custom_source">New source name</label>
-          <input type="text" id="ev-inc-custom" placeholder="e.g. Envelope gift" maxlength="40" data-i18n-ph="ph_ev_inc_custom"/>
+      </div>
+      <div id="ledger-people-list"></div>
+    </div>
+
+    <!-- SUBVIEW 2: EVENTS & GROUP TRIPS -->
+    <div id="ledger-events-subview" style="display:none">
+      <div id="events-list-view">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <p class="sec-title" style="margin:0"><i class="ti ti-calendar-event"></i><span data-i18n="sec_your_events">Your events</span></p>
+            <button class="btn primary btn-sm" onclick="toggleAddEventForm()"><i class="ti ti-plus"></i> <span data-i18n="btn_add_event">Add event</span></button>
+          </div>
+          <p class="events-desc" data-i18n="events_desc">Track a birthday, wedding, trip or any occasion as its own mini ledger — with its own log, entries and totals.</p>
         </div>
-        <label data-i18n="lbl_note">Note (optional)</label>
-        <input type="text" id="ev-inc-note" placeholder="e.g. From Grandma" maxlength="60" data-i18n-ph="ph_ev_inc_note"/>
+
+        <div class="card" id="add-event-form" style="display:none">
+          <p class="sec-title" id="event-form-title"><i class="ti ti-sparkles"></i><span data-i18n="sec_create_event">Create a new event</span></p>
+          <div class="grid3">
+            <div>
+              <label data-i18n="lbl_event_type">Event type</label>
+              <select id="new-event-type">
+                <option value="Birthday" data-hi="🎂 जन्मदिन">🎂 Birthday</option>
+                <option value="Wedding" data-hi="💍 शादी">💍 Wedding</option>
+                <option value="Trip" data-hi="✈️ यात्रा">✈️ Trip</option>
+                <option value="Festival" data-hi="🎆 त्योहार">🎆 Festival</option>
+                <option value="Party" data-hi="🎉 पार्टी">🎉 Party</option>
+                <option value="Other">📌 Other</option>
+              </select>
+            </div>
+            <div style="grid-column:span 2">
+              <label data-i18n="lbl_event_name">Event name</label>
+              <input type="text" id="new-event-name" placeholder="e.g. Riya's Birthday Bash" maxlength="40" data-i18n-ph="ph_event_name"/>
+            </div>
+          </div>
+          <div class="grid3">
+            <div>
+              <label data-i18n="lbl_from">From</label>
+              <input type="date" id="new-event-from"/>
+            </div>
+            <div>
+              <label data-i18n="lbl_till">Till</label>
+              <input type="date" id="new-event-till"/>
+            </div>
+          </div>
+          <label data-i18n="lbl_desc_opt">Description (optional)</label>
+          <input type="text" id="new-event-desc" placeholder="e.g. Turning 16, small get-together at home" maxlength="100" data-i18n-ph="ph_event_desc"/>
+          <div class="btn-row">
+            <button class="btn primary" id="event-form-submit-btn" onclick="createNewEvent()"><i class="ti ti-check"></i> <span data-i18n="btn_create_event">Create event</span></button>
+            <button class="btn" onclick="toggleAddEventForm()" data-i18n="btn_cancel">Cancel</button>
+          </div>
+        </div>
+
+        <div id="events-list"></div>
+      </div>
+
+      <!-- EVENT DETAIL VIEW -->
+      <div id="event-detail-view" style="display:none">
+        <button class="btn" style="margin-bottom:12px" onclick="backToEventsList()"><i class="ti ti-arrow-left"></i> Back to events</button>
+
+        <div class="card">
+          <p class="sec-title" id="event-detail-title" style="margin-bottom:2px"></p>
+          <p id="event-detail-desc" class="event-detail-desc"></p>
+        </div>
+
+        <div class="stat-pills">
+          <div class="stat-pill"><span class="stat-pill-label" data-i18n="stat_income">Income</span><span class="stat-pill-val green" id="ev-income">₹0</span></div>
+          <div class="stat-pill"><span class="stat-pill-label" data-i18n="stat_spent">Spent</span><span class="stat-pill-val red" id="ev-spent">₹0</span></div>
+          <div class="stat-pill"><span class="stat-pill-label" data-i18n="stat_balance">Balance</span><span class="stat-pill-val amber" id="ev-balance">₹0</span></div>
+          <div class="stat-pill"><span class="stat-pill-label" data-i18n="stat_entries">Entries</span><span class="stat-pill-val" id="ev-count">0</span></div>
+        </div>
+
+        <!-- PARTICIPANTS MANAGEMENT -->
+        <div class="card">
+          <p class="sec-title"><i class="ti ti-users"></i><span data-i18n="sec_participants">Participants</span></p>
+          <p class="participants-desc" data-i18n="participants_desc">Add your friends to split shared expenses and track who owes whom.</p>
+          <div id="participants-tags-display" style="margin-bottom:10px"></div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <div style="flex:1">
+              <input type="text" id="new-participant-name" placeholder="Friend's name" maxlength="20"/>
+            </div>
+            <button class="btn" onclick="addParticipant()" style="white-space:nowrap"><i class="ti ti-plus"></i> <span data-i18n="btn_add">Add</span></button>
+          </div>
+          <p id="manage-participants-link" style="display:none;font-size:12px;margin:8px 0 0"><a href="#" onclick="openManageParticipants();return false;" style="color:var(--accent);text-decoration:none" data-i18n="lnk_manage_participants">Manage your participants</a></p>
+        </div>
+
+        <!-- SETTLEMENT SECTION -->
+        <div class="card" id="settlement-section" style="display:none">
+          <p class="sec-title"><i class="ti ti-arrows-exchange"></i><span data-i18n="sec_settlement">Settlement</span></p>
+          <p style="font-size:12px;color:var(--text-dim);margin:0 0 10px" data-i18n="settlement_desc">Smart calculation — minimizes the number of payments needed.</p>
+          <div id="settlement-balances"></div>
+          <div id="settlement-transfers"></div>
+          <div id="settlement-settled" style="display:none;text-align:center;padding:16px;color:var(--green)">
+            <p style="font-size:28px;margin:0">✅</p>
+            <p style="font-size:13px;margin:4px 0 0" data-i18n="all_settled">All settled up!</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <p class="sec-title"><i class="ti ti-receipt"></i><span data-i18n="sec_add_income_event">Add income to this event</span></p>
+          <div class="grid3">
+            <div>
+              <label data-i18n="lbl_source">Source</label>
+              <select id="ev-inc-src">
+                <option value="Cash gift" data-hi="नकद उपहार">Cash gift</option>
+                <option value="Contribution" data-hi="योगदान">Contribution</option>
+              </select>
+            </div>
+            <div>
+              <label data-i18n="lbl_amount">Amount (₹)</label>
+              <input type="number" id="ev-inc-amt" placeholder="500" min="0.01" step="0.01"/>
+            </div>
+            <div>
+              <label data-i18n="lbl_date">Date</label>
+              <input type="date" id="ev-inc-date"/>
+            </div>
+          </div>
+          <label data-i18n="lbl_note">Note (optional)</label>
+          <input type="text" id="ev-inc-note" placeholder="e.g. From Grandma" maxlength="60"/>
+          <div class="btn-row">
+            <button class="btn primary" onclick="addEventIncome()"><i class="ti ti-plus"></i> <span>Add income</span></button>
+          </div>
+        </div>
+
+        <div class="card">
+          <p class="sec-title"><i class="ti ti-receipt"></i><span data-i18n="sec_add_expense_event">Add expense to this event</span></p>
+          <div class="grid3">
+            <div>
+              <label data-i18n="lbl_category">Category</label>
+              <select id="ev-exp-cat">
+                <option value="food" data-hi="खाना और खानपान">Food & catering</option>
+                <option value="travel">Travel</option>
+                <option value="friends" data-hi="सजावट/दोस्त">Decor / friends</option>
+                <option value="home" data-hi="स्थान/घर">Venue / home</option>
+              </select>
+            </div>
+            <div>
+              <label data-i18n="lbl_amount">Amount (₹)</label>
+              <input type="number" id="ev-exp-amt" placeholder="500" min="0.01" step="0.01"/>
+            </div>
+            <div>
+              <label data-i18n="lbl_date">Date</label>
+              <input type="date" id="ev-exp-date"/>
+            </div>
+          </div>
+          <label data-i18n="lbl_desc">Description (optional)</label>
+          <input type="text" id="ev-exp-desc" placeholder="e.g. Cake order..." maxlength="60"/>
+          <div class="btn-row">
+            <button class="btn primary" onclick="addEventExpense()"><i class="ti ti-plus"></i> <span>Add expense</span></button>
+          </div>
+        </div>
+
+        <div class="card">
+          <p class="sec-title"><i class="ti ti-list"></i><span data-i18n="sec_entries_event">Entries for this event</span></p>
+          <div id="event-entries-list"></div>
+        </div>
+
         <div class="btn-row">
-          <button class="btn primary" onclick="addEventIncome()"><i class="ti ti-plus"></i> <span id="ev-inc-submit-btn" data-i18n="btn_add_income">Add income</span></button>
+          <button class="btn" onclick="editCurrentEventFromDetail()">✏️ <span data-i18n="btn_edit_event">Edit event</span></button>
+          <button class="btn danger" onclick="deleteCurrentEvent()">🗑️ <span data-i18n="btn_delete_event">Delete this event</span></button>
         </div>
-      </div>
-
-      <div class="card">
-        <p class="sec-title"><i class="ti ti-receipt"></i><span data-i18n="sec_add_expense_event">Add expense to this event</span></p>
-        <div class="split-toggle" id="expense-type-toggle">
-          <button class="active" onclick="setExpenseType('personal')" id="exp-type-personal">🧑 <span data-i18n="exp_type_personal">Personal</span></button>
-          <button onclick="setExpenseType('shared')" id="exp-type-shared">👥 <span data-i18n="exp_type_shared">Shared / Split</span></button>
-        </div>
-        <!-- SHARED EXPENSE FIELDS (hidden by default) -->
-        <div id="shared-expense-fields" style="display:none">
-          <label data-i18n="lbl_paid_by">Paid by</label>
-          <select id="ev-exp-paid-by"></select>
-          <label data-i18n="lbl_split_among">Split among</label>
-          <div id="ev-exp-split-among" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px"></div>
-        </div>
-        <div class="grid3">
-          <div>
-            <label data-i18n="lbl_category">Category</label>
-            <select id="ev-exp-cat" onchange="toggleAddCustomField('ev-exp')">
-              <option value="food" data-hi="खाना और खानपान">Food & catering</option>
-              <option value="travel">Travel</option>
-              <option value="friends" data-hi="सजावट/दोस्त">Decor / friends</option>
-              <option value="home" data-hi="स्थान/घर">Venue / home</option>
-              <option value="__add_new__" data-hi="श्रेणी जोड़ें">+ Add Category</option>
-            </select>
-          </div>
-          <div>
-            <label data-i18n="lbl_amount">Amount (₹)</label>
-            <input type="number" id="ev-exp-amt" placeholder="500" min="0.01" step="0.01"/>
-          </div>
-          <div>
-            <label data-i18n="lbl_date">Date</label>
-            <input type="date" id="ev-exp-date"/>
-          </div>
-        </div>
-        <div id="ev-exp-custom-wrap" style="display:none">
-          <label data-i18n="lbl_custom_category">New category name</label>
-          <input type="text" id="ev-exp-custom" placeholder="e.g. Photography, Gifts" maxlength="40" data-i18n-ph="ph_ev_exp_custom"/>
-        </div>
-        <label data-i18n="lbl_desc">Description (optional)</label>
-        <input type="text" id="ev-exp-desc" placeholder="e.g. Cake order, Decorations..." maxlength="60" data-i18n-ph="ph_ev_exp_desc"/>
-        <div class="btn-row">
-          <button class="btn primary" onclick="addEventExpense()"><i class="ti ti-plus"></i> <span id="ev-exp-submit-btn" data-i18n="btn_add_expense">Add expense</span></button>
-        </div>
-      </div>
-
-      <div class="card">
-        <p class="sec-title"><i class="ti ti-list"></i><span data-i18n="sec_entries_event">Entries for this event</span></p>
-        <div id="event-entries-list"></div>
-      </div>
-
-      <div class="btn-row">
-        <button class="btn" onclick="editCurrentEventFromDetail()">✏️ <span data-i18n="btn_edit_event">Edit event</span></button>
-        <button class="btn danger" onclick="deleteCurrentEvent()">🗑️ <span data-i18n="btn_delete_event">Delete this event</span></button>
       </div>
     </div>
   </div>
 
+  <!-- TAB: REWARDS (also accessible from Hub) -->
   <div id="tab-rewards" style="display:none">
     <div class="card" style="background:linear-gradient(135deg,rgba(255,184,77,0.16),rgba(155,107,255,0.10));border-color:rgba(255,184,77,0.35);text-align:center;padding:24px 16px">
       <p style="font-size:12px;color:var(--text-dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px" data-i18n="rewards_your_points">Your points</p>
@@ -722,40 +548,16 @@
       <p class="sec-title"><i class="ti ti-award"></i><span data-i18n="rewards_badges">Your badges</span></p>
       <div id="rewards-badges-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px"></div>
     </div>
-
-    <div class="card">
-      <p class="sec-title"><i class="ti ti-info-circle"></i><span data-i18n="rewards_how_title">How it works</span></p>
-      <p style="font-size:12.5px;color:var(--text-dim);line-height:1.6" data-i18n="rewards_how_desc">Log at least one income or expense on a day to keep your streak alive and earn points. The longer your streak, the more badges you unlock. Points and badges aren't real money — they're yours to show off, unlock fun app themes, and prove you're actually on top of your money.</p>
-    </div>
   </div>
 
+  <!-- TAB: UPI SMART LOGGER -->
   <div id="tab-upi" style="display:none">
     <div class="card sl-hero">
       <div class="sl-head">
         <p class="sec-title" style="margin:0"><i class="ti ti-clipboard"></i> <span data-i18n="sec_smart_logger">Smart Logger</span></p>
         <span class="exp-badge" style="background:var(--green-soft);color:var(--green);border-color:rgba(74,222,128,0.3)">⚡ New</span>
       </div>
-      <p class="sl-desc" data-i18n="smart_logger_desc"><span data-i18n="smart_logger_desc">Copy any UPI payment notification and paste it here. PocketTrack auto-detects the amount, merchant, and type — no manual typing needed!</span></p>
-    </div>
-    <div class="card">
-      <p class="sec-title"><i class="ti ti-player-play"></i><span data-i18n="smart_logger_how"> How it works</span></p>
-      <div class="steps-row">
-        <div class="step-card">
-          <div class="step-icon">📱</div>
-          <p class="step-title" data-i18n="step_copy">1. Copy notification</p>
-          <p class="step-desc" data-i18n="step_copy_desc">Long-press any UPI text and copy</p>
-        </div>
-        <div class="step-card">
-          <div class="step-icon">📋</div>
-          <p class="step-title" data-i18n="step_paste">2. Paste here</p>
-          <p class="step-desc" data-i18n="step_paste_desc">Paste the text in the box below</p>
-        </div>
-        <div class="step-card">
-          <div class="step-icon">✅</div>
-          <p class="step-title" data-i18n="step_log">3. Auto-logged!</p>
-          <p class="step-desc" data-i18n="step_log_desc">Confirm and it's saved instantly</p>
-        </div>
-      </div>
+      <p class="sl-desc"><span data-i18n="smart_logger_desc">Copy any UPI payment notification and paste it here. PocketTrack auto-detects the amount, merchant, and type!</span></p>
     </div>
     <div class="card">
       <p class="sec-title"><i class="ti ti-clipboard"></i><span data-i18n="smart_logger_paste"> Paste UPI notification</span></p>
@@ -770,112 +572,106 @@
         <div class="parsed-head">
           <span id="smart-log-direction-badge" class="smart-log-badge sent">📤 Sent</span>
           <span id="smart-log-app-badge" class="parsed-app"></span>
-          <div id="smart-log-type-toggle" class="split-toggle parsed-toggle">
-            <button class="active" onclick="setSmartLogType('expense')" id="smart-log-type-exp">📤 <span data-i18n="btn_add_expense">Expense</span></button>
-            <button onclick="setSmartLogType('income')" id="smart-log-type-inc">📥 <span data-i18n="btn_add_income">Income</span></button>
-          </div>
         </div>
         <div class="grid3">
           <div><label data-i18n="lbl_amount">Amount (₹)</label><input type="number" id="smart-log-amt" min="0.01" step="0.01"/></div>
-          <div><label data-i18n="lbl_category">Category</label><select id="smart-log-cat"></select>
-            <div id="smart-log-custom-wrap" style="display:none;margin-top:6px">
-              <input type="text" id="smart-log-custom-cat" placeholder="New category name" maxlength="40" data-i18n-ph="ph_sl_custom_cat"/>
-            </div>
-          </div>
+          <div><label data-i18n="lbl_category">Category</label><select id="smart-log-cat"></select></div>
           <div><label data-i18n="lbl_date">Date</label><input type="date" id="smart-log-date"/></div>
         </div>
         <label data-i18n="lbl_desc">Description</label>
-        <input type="text" id="smart-log-desc" placeholder="Merchant or note" maxlength="60" data-i18n-ph="ph_sl_desc"/>
+        <input type="text" id="smart-log-desc" placeholder="Merchant or note" maxlength="60"/>
         <div class="btn-row" style="margin-top:12px">
           <button class="btn primary" onclick="confirmSmartLog()"><i class="ti ti-check"></i> <span data-i18n="btn_confirm_log">Confirm &amp; save</span></button>
           <button class="btn" onclick="dismissSmartLog()"><i class="ti ti-x"></i> <span data-i18n="btn_dismiss">Dismiss</span></button>
         </div>
       </div>
     </div>
-    <div class="card">
-      <p class="sec-title"><i class="ti ti-device-mobile"></i><span data-i18n="smart_logger_supported"> Supported apps</span></p>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <div style="display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 8px;border-radius:12px;border:1px solid rgba(74,222,128,0.3);background:rgba(74,222,128,0.07)"><span style="font-size:15px">📱</span><span style="font-size:11.5px;font-weight:700;color:#4ade80">Google Pay</span></div>
-        <div style="display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 8px;border-radius:12px;border:1px solid rgba(74,222,128,0.3);background:rgba(74,222,128,0.07)"><span style="font-size:15px">📱</span><span style="font-size:11.5px;font-weight:700;color:#4ade80">PhonePe</span></div>
-        <div style="display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 8px;border-radius:12px;border:1px solid rgba(74,222,128,0.3);background:rgba(74,222,128,0.07)"><span style="font-size:15px">📱</span><span style="font-size:11.5px;font-weight:700;color:#4ade80">Paytm</span></div>
-        <div style="display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 8px;border-radius:12px;border:1px solid rgba(74,222,128,0.3);background:rgba(74,222,128,0.07)"><span style="font-size:15px">📱</span><span style="font-size:11.5px;font-weight:700;color:#4ade80">BHIM</span></div>
-        <div style="display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 8px;border-radius:12px;border:1px solid rgba(74,222,128,0.3);background:rgba(74,222,128,0.07)"><span style="font-size:15px">📱</span><span style="font-size:11.5px;font-weight:700;color:#4ade80">Amazon Pay</span></div>
-        <div style="display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 8px;border-radius:12px;border:1px solid rgba(74,222,128,0.3);background:rgba(74,222,128,0.07)"><span style="font-size:15px">📱</span><span style="font-size:11.5px;font-weight:700;color:#4ade80">CRED</span></div>
-      </div>
-      <p style="font-size:11px;color:var(--text-faint);margin-top:10px"><span data-i18n="smart_logger_supported_desc">Works with any app that sends a payment notification. Just copy the notification text and paste it!</span></p>
-    </div>
-    <div class="card">
-      <p class="sec-title"><i class="ti ti-history"></i><span data-i18n="smart_logger_recent"> Recent smart logs</span></p>
-      <div id="smart-log-history"><p class="empty"><span data-i18n="smart_logger_no_logs">No smart logs yet. Paste a notification to get started!</span></p></div>
-    </div>
   </div>
 
+  <!-- TAB: LANGUAGE -->
   <div id="tab-language" style="display:none">
     <div class="card">
       <p class="sec-title"><i class="ti ti-language"></i><span data-i18n="sec_language">Language</span></p>
       <p style="font-size:12.5px;color:var(--text-dim);margin:2px 0 14px" data-i18n="lang_desc">Choose the language you'd like to use throughout the app.</p>
       <div style="display:flex;flex-direction:column;gap:10px">
-        <button class="lang-option-btn" id="lang-opt-en" onclick="setLanguage('en')">
-          <span>🇬🇧 English</span>
-          <span class="lang-check">✓</span>
-        </button>
-        <button class="lang-option-btn" id="lang-opt-hi" onclick="setLanguage('hi')">
-          <span>🇮🇳 हिंदी (Hindi)</span>
-          <span class="lang-check">✓</span>
-        </button>
-        <button class="lang-option-btn" id="lang-opt-hinglish" onclick="setLanguage('hinglish')">
-          <span>🇮🇳 हिंग्लिश (Hinglish)</span>
-          <span class="lang-check">✓</span>
-        </button>
-        <button class="lang-option-btn" id="lang-opt-mr" onclick="setLanguage('mr')">
-          <span>🇮🇳 मराठी (Marathi)</span>
-          <span class="lang-check">✓</span>
-        </button>
-        <button class="lang-option-btn" id="lang-opt-ta" onclick="setLanguage('ta')">
-          <span>🇮🇳 தமிழ் (Tamil)</span>
-          <span class="lang-check">✓</span>
-        </button>
-        <button class="lang-option-btn" id="lang-opt-te" onclick="setLanguage('te')">
-          <span>🇮🇳 తెలుగు (Telugu)</span>
-          <span class="lang-check">✓</span>
-        </button>
-        <button class="lang-option-btn" id="lang-opt-gu" onclick="setLanguage('gu')">
-          <span>🇮🇳 ગુજરાતી (Gujarati)</span>
-          <span class="lang-check">✓</span>
-        </button>
-        <button class="lang-option-btn" id="lang-opt-bn" onclick="setLanguage('bn')">
-          <span>🇮🇳 বাংলা (Bengali)</span>
-          <span class="lang-check">✓</span>
-        </button>
+        <button class="lang-option-btn" id="lang-opt-en" onclick="setLanguage('en')"><span>🇬🇧 English</span><span class="lang-check">✓</span></button>
+        <button class="lang-option-btn" id="lang-opt-hi" onclick="setLanguage('hi')"><span>🇮🇳 हिंदी (Hindi)</span><span class="lang-check">✓</span></button>
+        <button class="lang-option-btn" id="lang-opt-hinglish" onclick="setLanguage('hinglish')"><span>🇮🇳 हिंग्लिश (Hinglish)</span><span class="lang-check">✓</span></button>
+        <button class="lang-option-btn" id="lang-opt-mr" onclick="setLanguage('mr')"><span>🇮🇳 मराठी (Marathi)</span><span class="lang-check">✓</span></button>
+        <button class="lang-option-btn" id="lang-opt-ta" onclick="setLanguage('ta')"><span>🇮🇳 தமிழ் (Tamil)</span><span class="lang-check">✓</span></button>
+        <button class="lang-option-btn" id="lang-opt-te" onclick="setLanguage('te')"><span>🇮🇳 తెలుగు (Telugu)</span><span class="lang-check">✓</span></button>
+        <button class="lang-option-btn" id="lang-opt-gu" onclick="setLanguage('gu')"><span>🇮🇳 ગુજરાતી (Gujarati)</span><span class="lang-check">✓</span></button>
+        <button class="lang-option-btn" id="lang-opt-bn" onclick="setLanguage('bn')"><span>🇮🇳 বাংলা (Bengali)</span><span class="lang-check">✓</span></button>
       </div>
     </div>
   </div>
 
+  <!-- TAB: PRO & THEMES -->
   <div id="tab-pro" style="display:none">
     <h2 class="sec-title pro-tab-head"><i class="ti ti-crown"></i> <span data-i18n="pro_themes">Pro & Themes</span></h2>
     <div id="pro-content"></div>
   </div>
 
-  <div id="tab-ledger" style="display:none" class="tab-content">
-    <div class="tab-head">
-      <h2 class="sec-title"><i class="ti ti-notebook"></i> <span data-i18n="nav_ledger">Ledger</span></h2>
-      <button class="btn primary" onclick="showAddPersonModal()"><i class="ti ti-plus"></i> <span data-i18n="btn_add_person">Add Person</span></button>
+  <!-- TAB: HUB (Main 5th Destination) -->
+  <div id="tab-hub" style="display:none" class="tab-content">
+    <div class="tab-head" style="margin-bottom:12px;">
+      <h2 class="sec-title"><i class="ti ti-layout-grid"></i> <span data-i18n="nav_hub">Financial Hub &amp; Tools</span></h2>
     </div>
-    <div class="card ledger-hero">
-      <div class="grid2">
-        <div class="metric">
-          <div class="metric-label" data-i18n="ledger_total_owed_to_you">Total Owed to You</div>
-          <div class="metric-val green" id="ledger-total-owed">₹0</div>
+
+    <!-- 1. Wallets & Accounts Management -->
+    <div class="card" id="hub-wallets-section" style="margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:7px;">
+          <span style="font-size:18px;">💳</span>
+          <strong style="font-size:14px;color:#fff;" data-i18n="lbl_account_filter">Wallets &amp; Accounts</strong>
         </div>
-        <div class="metric">
-          <div class="metric-label" data-i18n="ledger_total_you_owe">You Owe</div>
-          <div class="metric-val red" id="ledger-total-owe">₹0</div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-sm" onclick="openWalletTransferModal()"><i class="ti ti-arrows-left-right"></i> Transfer</button>
+          <button class="btn btn-sm primary" onclick="openWalletManagerModal()"><i class="ti ti-plus"></i> Manage</button>
         </div>
       </div>
+      <div class="wallet-switcher-bar" id="wallet-switcher-bar" style="margin:0;">
+        <div id="wallet-pills-list" style="display:inline-flex;gap:8px;"></div>
+      </div>
     </div>
-    <div id="ledger-people-list"></div>
-  </div>
 
+    <!-- 2. Goals & SIP Planner -->
+    <div id="home-goal-slot" style="margin-bottom:12px;"></div>
+
+    <!-- 3. Digital Chillar Vault -->
+    <div id="home-vault-slot" style="margin-bottom:12px;"></div>
+
+    <!-- 4. Financial Wrapped -->
+    <div id="home-wrapped-slot" style="margin-bottom:12px;"></div>
+
+    <!-- 5. Hub Shortcuts Grid -->
+    <div class="card" style="margin-bottom:12px;">
+      <p class="sec-title" style="margin-bottom:10px;"><i class="ti ti-sparkles"></i> More Power Features</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:10px;">
+        <button class="shortcut-btn-v2" onclick="setTab('rewards')" style="background:rgba(255,255,255,0.04);border:1px solid rgba(251,191,36,0.3);border-radius:14px;padding:12px 8px;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <span style="font-size:22px;">🏆</span>
+          <strong style="font-size:11.5px;">Rewards &amp; Streaks</strong>
+        </button>
+        <button class="shortcut-btn-v2" onclick="setTab('upi')" style="background:rgba(255,255,255,0.04);border:1px solid rgba(139,92,246,0.3);border-radius:14px;padding:12px 8px;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <span style="font-size:22px;">⚡</span>
+          <strong style="font-size:11.5px;">Smart UPI Logger</strong>
+        </button>
+        <button class="shortcut-btn-v2" onclick="setTab('pro')" style="background:rgba(236,72,153,0.08);border:1px solid rgba(236,72,153,0.35);border-radius:14px;padding:12px 8px;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <span style="font-size:22px;">👑</span>
+          <strong style="font-size:11.5px;color:#f472b6;">Pro &amp; Themes</strong>
+        </button>
+        <button class="shortcut-btn-v2" onclick="setTab('language')" style="background:rgba(255,255,255,0.04);border:1px solid rgba(52,211,153,0.3);border-radius:14px;padding:12px 8px;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <span style="font-size:22px;">🌐</span>
+          <strong style="font-size:11.5px;">Language</strong>
+        </button>
+      </div>
+    </div>
+
+    <!-- Account Actions -->
+    <div style="text-align:center;margin-top:16px;">
+      <button class="btn danger" onclick="logOut()" style="font-size:12px;padding:8px 18px;"><i class="ti ti-logout"></i> Sign Out</button>
+    </div>
+  </div>
 
   <div id="voice-fab" class="voice-fab" onclick="startVoiceRecognition()" title="Voice Expense Log">
     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -971,7 +767,7 @@
   <footer>PocketTrack · synced to the cloud · your data, your account</footer>
 </div>
 
-<!-- Bottom Tab Bar — floating pill, fixed to bottom, app-like -->
+<!-- Bottom Tab Bar — 5 tabs: Home, Entries, Ledger, Insights, Hub -->
 <div class="bottom-tab-bar" id="bottom-tab-bar">
   <button class="bottom-tab active" data-tab="log" onclick="setTab('log')" aria-label="Home">
     <i class="ti ti-home"></i>
@@ -979,17 +775,17 @@
   </button>
   <button class="bottom-tab" data-tab="entries" onclick="setTab('entries')" aria-label="Activity">
     <i class="ti ti-list"></i>
-    <span data-i18n="nav_activity">Activity</span>
+    <span data-i18n="nav_activity">Entries</span>
   </button>
-  <button class="bottom-tab bottom-add" data-tab="" onclick="openQuickComposer()" aria-label="Add transaction">
-    <span class="bottom-add-icon"><i class="ti ti-plus"></i></span>
-    <span data-i18n="nav_add">Add</span>
+  <button class="bottom-tab" data-tab="ledger" onclick="setTab('ledger')" aria-label="Ledger">
+    <i class="ti ti-notebook"></i>
+    <span data-i18n="nav_ledger">Ledger</span>
   </button>
   <button class="bottom-tab" data-tab="report" onclick="setTab('report')" aria-label="Insights">
     <i class="ti ti-chart-donut"></i>
     <span data-i18n="nav_insights">Insights</span>
   </button>
-  <button class="bottom-tab" data-tab="hub" onclick="goMoreHub()" aria-label="Command Hub">
+  <button class="bottom-tab" data-tab="hub" onclick="setTab('hub')" aria-label="Command Hub">
     <i class="ti ti-layout-grid"></i>
     <span data-i18n="nav_hub">Hub</span>
   </button>

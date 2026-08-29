@@ -1340,128 +1340,12 @@ body[data-theme="midnight"]{
    Glass = chrome ONLY. Gradient = hero + primary CTA ONLY. Data = solid.
    ===================================================================== */
 
-/* --- Hero balance card (the one flagship glass + gradient element) --- */
-.hero-card{
-  position:relative;overflow:hidden;
-  background:
-    radial-gradient(130% 170% at 12% -10%, rgba(139,92,246,0.60), transparent 55%),
-    radial-gradient(130% 170% at 105% 5%, rgba(255,126,179,0.50), transparent 55%),
-    linear-gradient(160deg, rgba(139,92,246,0.30), rgba(48,23,92,0.60));
-  border:1px solid rgba(255,255,255,0.22);
-  border-radius:var(--radius-lg);
-  padding:1.45rem 1.5rem 1.4rem;
-  margin-bottom:1.1rem;
-  box-shadow:0 18px 50px rgba(139,92,246,0.35), inset 0 1px 0 rgba(255,255,255,0.20);
-  display:flex;flex-direction:column;gap:4px;
-  -webkit-tap-highlight-color:transparent;
-}
-.hero-card::after{
-  content:'';position:absolute;right:-60px;top:-60px;width:180px;height:180px;border-radius:50%;
-  background:radial-gradient(circle, rgba(255,255,255,0.18), transparent 65%);
-  pointer-events:none;
-}
-.hero-top{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1}
-.hero-label{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;color:rgba(255,255,255,0.88)}
-.hero-chip{
-  width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  background:rgba(255,255,255,0.16);border:1px solid rgba(255,255,255,0.30);
-  color:#fff;font-size:17px;box-shadow:0 4px 12px rgba(0,0,0,0.2);
-}
-.hero-balance{
-  font-family:var(--heading);font-size:clamp(38px,10vw,52px);font-weight:700;
-  letter-spacing:-1.5px;color:#fff;line-height:1.02;margin:2px 0 0;
-  text-shadow:0 2px 22px rgba(0,0,0,0.28);
-  font-variant-numeric:tabular-nums;
-  position:relative;z-index:1;
-}
-
-/* Slim supporting stat row (income / spent / entries under the hero) */
-.stat-pills.slim-pills{gap:8px;margin-bottom:1.1rem}
-.stat-pills.slim-pills .stat-pill{padding:10px 12px;border-radius:14px;min-width:0}
-.stat-pills.slim-pills .stat-pill-val{font-size:15px}
-@media(max-width:480px){
-  .stat-pills.slim-pills{gap:6px}
-  .stat-pills.slim-pills .stat-pill{padding:8px 10px}
-  .stat-pills.slim-pills .stat-pill-val{font-size:13.5px}
-}
-
 /* --- Segmented Add form (income ⇄ expense, pure CSS, no JS) --- */
 .add-panel .seg-toggle{
   position:relative;display:flex;gap:4px;padding:4px;margin-bottom:16px;
   background:rgba(255,255,255,0.04);border:1px solid var(--border);
   border-radius:14px;
 }
-.addmode-radio{position:absolute;opacity:0;pointer-events:none;width:0;height:0}
-.seg-option{
-  flex:1;display:flex;align-items:center;justify-content:center;gap:7px;
-  padding:10px 6px;border-radius:10px;cursor:pointer;user-select:none;
-  font-family:var(--heading);font-size:13px;font-weight:600;color:var(--text-dim);
-  transition:background var(--dur) var(--ease), color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
-  -webkit-tap-highlight-color:transparent;
-}
-.seg-option i{font-size:16px}
-.seg-option:hover{color:var(--text)}
-#addmode-inc:checked ~ .seg-toggle .seg-option[for="addmode-inc"],
-#addmode-exp:checked ~ .seg-toggle .seg-option[for="addmode-exp"]{
-  /* gradient reserved here — the single active form toggle */
-  background:linear-gradient(135deg, var(--accent), var(--accent2));
-  color:#fff;box-shadow:0 6px 18px rgba(139,92,246,0.40);
-}
-.add-form{display:none}
-#addmode-inc:checked ~ #income-add-form,
-#addmode-exp:checked ~ #expense-add-form{display:block}
-
-/* --- Home shortcut icons: monochrome Tabler, accented (not emoji soup) --- */
-.shortcut-icon{color:var(--accent2);filter:drop-shadow(0 3px 8px rgba(139,92,246,0.35))}
-.shortcut-logout .shortcut-icon{color:var(--red);filter:drop-shadow(0 3px 8px rgba(248,113,113,0.35))}
-.feature-icon i{line-height:1}
-.streak-card .streak-emoji{display:inline-flex;align-items:center;justify-content:center}
-
-/* =====================================================================
-   POCKETTRACK 2.0 — dashboard refresh
-   Keep the existing visual identity, but introduce stronger hierarchy:
-   one hero, quieter data surfaces, faster actions, and a real activity feed.
-   ===================================================================== */
-#header-stat-pills{display:none !important}
-
-.home-greeting{
-  display:flex;align-items:center;justify-content:space-between;gap:16px;
-  margin:0 2px 14px;
-}
-.home-greeting h2{
-  font-family:var(--heading);font-size:clamp(21px,5vw,27px);line-height:1.05;
-  letter-spacing:-.7px;margin:2px 0 0;color:#fff;
-}
-.eyebrow,.section-kicker,.insight-label{
-  font-size:9.5px;font-weight:800;letter-spacing:1.35px;text-transform:uppercase;
-  color:var(--accent-bright);margin:0;
-}
-.home-add-mini{
-  width:42px;height:42px;border-radius:14px;border:1px solid rgba(255,255,255,.14);
-  background:rgba(255,255,255,.07);color:#fff;display:flex;align-items:center;justify-content:center;
-  font-size:19px;cursor:pointer;box-shadow:var(--shadow-sm);transition:transform .2s var(--ease),background .2s var(--ease);
-}
-.home-add-mini:hover{transform:translateY(-2px) rotate(2deg);background:rgba(139,92,246,.2)}
-
-.hero-card-v2{padding:1.35rem 1.35rem 1.2rem;margin-bottom:1rem}
-.hero-caption{font-size:10.5px;color:rgba(255,255,255,.62);margin-top:3px}
-.hero-metrics{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:18px;
-  padding-top:14px;border-top:1px solid rgba(255,255,255,.13);
-}
-.hero-metrics div{display:flex;flex-direction:column;gap:4px;min-width:0}
-.hero-metrics span{font-size:9.5px;text-transform:uppercase;letter-spacing:.65px;color:rgba(255,255,255,.58);font-weight:700}
-.hero-metrics strong{font-family:var(--heading);font-size:14px;font-variant-numeric:tabular-nums}
-.hero-metrics strong.green{color:#86efac}.hero-metrics strong.red{color:#fda4af}
-.hero-actions{display:grid;grid-template-columns:1.35fr 1fr .8fr;gap:8px;margin-top:14px}
-.hero-action{
-  min-height:40px;border-radius:12px;border:1px solid rgba(255,255,255,.15);
-  background:rgba(255,255,255,.08);color:#fff;padding:9px 10px;display:flex;align-items:center;justify-content:center;gap:6px;
-  font-size:11px;font-weight:700;cursor:pointer;transition:transform .2s var(--ease),background .2s var(--ease),border-color .2s var(--ease);
-}
-.hero-action:hover{transform:translateY(-1px);background:rgba(255,255,255,.13);border-color:rgba(255,255,255,.25)}
-.hero-action.primary{background:#fff;color:#3b1d72;border-color:#fff;box-shadow:0 7px 20px rgba(0,0,0,.16)}
-.hero-action.voice-action{background:rgba(255,126,179,.12);border-color:rgba(255,126,179,.28)}
 
 .home-section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:20px 2px 9px}
 .home-section-head.compact{margin-top:0}
@@ -2350,20 +2234,25 @@ textarea{
   justify-content: center;
   gap: 6px;
   cursor: pointer;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.07);
-  min-height: 36px;
-  padding: 6px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  background: rgba(255, 255, 255, 0.09);
+  min-height: 38px;
+  min-width: 82px;
+  padding: 6px 13px;
   border-radius: 99px;
-  font-size: 11.5px;
-  color: #cbd5e1;
+  font-size: 12px;
+  font-weight: 600;
+  color: #f1f5f9;
   white-space: nowrap;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   touch-action: manipulation;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+  pointer-events: auto;
+  position: relative;
+  z-index: 10;
 }
-.sync-pill-btn:active { transform: scale(0.92); background: rgba(52, 211, 153, 0.2); }
+.sync-pill-btn:active { transform: scale(0.92); background: rgba(52, 211, 153, 0.25); }
 
 /* Simple Senior (40+) Mode Optimizations */
 .app-mode-simple .home-power-widgets-row,
@@ -2373,10 +2262,20 @@ textarea{
 .app-mode-simple #home-goal-slot,
 .app-mode-simple #home-wrapped-slot,
 .app-mode-simple #portfolio-switcher-bar,
+.app-mode-simple #wallet-switcher-bar,
 .app-mode-simple .stat-pills,
 .app-mode-simple #header-stat-pills,
 .app-mode-simple #more-features-card,
-.app-mode-simple .home-power-hub-section {
+.app-mode-simple .home-power-hub-section,
+.app-mode-simple #cat-pie-wrap,
+.app-mode-simple #health-score-card,
+.app-mode-simple #leak-detector-card,
+.app-mode-simple #future-money-simulator-card,
+.app-mode-simple #wallet-distribution-slot,
+.app-mode-simple #sub-radar,
+.app-mode-simple #hub-wallets-section,
+.app-mode-simple .insights-top-bar .insights-bar-row:first-child,
+.app-mode-simple .insights-top-bar .insights-bar-divider {
   display: none !important;
 }
 
@@ -2649,3 +2548,34 @@ body.auth-active .voice-fab {
     font-size: 11px !important;
   }
 }
+
+/* --- Voice Web Speech API Listening Visualizer --- */
+@keyframes voicePulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 20px rgba(155, 92, 255, 0.5);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 0 40px rgba(255, 61, 184, 0.8), 0 0 70px rgba(155, 92, 255, 0.4);
+  }
+}
+
+.home-nudge-card {
+  border-radius: 18px !important;
+  padding: 14px 16px !important;
+  transition: all 0.25s ease;
+}
+.home-nudge-danger {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.16), rgba(185, 28, 28, 0.08)) !important;
+  border: 1px solid rgba(239, 68, 68, 0.4) !important;
+}
+.home-nudge-warning {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.16), rgba(217, 119, 6, 0.08)) !important;
+  border: 1px solid rgba(245, 158, 11, 0.4) !important;
+}
+.home-nudge-info {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.14), rgba(59, 130, 246, 0.08)) !important;
+  border: 1px solid rgba(139, 92, 246, 0.35) !important;
+}
+

@@ -116,7 +116,7 @@ function computeSafeToSpend() {
   const todayStrVal = (typeof todayStr === 'function') ? todayStr() : new Date().toISOString().split('T')[0];
 
   entries.forEach(e => {
-    if (!e.date) return;
+    if (!e || !e.date || typeof e.date !== 'string') return;
     const parts = e.date.split('-');
     if (parts.length !== 3) return;
     const y = parseInt(parts[0], 10);
@@ -203,6 +203,8 @@ window.renderDailyBurnMeter = function() {
     </div>
   `;
 };
+
+window.updateDailyBurnMeterUI = window.renderDailyBurnMeter;
 
 // Initial Auto-render
 if (document.readyState === 'loading') {

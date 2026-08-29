@@ -94,14 +94,13 @@ function computeRoundUpVault() {
 
     totalSaved += roundUp;
 
-    if (e.date) {
-      const parts = e.date.split('-');
-      if (parts.length === 3) {
-        const y = parseInt(parts[0], 10);
-        const m = parseInt(parts[1], 10) - 1;
-        if (y === currentYear && m === currentMonth) {
-          monthSaved += roundUp;
-        }
+    if (!e || !e.date || typeof e.date !== 'string') return;
+    const parts = e.date.split('-');
+    if (parts.length === 3) {
+      const y = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10) - 1;
+      if (y === currentYear && m === currentMonth) {
+        monthSaved += roundUp;
       }
     }
   });

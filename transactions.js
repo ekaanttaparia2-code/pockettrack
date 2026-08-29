@@ -1,22 +1,30 @@
 /* Transaction syncing, entry management, and transaction-list UI. */
 
 function getWalletBadgeHtml(entryOrId) {
-  if (typeof window.getWalletBadgeHtml === 'function' && window.getWalletBadgeHtml !== getWalletBadgeHtml) {
+  if (typeof window !== 'undefined' && typeof window.getWalletBadgeHtml === 'function' && window.getWalletBadgeHtml !== getWalletBadgeHtml) {
     return window.getWalletBadgeHtml(entryOrId);
   }
   if (!entryOrId) return '';
-  const wId = (typeof entryOrId === 'object' && entryOrId !== null)
-    ? ((typeof resolveEntryWalletId === 'function') ? resolveEntryWalletId(entryOrId) : (entryOrId.walletId || 'cash'))
-    : entryOrId;
-  const wList = (typeof userWallets !== 'undefined' && userWallets.length) ? userWallets : [
+  let wId = '';
+  if (typeof entryOrId === 'object' && entryOrId !== null) {
+    wId = (typeof resolveEntryWalletId === 'function') ? resolveEntryWalletId(entryOrId) : ((typeof window !== 'undefined' && typeof window.resolveEntryWalletId === 'function') ? window.resolveEntryWalletId(entryOrId) : (entryOrId.walletId || 'cash'));
+  } else if (typeof entryOrId === 'string') {
+    wId = entryOrId;
+  }
+  if (!wId) return '';
+
+  const wList = (typeof userWallets !== 'undefined' && userWallets.length) ? userWallets : ((typeof window !== 'undefined' && window.userWallets && window.userWallets.length) ? window.userWallets : [
     { id: 'cash', name: 'Cash', icon: '💵' },
     { id: 'bank', name: 'Bank / UPI', icon: '📱' },
     { id: 'card', name: 'Credit Card', icon: '💳' }
-  ];
+  ]);
   const w = wList.find(x => x.id === wId) || { name: wId, icon: '💳' };
   const cls = wId === 'cash' ? 'wallet-tag-cash' : (wId === 'bank' ? 'wallet-tag-bank' : (wId === 'card' ? 'wallet-tag-card' : ''));
-  const safeName = (typeof escapeHTML === 'function') ? escapeHTML(w.name) : (w.name || '');
+  const safeName = (typeof escapeHTML === 'function') ? escapeHTML(w.name) : w.name;
   return `<span class="wallet-badge-tag ${cls}" style="margin-left:4px;">${w.icon || '💳'} ${safeName}</span>`;
+}
+if (typeof window !== 'undefined') {
+  window.getWalletBadgeHtml = getWalletBadgeHtml;
 }
 
 function updateHeaderStats(){

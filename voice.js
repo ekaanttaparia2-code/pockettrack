@@ -12,45 +12,111 @@ let recognition = null;
 let isListening = false;
 let parsedVoiceData = null;
 
+function ensureVoiceListeningOverlay() {
+  let backdrop = document.getElementById('voice-listening-backdrop');
+  if (!backdrop) {
+    backdrop = document.createElement('div');
+    backdrop.id = 'voice-listening-backdrop';
+    backdrop.className = 'voice-listening-backdrop';
+    backdrop.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(9,5,30,0.85);z-index:99999;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);';
+    backdrop.innerHTML = `
+      <div class="voice-listening-card" style="text-align:center;max-width:360px;width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.18);border-radius:26px;padding:28px 20px;box-shadow:0 24px 60px rgba(0,0,0,0.6);">
+        <div class="voice-pulse-ring" style="width:76px;height:76px;border-radius:50%;margin:0 auto 16px;background:linear-gradient(135deg,#9b5cff,#ff3db8);display:flex;align-items:center;justify-content:center;box-shadow:0 0 30px rgba(155,92,255,0.6);animation:voicePulse 1.5s infinite ease-in-out;">
+          <i class="ti ti-microphone" style="font-size:34px;color:#fff;"></i>
+        </div>
+        <h3 style="font-size:18px;font-weight:700;color:#fff;margin:0 0 6px;" id="voice-listening-title">Listening...</h3>
+        <p style="font-size:12.5px;color:var(--text-dim,#c4b9e7);margin:0 0 16px;" id="voice-listening-sub">Speak your transaction (e.g. "Spent 350 on petrol")</p>
+        <div id="voice-live-transcript" style="min-height:48px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.35);border-radius:14px;padding:10px 14px;font-size:14px;color:#fff;font-style:italic;margin-bottom:18px;border:1px dashed rgba(255,255,255,0.25);">
+          Speak now...
+        </div>
+        <button class="btn danger" onclick="stopVoiceRecognition()" style="font-size:12px;padding:8px 20px;border-radius:99px;"><i class="ti ti-square"></i> Stop Listening</button>
+      </div>
+    `;
+    document.body.appendChild(backdrop);
+  }
+  return backdrop;
+}
+
+function showListeningOverlay() {
+  const backdrop = ensureVoiceListeningOverlay();
+  const title = document.getElementById('voice-listening-title');
+  const sub = document.getElementById('voice-listening-sub');
+  const transcript = document.getElementById('voice-live-transcript');
+  const isHi = (window.currentLang === 'hi');
+
+  if (title) title.textContent = isHi ? 'सुन रहा है... बोलें' : 'Listening... Speak now';
+  if (sub) sub.textContent = isHi ? 'उदाहरण: "350 रुपये पेट्रोल पर खर्च किए"' : 'e.g. "Spent 350 on petrol" or "Got 15000 salary"';
+  if (transcript) transcript.textContent = isHi ? 'बोलना शुरू करें...' : 'Speak now...';
+  if (backdrop) backdrop.style.display = 'flex';
+}
+
+function hideListeningOverlay() {
+  const backdrop = document.getElementById('voice-listening-backdrop');
+  if (backdrop) backdrop.style.display = 'none';
+}
+
 function initVoiceEngine() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (SpeechRecognition) {
-    recognition = new SpeechRecognition();
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    
-    recognition.onstart = function() {
-      isListening = true;
-      const fab = document.getElementById('voice-fab');
-      if (fab) fab.classList.add('listening');
-      toast(TT('voice_listening'), 'info');
-    };
-    
-    recognition.onresult = function(event) {
-      const transcript = event.results[0][0].transcript;
-      parseVoiceInput(transcript);
-    };
-    
-    recognition.onerror = function(event) {
-      console.error('Speech recognition error', event.error);
-      stopVoiceRecognition();
-      if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-        toast('Microphone access denied. Enable mic permissions in browser settings.', 'error');
-      } else if (event.error !== 'no-speech') {
-        promptManualVoiceInput();
-      }
-    };
-    
-    recognition.onend = function() {
-      stopVoiceRecognition();
-    };
+    try {
+      recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      
+      recognition.onstart = function() {
+        isListening = true;
+        showListeningOverlay();
+        const fab = document.getElementById('voice-fab');
+        if (fab) fab.classList.add('listening');
+      };
+      
+      recognition.onresult = function(event) {
+        let interimTranscript = '';
+        let finalTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          } else {
+            interimTranscript += event.results[i][0].transcript;
+          }
+        }
+        
+        const transcriptEl = document.getElementById('voice-live-transcript');
+        if (transcriptEl) {
+          transcriptEl.textContent = finalTranscript || interimTranscript || 'Listening...';
+        }
+
+        if (finalTranscript && finalTranscript.trim()) {
+          hideListeningOverlay();
+          parseVoiceInput(finalTranscript.trim());
+        }
+      };
+      
+      recognition.onerror = function(event) {
+        console.warn('Speech recognition error', event.error);
+        stopVoiceRecognition();
+        hideListeningOverlay();
+        if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+          toast('Microphone access denied. Enable mic permissions in browser settings.', 'error');
+        } else if (event.error !== 'no-speech') {
+          promptManualVoiceInput();
+        }
+      };
+      
+      recognition.onend = function() {
+        stopVoiceRecognition();
+        hideListeningOverlay();
+      };
+    } catch(e) {
+      console.warn('Voice engine init failed:', e);
+      recognition = null;
+    }
   }
 }
 
 function updateVoiceFabVisibility() {
   const fab = document.getElementById('voice-fab');
   if (!fab) return;
-  // Hide on the login/auth screen (same logic as the bottom tab bar).
   const auth = document.getElementById('auth-screen');
   const onAuthScreen = auth && auth.style.display !== 'none';
   fab.style.display = onAuthScreen ? 'none' : 'flex';
@@ -61,20 +127,24 @@ function startVoiceRecognition() {
     showProLimitModal('Voice Transactions', '100 voice entries');
     return;
   }
-  if(!navigator.onLine){
-    if(typeof showAppAlert === 'function'){
+  if (!navigator.onLine) {
+    if (typeof showAppAlert === 'function') {
       showAppAlert(
-        currentLang==='hi' ? 'ऑफ़लाइन' : 'Voice unavailable offline',
-        currentLang==='hi'
+        window.currentLang === 'hi' ? 'ऑफ़लाइन' : 'Voice unavailable offline',
+        window.currentLang === 'hi'
           ? 'क्षमा करें, वॉइस सुविधा ऑफ़लाइन काम नहीं करती। कृपया इंटरनेट से जुड़ें।'
-          : 'Sorry but our voice function does not work offline. Please connect to the internet and try again.'
+          : 'Sorry, voice recognition requires an active internet connection.'
       );
     } else {
-      toast('Sorry but our voice function does not work offline.', 'error');
+      toast('Voice recognition requires an internet connection.', 'error');
     }
     return;
   }
-  updateVoiceFabVisibility();
+
+  if (!recognition) {
+    initVoiceEngine();
+  }
+
   if (!recognition) {
     promptManualVoiceInput();
     return;
@@ -83,22 +153,29 @@ function startVoiceRecognition() {
   recognition.lang = (window.currentLang === 'hi') ? 'hi-IN' : 'en-US';
   
   if (isListening) {
-    recognition.stop();
+    stopVoiceRecognition();
   } else {
     try {
       recognition.start();
     } catch (e) {
       console.warn('Recognition start exception:', e);
+      stopVoiceRecognition();
       promptManualVoiceInput();
     }
   }
 }
+window.startVoiceRecognition = startVoiceRecognition;
 
 function stopVoiceRecognition() {
   isListening = false;
+  hideListeningOverlay();
   const fab = document.getElementById('voice-fab');
   if (fab) fab.classList.remove('listening');
+  if (recognition) {
+    try { recognition.stop(); } catch(e) {}
+  }
 }
+window.stopVoiceRecognition = stopVoiceRecognition;
 
 function promptManualVoiceInput() {
   if (typeof showAppPrompt === 'function') {
@@ -186,8 +263,12 @@ function parseVoiceInput(text) {
     walletId: detectedWallet,
     date
   };
+  if (typeof window !== 'undefined') {
+    window.parsedVoiceData = parsedVoiceData;
+  }
 
   showVoiceModal();
+  return parsedVoiceData;
 }
 
 // --- Spoken-date parser: "yesterday", "last monday", "on the 5th", "5 july", "05-07" … ---
@@ -466,6 +547,17 @@ async function confirmVoiceEntry() {
 }
 
 function clearVoiceState(){ parsedVoiceData = null; }
+
+if (typeof window !== 'undefined') {
+  window.extractVoiceAmount = extractVoiceAmount;
+  window.parseVoiceInput = parseVoiceInput;
+  window.parseVoiceDate = parseVoiceDate;
+  window.showVoiceModal = showVoiceModal;
+  window.closeVoiceModal = closeVoiceModal;
+  window.confirmVoiceEntry = confirmVoiceEntry;
+  window.clearVoiceState = clearVoiceState;
+  window.initVoiceEngine = initVoiceEngine;
+}
 
 // Initialize on DOM load & auth observer
 document.addEventListener('DOMContentLoaded', () => {
