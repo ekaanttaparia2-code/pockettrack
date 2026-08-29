@@ -181,6 +181,8 @@ const TRANSLATIONS = {
   ledger_total_owed_to_you:{en:'Total Owed to You',hi:'आपको मिलना बाकी',hinglish:'You will receive',mr:'तुम्हाला मिळणे बाकी',ta:'உங்களுக்கு வரவேண்டியது',te:'మీకు రావలసినది',gu:'તમને મળવાનું બાકી',bn:'আপনি পাবেন'},
   ledger_total_you_owe:{en:'You Owe',hi:'आपको देना है',hinglish:'You have to give',mr:'तुम्हाला देणे आहे',ta:'நீங்கள் தரவேண்டியது',te:'మీరు ఇవ్వవలసినది',gu:'તમારે આપવાનું છે',bn:'আপনি দেবেন'},
   voice_entry_title:{en:'Voice Expense Entry',hi:'बोल कर एंट्री करें',hinglish:'Voice Expense Entry'},
+  insights_sub_overview:{en:'Overview & Budget',hi:'अवलोकन और बजट',hinglish:'Overview & Budget'},
+  insights_sub_deep:{en:'Deep Tools & DNA',hi:'डीप टूल्स और डीएनए',hinglish:'Deep Tools & DNA'},
 };
 window.TRANSLATIONS = TRANSLATIONS;
 let currentLang = localStorage.getItem('pocketTrackLang') || 'en';
@@ -1582,6 +1584,35 @@ function switchLedgerSubView(view) {
   }
 }
 window.switchLedgerSubView = switchLedgerSubView;
+
+function switchInsightsSubView(view) {
+  const overBtn = document.getElementById('insights-sub-overview-btn');
+  const deepBtn = document.getElementById('insights-sub-deep-btn');
+  const overView = document.getElementById('insights-overview-subview');
+  const deepView = document.getElementById('insights-deep-subview');
+
+  if (view === 'deep') {
+    if (overBtn) overBtn.classList.remove('active');
+    if (deepBtn) deepBtn.classList.add('active');
+    if (overView) overView.style.display = 'none';
+    if (deepView) deepView.style.display = 'block';
+    if (typeof renderHealthScore === 'function') renderHealthScore();
+    if (typeof renderLeakDetector === 'function') renderLeakDetector();
+    if (typeof renderFutureMoneySimulator === 'function') renderFutureMoneySimulator();
+    if (typeof renderWalletDistributionSlot === 'function') renderWalletDistributionSlot();
+    if (typeof updateDailyBurnMeterUI === 'function') updateDailyBurnMeterUI();
+    else if (typeof renderDailyBurnMeter === 'function') renderDailyBurnMeter();
+    if (typeof renderFinancialDNA === 'function') renderFinancialDNA();
+  } else {
+    if (overBtn) overBtn.classList.add('active');
+    if (deepBtn) deepBtn.classList.remove('active');
+    if (overView) overView.style.display = 'block';
+    if (deepView) deepView.style.display = 'none';
+    if (typeof renderReport === 'function') renderReport();
+    if (typeof renderBudgetEditor === 'function') renderBudgetEditor();
+  }
+}
+window.switchInsightsSubView = switchInsightsSubView;
 
 // Side menu removed — these stay as safe no-ops for legacy callers.
 function openMenu(){}

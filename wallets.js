@@ -326,6 +326,26 @@ window.switchActiveWallet = function(walletId) {
   if (typeof renderEntries === 'function') renderEntries();
   if (typeof renderBudgetEditor === 'function') renderBudgetEditor();
   if (typeof renderReport === 'function') renderReport();
+  if (typeof renderHomeContextualNudge === 'function') renderHomeContextualNudge();
+  if (typeof updateDailyBurnMeterUI === 'function') updateDailyBurnMeterUI();
+  else if (typeof renderDailyBurnMeter === 'function') renderDailyBurnMeter();
+  if (typeof renderFinancialDNA === 'function') renderFinancialDNA();
+  if (typeof renderLeakDetector === 'function') renderLeakDetector();
+  if (typeof renderHealthScore === 'function') renderHealthScore();
+  if (typeof renderFutureMoneySimulator === 'function') renderFutureMoneySimulator();
+  if (typeof renderWalletDistributionSlot === 'function') renderWalletDistributionSlot();
+  if (typeof renderVaultOverview === 'function') renderVaultOverview();
+
+  // Sync composer wallet chips if active
+  const chips = document.querySelectorAll('#composer-wallet-chips .composer-chip');
+  if (chips && chips.length) {
+    chips.forEach(btn => {
+      const wKey = btn.getAttribute('data-wallet');
+      const shouldBeActive = (walletId === 'all' && wKey === 'cash') || (wKey === walletId);
+      btn.classList.toggle('active', shouldBeActive);
+    });
+  }
+
   if (typeof toast === 'function') {
     const w = userWallets.find(x => x.id === walletId);
     const label = w ? `${w.icon} ${w.name}` : 'All Wallets';

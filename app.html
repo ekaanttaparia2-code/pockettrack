@@ -204,7 +204,6 @@
       <div class="hero-actions">
         <button class="hero-action primary" onclick="openQuickComposer('expense')"><i class="ti ti-arrow-up-right"></i> <span data-i18n="home_add_expense">Add expense</span></button>
         <button class="hero-action" onclick="openQuickComposer('income')"><i class="ti ti-arrow-down-left"></i> <span data-i18n="home_add_income">Add income</span></button>
-        <button class="hero-action voice-action" onclick="startVoiceRecognition()"><i class="ti ti-microphone"></i> <span data-i18n="home_voice">Bol kar likhein (Voice)</span></button>
       </div>
     </div>
 
@@ -247,95 +246,105 @@
     </div>
   </div>
 
-  <div id="tab-report" style="display:none">
-    <div id="sub-radar"></div>
-    <!-- Insights Top Control Center: Account Selector + Period Timeframe -->
-    <div class="card insights-top-bar" id="insights-top-bar">
-      <div class="insights-bar-row">
-        <div class="insights-bar-label">
-          <span class="insights-bar-icon">💳</span>
-          <span data-i18n="lbl_account_filter">Wallet / Account</span>
+  <div id="tab-report" style="display:none" class="tab-content">
+    <!-- Sub-tab toggle bar for Insights -->
+    <div class="split-toggle" id="insights-subview-toggle" style="display:flex;gap:6px;background:rgba(255,255,255,0.06);padding:4px;border-radius:14px;margin-bottom:14px;border:1px solid rgba(255,255,255,0.1);">
+      <button class="btn btn-sm active" id="insights-sub-overview-btn" onclick="switchInsightsSubView('overview')" style="flex:1;border-radius:10px;padding:8px 6px;font-size:12px;font-weight:600;"><i class="ti ti-chart-bar"></i> <span data-i18n="insights_sub_overview">Overview & Budget</span></button>
+      <button class="btn btn-sm" id="insights-sub-deep-btn" onclick="switchInsightsSubView('deep')" style="flex:1;border-radius:10px;padding:8px 6px;font-size:12px;font-weight:600;"><i class="ti ti-microscope"></i> <span data-i18n="insights_sub_deep">Deep Tools & DNA</span></button>
+    </div>
+
+    <!-- SUBVIEW 1: OVERVIEW & BUDGET -->
+    <div id="insights-overview-subview">
+      <div id="sub-radar"></div>
+      <!-- Insights Top Control Center: Account Selector + Period Timeframe -->
+      <div class="card insights-top-bar" id="insights-top-bar">
+        <div class="insights-bar-row">
+          <div class="insights-bar-label">
+            <span class="insights-bar-icon">💳</span>
+            <span data-i18n="lbl_account_filter">Wallet / Account</span>
+          </div>
+          <div class="insights-wallet-pills" id="insights-wallet-pills-list"></div>
         </div>
-        <div class="insights-wallet-pills" id="insights-wallet-pills-list"></div>
+
+        <div class="insights-bar-divider"></div>
+
+        <div class="insights-bar-row">
+          <div class="insights-bar-label">
+            <span class="insights-bar-icon">📅</span>
+            <span data-i18n="lbl_period">Period</span>
+          </div>
+          <div class="toggle-grp period-toggle-v2" id="period-toggle">
+            <button class="active" onclick="setPeriod('week')" data-i18n="period_week">This week</button>
+            <button onclick="setPeriod('month')" data-i18n="period_month">This month</button>
+            <button onclick="setPeriod('all')" data-i18n="period_all">All time</button>
+            <button onclick="setPeriod('custom')" data-i18n="period_custom">Custom</button>
+          </div>
+        </div>
+
+        <div id="insights-custom-dates-wrap" class="insights-custom-dates-wrap" style="display:none">
+          <div class="insights-date-input-wrap">
+            <label data-i18n="lbl_from">From</label>
+            <input type="date" id="rep-from" onchange="renderReport()"/>
+          </div>
+          <span id="rep-to-label" class="date-label" style="display:none" data-i18n="lbl_to">To</span>
+          <div class="insights-date-input-wrap">
+            <label data-i18n="lbl_to">To</label>
+            <input type="date" id="rep-to" onchange="renderReport()"/>
+          </div>
+        </div>
       </div>
 
-      <div class="insights-bar-divider"></div>
+      <div id="insights-hero" class="insights-hero"></div>
+      <div id="smart-insights-slot"></div>
 
-      <div class="insights-bar-row">
-        <div class="insights-bar-label">
-          <span class="insights-bar-icon">📅</span>
-          <span data-i18n="lbl_period">Period</span>
-        </div>
-        <div class="toggle-grp period-toggle-v2" id="period-toggle">
-          <button class="active" onclick="setPeriod('week')" data-i18n="period_week">This week</button>
-          <button onclick="setPeriod('month')" data-i18n="period_month">This month</button>
-          <button onclick="setPeriod('all')" data-i18n="period_all">All time</button>
-          <button onclick="setPeriod('custom')" data-i18n="period_custom">Custom</button>
-        </div>
+      <div class="grid4">
+        <div class="metric"><div class="metric-label" data-i18n="metric_total_income">Total income</div><div class="metric-val green" id="r-income">₹0</div></div>
+        <div class="metric"><div class="metric-label" data-i18n="metric_total_spent">Total spent</div><div class="metric-val red" id="r-spent">₹0</div></div>
+        <div class="metric"><div class="metric-label" data-i18n="metric_balance_left">Balance left</div><div class="metric-val amber" id="r-balance">₹0</div></div>
+        <div class="metric"><div class="metric-label" data-i18n="metric_entries">Entries</div><div class="metric-val" id="r-count">0</div></div>
       </div>
 
-      <div id="insights-custom-dates-wrap" class="insights-custom-dates-wrap" style="display:none">
-        <div class="insights-date-input-wrap">
-          <label data-i18n="lbl_from">From</label>
-          <input type="date" id="rep-from" onchange="renderReport()"/>
+      <div id="smart-insights-grid" class="smart-insights-grid"></div>
+
+      <div class="card">
+        <p class="sec-title"><i class="ti ti-chart-pie"></i><span data-i18n="sec_cat">Spending by category</span></p>
+        <div id="cat-pie-wrap" class="pie-wrap"></div>
+        <div id="cat-breakdown"></div>
+      </div>
+
+      <div class="card" id="budget-main-card">
+        <p class="sec-title"><i class="ti ti-target-arrow"></i><span data-i18n="sec_budget">Budget Control</span></p>
+        <div id="budget-editor"></div>
+      </div>
+
+      <div class="card tip-card">
+        <div class="tip-head">
+          <p class="sec-title" style="margin:0"><i class="ti ti-bulb"></i><span data-i18n="sec_money_tip">Money-saving tip</span></p>
         </div>
-        <span id="rep-to-label" class="date-label" style="display:none" data-i18n="lbl_to">To</span>
-        <div class="insights-date-input-wrap">
-          <label data-i18n="lbl_to">To</label>
-          <input type="date" id="rep-to" onchange="renderReport()"/>
-        </div>
+        <p id="money-tip-text" class="tip-text"></p>
+        <button class="btn budget-save-btn" onclick="showNextTip()"><i class="ti ti-refresh"></i> <span data-i18n="btn_next_tip">Show me another tip</span></button>
       </div>
     </div>
 
-    <div id="insights-hero" class="insights-hero"></div>
-    <div id="smart-insights-slot"></div>
+    <!-- SUBVIEW 2: DEEP TOOLS & DNA -->
+    <div id="insights-deep-subview" style="display:none">
+      <div id="health-score-card"></div>
+      <div id="leak-detector-card" style="margin-bottom:1.1rem"></div>
+      <div id="future-money-simulator-card" style="margin-bottom:1.1rem"></div>
+      <div id="wallet-distribution-slot" style="margin-bottom:1.1rem"></div>
+      <div id="home-daily-burn-slot" style="margin-bottom:1.1rem"></div>
+      <div id="home-dna-slot" style="margin-bottom:1.1rem"></div>
 
-    <div class="grid4">
-      <div class="metric"><div class="metric-label" data-i18n="metric_total_income">Total income</div><div class="metric-val green" id="r-income">₹0</div></div>
-      <div class="metric"><div class="metric-label" data-i18n="metric_total_spent">Total spent</div><div class="metric-val red" id="r-spent">₹0</div></div>
-      <div class="metric"><div class="metric-label" data-i18n="metric_balance_left">Balance left</div><div class="metric-val amber" id="r-balance">₹0</div></div>
-      <div class="metric"><div class="metric-label" data-i18n="metric_entries">Entries</div><div class="metric-val" id="r-count">0</div></div>
-    </div>
-
-    <div id="smart-insights-grid" class="smart-insights-grid"></div>
-
-    <div class="card tip-card">
-      <div class="tip-head">
-        <p class="sec-title" style="margin:0"><i class="ti ti-bulb"></i><span data-i18n="sec_money_tip">Money-saving tip</span></p>
+      <div class="card">
+        <p class="sec-title"><i class="ti ti-history"></i><span data-i18n="sec_full">Full breakdown</span></p>
+        <div id="full-breakdown"></div>
       </div>
-      <p id="money-tip-text" class="tip-text"></p>
-      <button class="btn budget-save-btn" onclick="showNextTip()"><i class="ti ti-refresh"></i> <span data-i18n="btn_next_tip">Show me another tip</span></button>
-    </div>
 
-    <div id="health-score-card"></div>
-    <div id="leak-detector-card" style="margin-bottom:1.1rem"></div>
-    <div id="future-money-simulator-card" style="margin-bottom:1.1rem"></div>
-    <div id="wallet-distribution-slot" style="margin-bottom:1.1rem"></div>
-
-    <div class="card" id="budget-main-card">
-      <p class="sec-title"><i class="ti ti-target-arrow"></i><span data-i18n="sec_budget">Budget Control</span></p>
-      <div id="budget-editor"></div>
-    </div>
-
-    <div id="home-daily-burn-slot" style="margin-bottom:1.1rem"></div>
-
-    <div class="card">
-      <p class="sec-title"><i class="ti ti-chart-pie"></i><span data-i18n="sec_cat">Spending by category</span></p>
-      <div id="cat-pie-wrap" class="pie-wrap"></div>
-      <div id="cat-breakdown"></div>
-    </div>
-
-    <div id="home-dna-slot" style="margin-bottom:1.1rem"></div>
-
-    <div class="card">
-      <p class="sec-title"><i class="ti ti-history"></i><span data-i18n="sec_full">Full breakdown</span></p>
-      <div id="full-breakdown"></div>
-    </div>
-
-    <div class="btn-row">
-      <button class="btn" onclick="copyReport()"><i class="ti ti-copy"></i> <span data-i18n="btn_copy_report">Copy report</span></button>
-      <button class="btn primary" onclick="exportPDF()"><i class="ti ti-download"></i> <span data-i18n="btn_export_pdf">Export as PDF</span></button>
-      <button class="btn danger" onclick="clearAll()">🗑️ <span data-i18n="btn_clear_all">Clear all</span></button>
+      <div class="btn-row">
+        <button class="btn" onclick="copyReport()"><i class="ti ti-copy"></i> <span data-i18n="btn_copy_report">Copy report</span></button>
+        <button class="btn primary" onclick="exportPDF()"><i class="ti ti-download"></i> <span data-i18n="btn_export_pdf">Export as PDF</span></button>
+        <button class="btn danger" onclick="clearAll()">🗑️ <span data-i18n="btn_clear_all">Clear all</span></button>
+      </div>
     </div>
   </div>
 
@@ -648,19 +657,19 @@
     <div class="card" style="margin-bottom:12px;">
       <p class="sec-title" style="margin-bottom:10px;"><i class="ti ti-sparkles"></i> More Power Features</p>
       <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:10px;">
-        <button class="shortcut-btn-v2" onclick="setTab('rewards')" style="background:rgba(255,255,255,0.04);border:1px solid rgba(251,191,36,0.3);border-radius:14px;padding:12px 8px;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;">
+        <button class="shortcut-btn-v2" id="hub-btn-rewards" onclick="setTab('rewards')" style="background:rgba(255,255,255,0.04);border:1px solid rgba(251,191,36,0.3);border-radius:14px;padding:12px 8px;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;">
           <span style="font-size:22px;">🏆</span>
           <strong style="font-size:11.5px;">Rewards &amp; Streaks</strong>
         </button>
-        <button class="shortcut-btn-v2" onclick="setTab('upi')" style="background:rgba(255,255,255,0.04);border:1px solid rgba(139,92,246,0.3);border-radius:14px;padding:12px 8px;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;">
+        <button class="shortcut-btn-v2" id="hub-btn-upi" onclick="setTab('upi')" style="background:rgba(255,255,255,0.04);border:1px solid rgba(139,92,246,0.3);border-radius:14px;padding:12px 8px;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;">
           <span style="font-size:22px;">⚡</span>
           <strong style="font-size:11.5px;">Smart UPI Logger</strong>
         </button>
-        <button class="shortcut-btn-v2" onclick="setTab('pro')" style="background:rgba(236,72,153,0.08);border:1px solid rgba(236,72,153,0.35);border-radius:14px;padding:12px 8px;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;">
+        <button class="shortcut-btn-v2" id="hub-btn-pro" onclick="setTab('pro')" style="background:rgba(236,72,153,0.08);border:1px solid rgba(236,72,153,0.35);border-radius:14px;padding:12px 8px;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;">
           <span style="font-size:22px;">👑</span>
           <strong style="font-size:11.5px;color:#f472b6;">Pro &amp; Themes</strong>
         </button>
-        <button class="shortcut-btn-v2" onclick="setTab('language')" style="background:rgba(255,255,255,0.04);border:1px solid rgba(52,211,153,0.3);border-radius:14px;padding:12px 8px;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;">
+        <button class="shortcut-btn-v2" id="hub-btn-language" onclick="setTab('language')" style="background:rgba(255,255,255,0.04);border:1px solid rgba(52,211,153,0.3);border-radius:14px;padding:12px 8px;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;">
           <span style="font-size:22px;">🌐</span>
           <strong style="font-size:11.5px;">Language</strong>
         </button>
@@ -745,10 +754,8 @@
       </div>
 
       <div class="composer-actions">
-        <button class="composer-voice composer-voice-primary" onclick="closeTransactionComposer();startVoiceRecognition()">🎙️ Add by voice</button>
-        <button id="composer-save" class="composer-save" onclick="submitTransactionComposer()">Save expense <span>→</span></button>
+        <button id="composer-save" class="composer-save" onclick="submitTransactionComposer()" style="width:100%">Save expense <span>→</span></button>
       </div>
-      <p class="composer-mic-hint">🎙️ Or use the floating mic anytime from the bottom-right corner.</p>
     </div>
   </div>
 
