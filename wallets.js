@@ -605,6 +605,11 @@ window.deleteCustomWallet = function(walletId) {
   if (typeof toast === 'function') toast(`Deleted "${targetWallet.name}"!`, 'info');
 };
 
+window.closeCustomSheet = function() {
+  const container = document.getElementById('pt-sheet-container');
+  if (container) container.classList.remove('active');
+};
+
 /**
  * In-App Modal for Inter-Wallet Transfer (e.g. Bank to Cash ATM withdrawal)
  */
@@ -621,7 +626,15 @@ window.openTransferModal = function() {
     document.body.appendChild(container);
   }
 
-  const walletOptions = userWallets.map(w => `<option value="${w.id}">${w.icon} ${escapeHTML(w.name)}</option>`).join('');
+  const wallets = (typeof userWallets !== 'undefined' && Array.isArray(userWallets) && userWallets.length)
+    ? userWallets
+    : [
+        { id:'cash', name:'Cash Wallet', icon:'💵' },
+        { id:'bank', name:'Bank / UPI Account', icon:'📱' },
+        { id:'card', name:'Credit Card', icon:'💳' }
+      ];
+
+  const walletOptions = wallets.map(w => `<option value="${w.id}">${w.icon} ${(typeof escapeHTML === 'function') ? escapeHTML(w.name) : w.name}</option>`).join('');
 
   container.innerHTML = `
     <div class="pt-sheet-panel" style="max-width:440px;">
@@ -632,7 +645,7 @@ window.openTransferModal = function() {
           <span style="font-size:24px;">🔁</span>
           <h3 style="margin:0;font-size:19px;font-weight:800;color:#fff;font-family:'Space Grotesk',sans-serif;">${isHi ? 'खातों के बीच ट्रांसफर' : 'Transfer Between Wallets'}</h3>
         </div>
-        <button onclick="closeCustomSheet()" style="background:rgba(255,255,255,0.08);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;">✕</button>
+        <button type="button" onclick="closeCustomSheet()" style="background:rgba(255,255,255,0.08);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">✕</button>
       </div>
 
       <p style="font-size:12.5px;color:var(--text-dim,#94a3b8);margin:0 0 14px;line-height:1.45;">
@@ -656,11 +669,11 @@ window.openTransferModal = function() {
       </div>
 
       <label style="font-size:12px;font-weight:700;color:#cbd5e1;display:block;margin-bottom:4px;">${isHi ? 'राशि (₹)' : 'Amount (₹)'}</label>
-      <input type="number" id="transfer-amt" placeholder="₹0" style="width:100%;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:18px;font-weight:800;font-family:'Space Grotesk',sans-serif;margin-bottom:18px;box-sizing:border-box;outline:none;">
+      <input type="number" id="transfer-amt" placeholder="₹0" min="1" step="any" inputmode="decimal" style="width:100%;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:18px;font-weight:800;font-family:'Space Grotesk',sans-serif;margin-bottom:18px;box-sizing:border-box;outline:none;">
 
       <div style="display:flex;gap:10px;">
-        <button class="btn" onclick="closeCustomSheet()" style="flex:1;border-radius:14px;padding:12px;font-size:13px;">${isHi ? 'रद्द करें' : 'Cancel'}</button>
-        <button class="btn primary" onclick="submitWalletTransfer()" style="flex:1.4;border-radius:14px;padding:12px;font-weight:800;font-size:13.5px;background:linear-gradient(135deg,#8b5cf6,#3b82f6);">${isHi ? 'ट्रांसफर पूरा करें →' : 'Transfer Now →'}</button>
+        <button type="button" class="btn" onclick="closeCustomSheet()" style="flex:1;border-radius:14px;padding:12px;font-size:13px;">${isHi ? 'रद्द करें' : 'Cancel'}</button>
+        <button type="button" class="btn primary" onclick="submitWalletTransfer()" style="flex:1.4;border-radius:14px;padding:12px;font-weight:800;font-size:13.5px;background:linear-gradient(135deg,#8b5cf6,#3b82f6);">${isHi ? 'ट्रांसफर पूरा करें →' : 'Transfer Now →'}</button>
       </div>
     </div>
   `;
@@ -673,6 +686,7 @@ window.openTransferModal = function() {
   });
 };
 window.openWalletTransferModal = window.openTransferModal;
+window.showTransferModal = window.openTransferModal;
 
 /**
  * Atomic Batch Transfer execution in Firestore & Local state
