@@ -124,7 +124,11 @@ function updateVoiceFabVisibility() {
 
 function startVoiceRecognition() {
   if (typeof canUseVoiceEntry === 'function' && !canUseVoiceEntry()) {
-    showProLimitModal('Voice Transactions', '100 voice entries');
+    if (typeof showProLimitModal === 'function') {
+      showProLimitModal('Voice Logging', '50 entries this month', 'Upgrade to Pro for unlimited voice logging & faster AI classification!');
+    } else {
+      toast('50 free voice entries used this month. Upgrade to Pro for unlimited!', 'info');
+    }
     return;
   }
   if (!navigator.onLine) {

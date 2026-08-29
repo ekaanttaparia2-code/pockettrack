@@ -362,6 +362,14 @@ function showAddRecurringModal(prefill){
 
 async function saveRecurringRule(){
   if(!currentUser) return;
+  if (!_recEditingId && typeof canAddRecurringRule === 'function' && !canAddRecurringRule((recurringRules || []).length)) {
+    if (typeof showProLimitModal === 'function') {
+      showProLimitModal('Recurring Expenses', '3 recurring bills', 'Upgrade to Pro for unlimited recurring rules & Indian household presets!');
+    } else {
+      toast('Free tier includes 3 recurring rules. Upgrade to Pro for unlimited!', 'info');
+    }
+    return;
+  }
   const label=document.getElementById('rec-label').value.trim().slice(0,40);
   const amt=parseFloat(document.getElementById('rec-amt').value);
   const type=document.getElementById('rec-type').value;

@@ -247,9 +247,9 @@ function renderLedger() {
 function showAddPersonModal() {
   if (typeof canAddLedgerContact === 'function' && !canAddLedgerContact((ledgerPeople || []).length)) {
     if (typeof showProLimitModal === 'function') {
-      showProLimitModal('Ledger Accounts', '5 contacts');
+      showProLimitModal('Personal Ledger', '3 active people', 'Upgrade to Pro for unlimited friends, flatmates & group ledgers!');
     } else {
-      toast('Upgrade to Pro to add more than 5 contacts', 'info');
+      toast('Free tier includes 3 people in Ledger. Upgrade to Pro for unlimited!', 'info');
     }
     return;
   }

@@ -1768,6 +1768,14 @@ async function createNewEvent(){
   let tillDate=document.getElementById('new-event-till').value||fromDate;
   if(tillDate<fromDate){ const tmp=fromDate; fromDate=tillDate; tillDate=tmp; } // auto-swap if entered backwards
   if(!name){toast(TT('give_event_name'),'error');return;}
+  if(!editingEventId && typeof canCreateSpace === 'function' && !canCreateSpace((events || []).length)) {
+    if (typeof showProLimitModal === 'function') {
+      showProLimitModal('Group Spaces & Trips', '1 active group space', 'Upgrade to Pro for unlimited shared trip ledgers & flatmate spaces!');
+    } else {
+      toast('Free tier includes 1 active Space. Upgrade to Pro for unlimited!', 'info');
+    }
+    return;
+  }
   try{
     if(editingEventId){
       const oldEv=events.find(e=>e._id===editingEventId);
@@ -2820,6 +2828,15 @@ window.pasteFromClipboardAndLog = async function() {
     return;
   }
 
+  if (typeof canUseUpiPaste === 'function' && !canUseUpiPaste()) {
+    if (typeof showProLimitModal === 'function') {
+      showProLimitModal('1-Tap UPI Paste', '50 pastes this month', 'Upgrade to Pro for unlimited instant UPI auto-logging!');
+    } else {
+      toast('50 free UPI pastes used this month. Upgrade to Pro for unlimited!', 'info');
+    }
+    return;
+  }
+
   try {
     const text = await navigator.clipboard.readText();
     if (!text || !text.trim()) {
@@ -2855,6 +2872,7 @@ window.pasteFromClipboardAndLog = async function() {
 
     if (typeof saveEntry === 'function') {
       await saveEntry(payload);
+      if (typeof incrementUpiPastesUsed === 'function') incrementUpiPastesUsed();
       if (typeof updateHeaderStats === 'function') updateHeaderStats();
       if (typeof renderEntries === 'function') renderEntries();
       if (typeof renderHomeSnapshot === 'function') renderHomeSnapshot();

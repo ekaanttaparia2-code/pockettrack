@@ -76,7 +76,6 @@ const MONET = {
   gate_smart_title:{ en:'Smart Logger', hi:'स्मार्ट लॉगर' },
   gate_smart_desc:{ en:'Paste any UPI payment text and PocketTrack logs it automatically — no typing. Unlocks with Pro.',
                     hi:'कोई भी UPI भुगतान टेक्स्ट पेस्ट करें और PocketTrack इसे अपने आप लॉग करेगा — टाइपिंग नहीं। Pro से अनलॉक होता है।' },
-  export_uc:     { en:'🚧 Copy & export are under construction', hi:'🚧 कॉपी और एक्सपोर्ट निर्माणाधीन हैं' },
   export_pro:    { en:'📊 Copy & export are Pro features', hi:'📊 कॉपी और एक्सपोर्ट Pro सुविधाएँ हैं' },
   unlock:        { en:'Unlock', hi:'अनलॉक करें' },
   reset_pro_confirm:{ en:'Turn off Pro and go back to the free version? Your data stays intact — only the Pro unlock is removed.',
@@ -96,6 +95,132 @@ function mlabel(o){ if(o==null) return ''; return (o[currentLang] || o.en || Str
 function pPeriod(p){ return (currentLang==='hi' && p.periodHi) ? p.periodHi : p.period; }
 function ptPeriodStr(){ return currentLang==='hi' ? '/वर्ष' : PT_PERIOD; }
 function ptPayLabel(p){ return currentLang==='hi' ? ptFormatINR(p.price)+' अभी भुगतान करें' : 'Pay '+ptFormatINR(p.price)+' now'; }
+
+// --- Balanced Freemium Model (User-Centric Architecture) ---
+// Free tier gives massive daily value (Basic logging, Senior Mode, Safe-to-Spend, 3 Ledger contacts, 1 Space, 50 Voice, 50 UPI)
+// Pro Tier (₹50/mo or ₹999 lifetime) unlocks unlimited scaling, CA exports, & multi-roomie spaces.
+const PT_FREE_LIMITS = {
+  voiceTransactionsPerMonth: 50,
+  upiPastesPerMonth: 50,
+  ledgerContacts: 3,
+  activeSpaces: 1,
+  recurringRules: 3
+};
+
+function isPro() {
+  return localStorage.getItem(PT_STORE.pro) === '1';
+}
+window.isPro = isPro;
+
+function proEnabled() {
+  return isPro();
+}
+window.proEnabled = proEnabled;
+
+function getVoiceEntriesUsedThisMonth() {
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  const storedMonth = localStorage.getItem('pockettrack_voice_month');
+  if (storedMonth !== currentMonth) {
+    localStorage.setItem('pockettrack_voice_month', currentMonth);
+    localStorage.setItem('pockettrack_voice_used_count', '0');
+    return 0;
+  }
+  return Number(localStorage.getItem('pockettrack_voice_used_count') || 0);
+}
+
+function incrementVoiceEntriesUsed() {
+  const current = getVoiceEntriesUsedThisMonth();
+  localStorage.setItem('pockettrack_voice_used_count', String(current + 1));
+}
+
+function canUseVoiceEntry() {
+  if (isPro()) return true;
+  return getVoiceEntriesUsedThisMonth() < PT_FREE_LIMITS.voiceTransactionsPerMonth;
+}
+
+function getUpiPastesUsedThisMonth() {
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  const storedMonth = localStorage.getItem('pockettrack_upi_month');
+  if (storedMonth !== currentMonth) {
+    localStorage.setItem('pockettrack_upi_month', currentMonth);
+    localStorage.setItem('pockettrack_upi_used_count', '0');
+    return 0;
+  }
+  return Number(localStorage.getItem('pockettrack_upi_used_count') || 0);
+}
+
+function incrementUpiPastesUsed() {
+  const current = getUpiPastesUsedThisMonth();
+  localStorage.setItem('pockettrack_upi_used_count', String(current + 1));
+}
+
+function canUseUpiPaste() {
+  if (isPro()) return true;
+  return getUpiPastesUsedThisMonth() < PT_FREE_LIMITS.upiPastesPerMonth;
+}
+
+function canAddLedgerContact(currentCount) {
+  if (isPro()) return true;
+  return currentCount < PT_FREE_LIMITS.ledgerContacts;
+}
+
+function canCreateSpace(currentCount) {
+  if (isPro()) return true;
+  return currentCount < PT_FREE_LIMITS.activeSpaces;
+}
+
+function canAddRecurringRule(currentCount) {
+  if (isPro()) return true;
+  return currentCount < PT_FREE_LIMITS.recurringRules;
+}
+
+function showProLimitModal(featureName, freeLimitText, benefitText) {
+  const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
+  const modalBackdrop = document.createElement('div');
+  modalBackdrop.id = 'pro-limit-upsell-backdrop';
+  modalBackdrop.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(10px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
+  
+  modalBackdrop.innerHTML = `
+    <div class="card" style="width:100%;max-width:400px;background:linear-gradient(165deg,rgba(30,22,60,0.95),rgba(15,10,35,0.98));border:1.5px solid rgba(192,132,252,0.5);border-radius:24px;padding:24px;box-shadow:0 24px 60px rgba(0,0,0,0.6);text-align:center;">
+      <div style="font-size:42px;margin-bottom:8px;">✨</div>
+      <h3 style="margin:0 0 6px;font-family:'Space Grotesk',sans-serif;font-size:20px;color:#fff;font-weight:800;">
+        ${isHi ? 'PocketTrack Pro में अपग्रेड करें' : 'Upgrade to PocketTrack Pro'}
+      </h3>
+      <p style="font-size:13px;color:#cbd5e1;line-height:1.4;margin:0 0 16px;">
+        ${isHi 
+          ? `आप फ्री टियर की <strong>${freeLimitText}</strong> सीमा तक पहुंच चुके हैं। ${benefitText || 'असीमित उपयोग और पावर टूल्स के लिए प्रो अनलॉक करें!'}`
+          : `You have reached the Free limit of <strong>${freeLimitText}</strong>. ${benefitText || 'Unlock Pro for unlimited capacity and pro power tools!'}`}
+      </p>
+
+      <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:16px;padding:14px;margin-bottom:18px;text-align:left;">
+        <div style="font-size:12px;font-weight:700;color:var(--accent-bright,#c4b5fd);margin-bottom:6px;text-transform:uppercase;">
+          👑 ${isHi ? 'Pro में क्या मिलता है:' : "What's included in Pro:"}
+        </div>
+        <div style="font-size:12.5px;color:#e2e8f0;display:flex;flex-direction:column;gap:5px;">
+          <div>✔ <strong>${isHi ? 'असीमित संपर्कों और ट्रिप स्पेस' : 'Unlimited Ledger Contacts & Group Spaces'}</strong></div>
+          <div>✔ <strong>${isHi ? 'असीमित वॉयस और UPI पेस्ट' : 'Unlimited Voice & UPI Logging'}</strong></div>
+          <div>✔ <strong>${isHi ? 'CA-रेडी टैक्स और GST वित्तीय स्टेटमेंट' : 'CA-Ready GST & Tax CSV/Excel Export'}</strong></div>
+          <div>✔ <strong>${isHi ? 'फ्यूचर मनी सिम्युलेटर व लक्ज़री थीम्स' : 'Future Money Simulator & Luxury Themes'}</strong></div>
+        </div>
+      </div>
+
+      <div style="font-size:15px;font-weight:800;color:#34d399;margin-bottom:14px;">
+        ${isHi ? 'सिर्फ ₹50 / माह या ₹999 लाइफटाइम' : 'Just ₹50 / month or ₹999 Lifetime'}
+      </div>
+
+      <div class="btn-row" style="gap:10px;">
+        <button class="btn" style="flex:1;padding:12px;border-radius:12px;" onclick="document.getElementById('pro-limit-upsell-backdrop')?.remove()">
+          ${isHi ? 'बाद में' : 'Maybe Later'}
+        </button>
+        <button class="btn primary" style="flex:1.4;padding:12px;border-radius:12px;font-weight:800;background:linear-gradient(135deg,#8b5cf6,#ec4899);" onclick="document.getElementById('pro-limit-upsell-backdrop')?.remove();openProCheckout();">
+          👑 ${isHi ? 'अनलॉक करें' : 'Unlock Pro'}
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modalBackdrop);
+}
 
 // =====================================================================
 // TESTING BARRIER — while the app is shared for feedback, monetization
@@ -130,46 +255,7 @@ const PT_PRICE = '₹50';
 const PT_PERIOD = '/month';
 const PT_CURRENCY = 'INR';
 
-// --- Free Tier Feature Gating Limits ---
-const PT_FREE_LIMITS = {
-  voiceTransactions: 100,
-  ledgerContacts: 5,
-  spacesCount: 2
-};
 
-function getVoiceEntriesUsed() {
-  return Number(localStorage.getItem('pockettrack_voice_used_count') || 0);
-}
-
-function incrementVoiceEntriesUsed() {
-  const current = getVoiceEntriesUsed();
-  localStorage.setItem('pockettrack_voice_used_count', String(current + 1));
-}
-
-function canUseVoiceEntry() {
-  return true;
-}
-
-function canAddLedgerContact(currentCount) {
-  return true;
-}
-
-function canCreateSpace(currentCount) {
-  return true;
-}
-
-function showProLimitModal(featureName, freeLimitText) {
-  const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
-  showAppConfirm(
-    isHi 
-      ? `🔒 आपने ${featureName} की फ्री सीमा (${freeLimitText}) पार कर ली है। असीमित उपयोग के लिए PocketTrack Pro में अपग्रेड करें (सिर्फ ₹50/माह)!`
-      : `🔒 You have reached the Free limit for ${featureName} (${freeLimitText}). Upgrade to PocketTrack Pro (starting at just ₹50/mo) for unlimited access!`,
-    () => {
-      openProCheckout();
-    },
-    isHi ? '👑 Pro अनलॉक करें' : '👑 Upgrade to Pro'
-  );
-}
 
 // --- PocketPoints → Pro discount (retention loop from streaks) ---
 // 500 points = ₹50 off any Pro purchase, stackable up to one free month.
