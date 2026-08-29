@@ -47,7 +47,8 @@
 .ti-palette::before{content:'🎨'}
 .ti-device-mobile::before{content:'📱'}
 .ti-player-play::before{content:'▶️'}
-.ti-arrows-exchange::before{content:'🔁'}
+.ti-arrows-left-right::before,
+.ti-arrows-exchange::before{content:'⇄';font-weight:800;font-size:1.25em;}
 .ti-repeat::before,.ti-refresh-dot::before{content:'🔁'}
 .ti-wand::before{content:'🪄'}
 .ti-currency-rupee::before,.ti-rupee::before{content:'₹'}
@@ -55,4 +56,8 @@
 .ti-chart-arrows::before{content:'🔮'}
 .ti-history::before{content:'📜'}
 .ti-calendar::before{content:'📅'}
+.ti-clipboard-text::before{content:'📋'}
+.ti-chevron-right::before{content:'›';font-weight:800;font-size:1.2em;}
+.ti-chevron-left::before{content:'‹';font-weight:800;font-size:1.2em;}
+.ti-coffee::before{content:'☕'}
 
