@@ -2286,40 +2286,197 @@ textarea{
   display: none !important;
 }
 
-.app-mode-simple .hero-card {
-  padding: 24px 20px !important;
-  border: 2px solid rgba(52, 211, 153, 0.55) !important;
-  background: linear-gradient(160deg, #181432, #0d0a21) !important;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6) !important;
+/* =====================================================================
+   SIMPLE SENIOR (40+) BAHI-KHATA PASSBOOK STYLES
+   ===================================================================== */
+.app-mode-simple #power-mode-home-container {
+  display: none !important;
 }
-.app-mode-simple .hero-balance {
-  font-size: 38px !important;
-  font-weight: 900 !important;
-  color: #ffffff !important;
-  margin: 12px 0 16px !important;
+.app-mode-simple #simple-mode-home-container {
+  display: block !important;
 }
-.app-mode-simple .hero-actions {
-  grid-template-columns: 1fr 1fr !important;
-  gap: 10px !important;
+
+.simple-bahi-summary-card {
+  background: linear-gradient(145deg, #18113c 0%, #0d0926 100%);
+  border: 2px solid rgba(52, 211, 153, 0.6);
+  border-radius: 26px;
+  padding: 24px 20px;
+  text-align: center;
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.6);
+  margin-bottom: 16px;
 }
-.app-mode-simple .hero-action {
-  padding: 16px 12px !important;
-  font-size: 15px !important;
-  font-weight: 800 !important;
-  border-radius: 16px !important;
-  min-height: 52px !important;
+.simple-summary-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-dim, #cbd5e1);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
 }
-.app-mode-simple .voice-action {
-  grid-column: span 2 !important;
-  background: linear-gradient(135deg, #8b5cf6, #3b82f6) !important;
-  color: #fff !important;
-  font-size: 16px !important;
-  font-weight: 800 !important;
+.simple-summary-balance {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 42px;
+  font-weight: 900;
+  color: #ffffff;
+  margin: 8px 0 12px;
+  letter-spacing: -1.5px;
 }
-.app-mode-simple .recent-card { font-size: 15px !important; }
-.app-mode-simple .entry-row { padding: 14px 12px !important; }
-.app-mode-simple .entry-desc { font-size: 15px !important; font-weight: 700 !important; }
-.app-mode-simple .entry-amt { font-size: 17px !important; font-weight: 800 !important; }
+.simple-summary-sub {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 12px;
+}
+
+.simple-voice-hero-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 24px;
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 14px 35px rgba(139, 92, 246, 0.45);
+  margin-bottom: 14px;
+  text-align: left;
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.simple-voice-hero-btn:active {
+  transform: scale(0.96);
+}
+.simple-voice-icon-wrap {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  flex-shrink: 0;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+}
+.simple-voice-text-wrap {
+  flex: 1;
+}
+.simple-voice-title {
+  display: block;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+.simple-voice-subtitle {
+  display: block;
+  font-size: 12.5px;
+  opacity: 0.9;
+  margin-top: 3px;
+  line-height: 1.35;
+}
+
+.simple-bahi-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 12px;
+  padding: 0 4px;
+}
+.simple-bahi-list {
+  background: rgba(15, 10, 33, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 22px;
+  padding: 10px 14px;
+  margin-bottom: 24px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+}
+.bahi-date-divider {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--accent-bright, #c4b5fd);
+  padding: 12px 6px 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.bahi-khata-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.bahi-khata-row:last-child {
+  border-bottom: none;
+}
+.bahi-row-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+.bahi-entry-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.bahi-entry-icon.income {
+  background: rgba(52, 211, 153, 0.15);
+}
+.bahi-entry-icon.expense {
+  background: rgba(248, 113, 113, 0.15);
+}
+.bahi-entry-details {
+  min-width: 0;
+  flex: 1;
+}
+.bahi-entry-title {
+  display: block;
+  font-size: 15px;
+  font-weight: 800;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bahi-running-bal {
+  display: block;
+  font-size: 12px;
+  color: var(--text-dim, #94a3b8);
+  margin-top: 2px;
+  font-weight: 600;
+}
+.bahi-row-right {
+  text-align: right;
+  flex-shrink: 0;
+  padding-left: 10px;
+}
+.bahi-entry-amt {
+  display: block;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+}
+.bahi-entry-amt.green { color: #34d399; }
+.bahi-entry-amt.red { color: #f87171; }
+.bahi-edit-hint {
+  display: block;
+  font-size: 10.5px;
+  color: var(--text-faint, #64748b);
+  margin-top: 2px;
+}
 
 /* Mobile Touch Active Physics (Spring compress on tap) */
 button:active,

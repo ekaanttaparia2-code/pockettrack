@@ -54,10 +54,12 @@ function updateHeaderStats(){
     if(heroCount)heroCount.textContent=list.length;
   }
   renderHomeSnapshot();
+  if (typeof renderSimpleModePassbook === 'function') renderSimpleModePassbook();
 }
 window.updateHeaderStats = updateHeaderStats;
 
 function renderHomeSnapshot(){
+  if (typeof renderSimpleModePassbook === 'function') renderSimpleModePassbook();
   const wrap=document.getElementById('home-recent-activity');
   const insight=document.getElementById('home-insight-text');
   if(!wrap)return;

@@ -186,41 +186,87 @@
   </div>
 
   <div id="tab-log">
-    <!-- 1. Hero Balance Card -->
-    <div class="hero-card hero-card-v2" id="hero-balance-card">
-      <div class="hero-top">
-        <div>
-          <span class="hero-label" data-i18n="stat_balance">Balance</span>
-          <p class="hero-caption" data-i18n="home_available">Available across your tracked money</p>
+    <!-- POWER MODE HOME VIEW -->
+    <div id="power-mode-home-container">
+      <!-- 1. Hero Balance Card -->
+      <div class="hero-card hero-card-v2" id="hero-balance-card">
+        <div class="hero-top">
+          <div>
+            <span class="hero-label" data-i18n="stat_balance">Balance</span>
+            <p class="hero-caption" data-i18n="home_available">Available across your tracked money</p>
+          </div>
+          <span class="hero-chip">₹</span>
         </div>
-        <span class="hero-chip">₹</span>
+        <p class="hero-balance" id="hdr-balance">₹0</p>
+        <div class="hero-metrics">
+          <div><span data-i18n="stat_income">Income</span><strong class="green" id="hero-income">₹0</strong></div>
+          <div><span data-i18n="stat_spent">Spent</span><strong class="red" id="hero-spent">₹0</strong></div>
+          <div><span data-i18n="stat_entries">Entries</span><strong id="hero-count">0</strong></div>
+        </div>
+        <div class="hero-actions">
+          <button class="hero-action primary" onclick="openQuickComposer('expense')"><i class="ti ti-arrow-up-right"></i> <span data-i18n="home_add_expense">Add expense</span></button>
+          <button class="hero-action" onclick="openQuickComposer('income')"><i class="ti ti-arrow-down-left"></i> <span data-i18n="home_add_income">Add income</span></button>
+        </div>
       </div>
-      <p class="hero-balance" id="hdr-balance">₹0</p>
-      <div class="hero-metrics">
-        <div><span data-i18n="stat_income">Income</span><strong class="green" id="hero-income">₹0</strong></div>
-        <div><span data-i18n="stat_spent">Spent</span><strong class="red" id="hero-spent">₹0</strong></div>
-        <div><span data-i18n="stat_entries">Entries</span><strong id="hero-count">0</strong></div>
+
+      <!-- 2. Recent Activity / Khata -->
+      <div class="home-section-head" style="margin-top:14px;">
+        <div>
+          <p class="section-kicker" data-i18n="home_recent_kicker">RECENT TRANSACTIONS</p>
+          <h3 data-i18n="home_recent_title">Passbook &amp; Entries</h3>
+        </div>
+        <button class="text-action" onclick="setTab('entries')"><span data-i18n="home_view_all">View all</span> <i class="ti ti-arrow-right"></i></button>
       </div>
-      <div class="hero-actions">
-        <button class="hero-action primary" onclick="openQuickComposer('expense')"><i class="ti ti-arrow-up-right"></i> <span data-i18n="home_add_expense">Add expense</span></button>
-        <button class="hero-action" onclick="openQuickComposer('income')"><i class="ti ti-arrow-down-left"></i> <span data-i18n="home_add_income">Add income</span></button>
+      <div class="recent-card" id="home-recent-activity">
+        <div class="empty-mini">Your latest entries will appear here.</div>
       </div>
+
+      <!-- 3. Contextual Smart Nudge (ONLY ONE) -->
+      <div id="home-contextual-nudge" style="margin-top:14px;"></div>
     </div>
 
-    <!-- 2. Recent Activity / Khata -->
-    <div class="home-section-head" style="margin-top:14px;">
-      <div>
-        <p class="section-kicker" data-i18n="home_recent_kicker">RECENT TRANSACTIONS</p>
-        <h3 data-i18n="home_recent_title">Passbook &amp; Entries</h3>
+    <!-- SIMPLE SENIOR (40+) BAHI-KHATA HOME VIEW -->
+    <div id="simple-mode-home-container" style="display:none;">
+      <!-- Total Money Available Summary -->
+      <div class="simple-bahi-summary-card">
+        <span class="simple-summary-label">आपके पास कुल</span>
+        <h1 class="simple-summary-balance" id="simple-home-balance">₹0</h1>
+        <div class="simple-summary-sub">
+          <span>कुल जमा: <strong class="green" id="simple-home-income">₹0</strong></span>
+          <span>कुल खर्च: <strong class="red" id="simple-home-spent">₹0</strong></span>
+        </div>
       </div>
-      <button class="text-action" onclick="setTab('entries')"><span data-i18n="home_view_all">View all</span> <i class="ti ti-arrow-right"></i></button>
-    </div>
-    <div class="recent-card" id="home-recent-activity">
-      <div class="empty-mini">Your latest entries will appear here.</div>
-    </div>
 
-    <!-- 3. Contextual Smart Nudge (ONLY ONE) -->
-    <div id="home-contextual-nudge" style="margin-top:14px;"></div>
+      <!-- Primary Large Voice Button -->
+      <button class="simple-voice-hero-btn" onclick="startVoiceRecognition()">
+        <div class="simple-voice-icon-wrap"><i class="ti ti-microphone"></i></div>
+        <div class="simple-voice-text-wrap">
+          <strong class="simple-voice-title">🎙️ बोलकर बताइए</strong>
+          <span class="simple-voice-subtitle">बोलें: "350 रुपये दवाई का खर्च" या "20000 पेंशन मिली"</span>
+        </div>
+      </button>
+
+      <!-- Secondary Manual Form Buttons -->
+      <div class="simple-manual-actions" style="display:flex;gap:10px;margin-bottom:18px;">
+        <button class="btn" onclick="openQuickComposer('expense')" style="flex:1;padding:14px 10px;font-size:14px;font-weight:700;border-radius:16px;background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.35);color:#fca5a5;">
+          📤 खर्च लिखें
+        </button>
+        <button class="btn" onclick="openQuickComposer('income')" style="flex:1;padding:14px 10px;font-size:14px;font-weight:700;border-radius:16px;background:rgba(52,211,153,0.12);border:1px solid rgba(52,211,153,0.35);color:#6ee7b7;">
+          📥 आमदनी लिखें
+        </button>
+      </div>
+
+      <!-- Bahi-Khata Chronological Ledger Header -->
+      <div class="simple-bahi-header">
+        <h3 style="margin:0;font-size:17px;font-weight:800;color:#fff;">📖 बही-खाता (Passbook)</h3>
+        <span style="font-size:12px;color:var(--text-dim,#cbd5e1);">तारीख और हिसाब</span>
+      </div>
+
+      <!-- Bahi-Khata Chronological List with Running Balances -->
+      <div id="simple-bahi-khata-list" class="simple-bahi-list">
+        <div class="empty-mini" style="padding:30px 10px;font-size:14px;">अभी तक कोई हिसाब नहीं लिखा गया। ऊपर माइक दबाकर बोलें!</div>
+      </div>
+    </div>
   </div>
 
   <div id="tab-entries" style="display:none">

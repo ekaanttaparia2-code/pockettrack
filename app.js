@@ -275,13 +275,14 @@ function updateLanguageTabUI(){
 }
 
 function setLanguage(lang){
-  if(lang===currentLang)return;
   currentLang = lang;
+  window.currentLang = currentLang;
   localStorage.setItem('pocketTrackLang', currentLang);
   applyLanguage();
   const label = SUPPORTED_LANGS[lang] || lang;
-  toast('Switched language to ' + label, 'success');
+  if(typeof toast === 'function') toast('Switched language to ' + label, 'success');
 }
+window.setLanguage = setLanguage;
 
 
 
@@ -1492,10 +1493,33 @@ function renderHomeContextualNudge() {
   if (!nudgeEl) return;
 
   const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
+
+  // 1. Wrapped Notification (Top Priority if new period is ready and unviewed)
+  let wrappedNudge = null;
+  try {
+    const dNow = new Date();
+    const currentMonthKey = dNow.getFullYear() + '-' + String(dNow.getMonth() + 1).padStart(2, '0');
+    const wrappedSeen = localStorage.getItem('pockettrack_wrapped_seen_' + currentMonthKey);
+    const rawEntries = (typeof mainEntries === 'function') ? mainEntries() : [];
+    const thisMonthCount = rawEntries.filter(e => e && e.date && e.date.startsWith(currentMonthKey)).length;
+    
+    if (!wrappedSeen && thisMonthCount >= 3) {
+      const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      const mName = monthNames[dNow.getMonth()];
+      wrappedNudge = {
+        type: 'info',
+        icon: '🎉',
+        title: isHi ? `${mName} मनी रैप्ड तैयार है!` : `Your ${mName} Wrapped is ready!`,
+        text: isHi ? 'देखें इस महीने आपका पैसा कहां गया और आपका वित्तीय स्कोर क्या है।' : 'Discover your spending habits, top categories & financial health score.',
+        actionText: isHi ? 'रैप्ड देखें ✨' : 'See Wrapped ✨',
+        actionFn: `openMoneyWrapped(0); try { localStorage.setItem('pockettrack_wrapped_seen_${currentMonthKey}', 'true'); } catch(e){} if(typeof renderHomeContextualNudge==='function') renderHomeContextualNudge();`
+      };
+    }
+  } catch(e) {}
   
-  // 1. Check if any budget category is exceeded or > 90%
+  // 2. Budget Alert Warning: Check if any budget category is exceeded or > 90%
   let budgetWarning = null;
-  if (typeof budgetableCats === 'function' && typeof getPeriodExpenseByCat === 'function') {
+  if (!wrappedNudge && typeof budgetableCats === 'function' && typeof getPeriodExpenseByCat === 'function') {
     try {
       const spentByCat = getPeriodExpenseByCat();
       const cats = budgetableCats();
@@ -1518,9 +1542,9 @@ function renderHomeContextualNudge() {
     } catch(e) {}
   }
 
-  // 2. If no budget warning, check streak
+  // 3. Active Streak Momentum
   let streakNudge = null;
-  if (!budgetWarning) {
+  if (!wrappedNudge && !budgetWarning) {
     const streak = (typeof currentStreakDays !== 'undefined' && currentStreakDays > 0) ? currentStreakDays : (typeof getStreakCount === 'function' ? getStreakCount() : 0);
     if (streak > 0) {
       streakNudge = {
@@ -1534,7 +1558,7 @@ function renderHomeContextualNudge() {
     }
   }
 
-  // 3. Fallback: Money-saving tip
+  // 4. Fallback: Money-saving tip
   const tipText = document.getElementById('money-tip-text')?.textContent || (isHi ? '50-30-20 नियम का पालन करें: 50% जरूरत, 30% इच्छाएं और 20% बचत।' : 'Follow the 50/30/20 rule: 50% for needs, 30% for wants, and 20% for savings.');
   const tipNudge = {
     type: 'info',
@@ -1545,7 +1569,8 @@ function renderHomeContextualNudge() {
     actionFn: 'showNextTip()'
   };
 
-  const activeNudge = budgetWarning || streakNudge || tipNudge;
+  // Strictly ONE highlighted element shown at a time
+  const activeNudge = wrappedNudge || budgetWarning || streakNudge || tipNudge;
 
   nudgeEl.style.display = 'block';
   nudgeEl.className = `card home-nudge-card home-nudge-${activeNudge.type}`;
@@ -2761,6 +2786,83 @@ if (typeof window.updateBottomBarVisibility !== 'function') {
 // =====================================================================
 window.currentAppMode = localStorage.getItem('pockettrack_app_mode') || 'power';
 
+window.renderSimpleModePassbook = function() {
+  const container = document.getElementById('simple-bahi-khata-list');
+  const balEl = document.getElementById('simple-home-balance');
+  const incEl = document.getElementById('simple-home-income');
+  const expEl = document.getElementById('simple-home-spent');
+  if (!container) return;
+
+  const rawEntries = (typeof mainEntries === 'function') ? mainEntries() : ((typeof window !== 'undefined' && window.entries) ? window.entries : []);
+  const sortedOldestFirst = [...rawEntries].filter(e => !e.event).sort((a,b) => String(a.date||'').localeCompare(String(b.date||'')));
+
+  let runningBal = 0;
+  let totalInc = 0;
+  let totalExp = 0;
+
+  const entriesWithRunning = sortedOldestFirst.map(e => {
+    const amt = parseFloat(e.amt) || 0;
+    if (e.type === 'income') {
+      runningBal += amt;
+      totalInc += amt;
+    } else {
+      runningBal -= amt;
+      totalExp += amt;
+    }
+    return { ...e, runningBalance: runningBal };
+  });
+
+  const netBalance = totalInc - totalExp;
+  if (balEl) balEl.textContent = '₹' + netBalance.toLocaleString('en-IN');
+  if (incEl) incEl.textContent = '₹' + totalInc.toLocaleString('en-IN');
+  if (expEl) expEl.textContent = '₹' + totalExp.toLocaleString('en-IN');
+
+  const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
+
+  if (!entriesWithRunning.length) {
+    container.innerHTML = `<div class="empty-mini" style="padding:36px 14px;font-size:15px;color:var(--text-dim,#94a3b8);text-align:center;">${isHi ? 'अभी तक कोई हिसाब नहीं लिखा गया। ऊपर माइक दबाकर बोलें!' : 'No entries yet. Tap the microphone button above to speak!'}</div>`;
+    return;
+  }
+
+  // Reverse to show newest on top
+  const displayList = [...entriesWithRunning].reverse();
+
+  let html = '';
+  let lastDate = '';
+
+  displayList.forEach(e => {
+    const dateStr = e.date || 'आज';
+    const isIncome = e.type === 'income';
+    const sign = isIncome ? '+' : '-';
+    const colorClass = isIncome ? 'green' : 'red';
+    const label = escapeHTML(e.label || e.note || (isIncome ? (isHi ? 'आमदनी' : 'Income') : (isHi ? 'खर्च' : 'Expense')));
+
+    if (dateStr !== lastDate) {
+      lastDate = dateStr;
+      const formattedDate = (typeof fmtDate === 'function') ? fmtDate(dateStr) : dateStr;
+      html += `<div class="bahi-date-divider">${formattedDate}</div>`;
+    }
+
+    html += `
+      <div class="bahi-khata-row" onclick="if(typeof startEdit==='function') startEdit('${e._id}')">
+        <div class="bahi-row-left">
+          <div class="bahi-entry-icon ${isIncome ? 'income' : 'expense'}">${isIncome ? '📥' : '📤'}</div>
+          <div class="bahi-entry-details">
+            <strong class="bahi-entry-title">${label}</strong>
+            <span class="bahi-running-bal">${isHi ? 'बचा' : 'Bal'}: ₹${e.runningBalance.toLocaleString('en-IN')}</span>
+          </div>
+        </div>
+        <div class="bahi-row-right">
+          <strong class="bahi-entry-amt ${colorClass}">${sign}₹${(parseFloat(e.amt)||0).toLocaleString('en-IN')}</strong>
+          <span class="bahi-edit-hint">✏️ ${isHi ? 'बदलें' : 'Edit'}</span>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+};
+
 window.setAppMode = function(mode, save = true) {
   window.currentAppMode = mode;
   const isSimple = (mode === 'simple');
@@ -2774,6 +2876,9 @@ window.setAppMode = function(mode, save = true) {
   if (isSimple) {
     if (iconEl) iconEl.textContent = '👴';
     if (labelEl) labelEl.textContent = 'Simple';
+    if (typeof window.renderSimpleModePassbook === 'function') {
+      window.renderSimpleModePassbook();
+    }
     if (save) {
       localStorage.setItem('pockettrack_app_mode', 'simple');
       if (typeof toast === 'function') toast('Switched to Simple Mode (40+)', 'success');
@@ -2812,6 +2917,7 @@ window.triggerManualSync = async function() {
         if (typeof renderEntries === 'function') renderEntries();
         if (typeof renderHomeSnapshot === 'function') renderHomeSnapshot();
         if (typeof renderReport === 'function') renderReport();
+        if (window.currentAppMode === 'simple') window.renderSimpleModePassbook();
       }
       if (typeof loadWallets === 'function') loadWallets();
       if (typeof renderWalletSwitcher === 'function') renderWalletSwitcher();
@@ -2895,11 +3001,29 @@ window.selectAgeExperience = function(ageGroup) {
   localStorage.setItem('pockettrack_age_group', ageGroup);
   localStorage.setItem('pockettrack_app_mode_chosen', 'true');
   const targetMode = (ageGroup === '40_plus') ? 'simple' : 'power';
+  
+  if (targetMode === 'simple') {
+    // Default to Hindi on 40+ selection
+    if (typeof setLanguage === 'function') {
+      setLanguage('hi');
+    }
+  }
+
   window.setAppMode(targetMode, true);
   const m = document.getElementById('age-mode-modal');
   if (m) m.remove();
-  if (typeof toast === 'function') {
-    toast(targetMode === 'simple' ? '👴 Set to Simple 40+ Mode' : '⚡ Set to Power Mode', 'success');
+  
+  if (targetMode === 'simple') {
+    if (typeof window.renderSimpleModePassbook === 'function') {
+      window.renderSimpleModePassbook();
+    }
+    if (typeof toast === 'function') {
+      toast('👴 सरल मोड (हिंदी) सेट हो गया!', 'success');
+    }
+  } else {
+    if (typeof toast === 'function') {
+      toast('⚡ Set to Power Mode', 'success');
+    }
   }
 };
 

@@ -18,31 +18,6 @@
 <link rel="stylesheet" href="icons.css">
 <link rel="stylesheet" href="website/style.css">
 <script>
-// Redirect directly into the PocketTrack Application
-(function() {
-  try {
-    var urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('landing') === 'true' || urlParams.get('force') === 'landing') {
-      return; // allow viewing landing page if explicitly requested
-    }
-    var loc = window.location;
-    if (loc.protocol === 'file:') {
-      var p = loc.pathname;
-      loc.replace((p.indexOf('/website/') !== -1 || p.indexOf('\\website\\') !== -1) ? '../app.html' : 'app.html');
-      return;
-    }
-    var path = loc.pathname || '/';
-    var wIdx = path.indexOf('/website');
-    if (wIdx !== -1) {
-      var repo = path.substring(0, wIdx);
-      loc.replace((repo ? repo : '') + '/app.html');
-      return;
-    }
-    var repoPath = path.substring(0, path.lastIndexOf('/'));
-    loc.replace((repoPath ? repoPath : '') + '/app.html');
-  } catch (e) {}
-})();
-
 function launchPocketTrackApp(e) {
   if (e && e.preventDefault) e.preventDefault();
   try {

@@ -1,8 +1,5 @@
 {
   "cleanUrls": true,
-  "rewrites": [
-    { "source": "/", "destination": "/app.html" }
-  ],
   "headers": [
     {
       "source": "/.well-known/assetlinks.json",

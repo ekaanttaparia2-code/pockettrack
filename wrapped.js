@@ -138,6 +138,181 @@ window.getWrappedShareText = function() {
     return `🎬 My PocketTrack Money Wrapped — ${mName}\n\n💰 Tracked: ₹${d.totalAmount.toLocaleString('en-IN')} across ${d.totalTxns} transactions\n🍔 Top spend: ${capitalize(catName)} (₹${d.topCatAmt.toLocaleString('en-IN')} — ${d.topCatPercent}%)\n💀 That's ₹${d.yearlyOppAmt.toLocaleString('en-IN')}/year — enough for ${d.oppItem}\n🧬 Financial DNA: ${dnaEmoji} ${dnaName}\n📊 Health Score: ${d.healthScore}/100\n\nKnow where YOUR money goes → PocketTrack`;
 }
 
+window.generateWrappedShareImage = function() {
+    if (!wrappedData) return null;
+    const d = wrappedData;
+    const canvas = document.createElement('canvas');
+    canvas.width = 1080;
+    canvas.height = 1350;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    // Background Gradient
+    const bg = ctx.createLinearGradient(0, 0, 1080, 1350);
+    bg.addColorStop(0, '#160d38');
+    bg.addColorStop(0.5, '#0e0824');
+    bg.addColorStop(1, '#05030f');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, 1080, 1350);
+
+    // Glowing corner decor
+    const glow1 = ctx.createRadialGradient(200, 150, 10, 200, 150, 400);
+    glow1.addColorStop(0, 'rgba(139, 92, 246, 0.35)');
+    glow1.addColorStop(1, 'rgba(139, 92, 246, 0)');
+    ctx.fillStyle = glow1;
+    ctx.fillRect(0, 0, 1080, 700);
+
+    const glow2 = ctx.createRadialGradient(880, 1100, 10, 880, 1100, 450);
+    glow2.addColorStop(0, 'rgba(244, 63, 94, 0.25)');
+    glow2.addColorStop(1, 'rgba(244, 63, 94, 0)');
+    ctx.fillStyle = glow2;
+    ctx.fillRect(0, 700, 1080, 650);
+
+    // Rounded Card Border
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(40, 40, 1000, 1270, 36);
+    else ctx.rect(40, 40, 1000, 1270);
+    ctx.stroke();
+
+    // Top Header Badge
+    ctx.fillStyle = 'rgba(139, 92, 246, 0.25)';
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(80, 80, 460, 60, 30);
+    else ctx.rect(80, 80, 460, 60);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(139, 92, 246, 0.6)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.fillStyle = '#f5f3ff';
+    ctx.font = 'bold 24px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+    const mName = monthNames[d.month - 1];
+    ctx.fillText(`✨ MONEY WRAPPED · ${mName.toUpperCase()} ${d.year}`, 310, 118);
+
+    // Title
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 54px "Space Grotesk", sans-serif';
+    ctx.fillText("Your Money Story", 80, 220);
+
+    // Box 1: Total Movement
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(80, 260, 920, 190, 24);
+    else ctx.rect(80, 260, 920, 190);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+    ctx.stroke();
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '600 22px Inter, sans-serif';
+    ctx.fillText("TOTAL MOVEMENT TRACKED", 120, 315);
+
+    ctx.fillStyle = '#34d399';
+    ctx.font = 'bold 68px "Space Grotesk", sans-serif';
+    ctx.fillText(`₹${d.totalAmount.toLocaleString('en-IN')}`, 120, 395);
+
+    // Box 2: Top Spend & Opp Cost
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(80, 480, 920, 210, 24);
+    else ctx.rect(80, 480, 920, 210);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+    ctx.stroke();
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '600 22px Inter, sans-serif';
+    ctx.fillText("BIGGEST SPEND CATEGORY", 120, 535);
+
+    const topCatName = d.topCategory ? capitalize(d.topCategory.customCat || d.topCategory.cat) : 'General';
+    ctx.fillStyle = '#f43f5e';
+    ctx.font = 'bold 40px "Space Grotesk", sans-serif';
+    ctx.fillText(`${topCatName} — ₹${d.topCatAmt.toLocaleString('en-IN')} (${d.topCatPercent}%)`, 120, 595);
+
+    ctx.fillStyle = '#cbd5e1';
+    ctx.font = '500 20px Inter, sans-serif';
+    ctx.fillText(`Annualized pace = ₹${d.yearlyOppAmt.toLocaleString('en-IN')} / year (${d.oppItem})`, 120, 645);
+
+    // Box 3: DNA & Health Score
+    // Left: DNA
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(80, 720, 440, 270, 24);
+    else ctx.rect(80, 720, 440, 270);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+    ctx.stroke();
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '600 22px Inter, sans-serif';
+    ctx.fillText("FINANCIAL DNA", 120, 775);
+
+    ctx.font = '52px sans-serif';
+    ctx.fillText(d.dna ? d.dna.emoji : '🧬', 120, 850);
+
+    ctx.fillStyle = '#c4b5fd';
+    ctx.font = 'bold 28px "Space Grotesk", sans-serif';
+    ctx.fillText(d.dna ? d.dna.title : 'Strategic', 120, 910);
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '500 18px Inter, sans-serif';
+    ctx.fillText(`Top ${d.dna && d.dna.pct ? d.dna.pct : 15}% user match`, 120, 950);
+
+    // Right: Health Score
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(560, 720, 440, 270, 24);
+    else ctx.rect(560, 720, 440, 270);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+    ctx.stroke();
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '600 22px Inter, sans-serif';
+    ctx.fillText("HEALTH SCORE", 600, 775);
+
+    const scoreColor = d.healthScore > 70 ? '#34d399' : (d.healthScore > 40 ? '#fbbf24' : '#ef4444');
+    ctx.fillStyle = scoreColor;
+    ctx.font = 'bold 74px "Space Grotesk", sans-serif';
+    ctx.fillText(`${d.healthScore}`, 600, 865);
+
+    ctx.fillStyle = '#cbd5e1';
+    ctx.font = '600 19px Inter, sans-serif';
+    ctx.fillText(d.healthScore > 70 ? "Excellent Financial Shape" : "Room for Optimization", 600, 920);
+
+    // Footer Watermark
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.font = 'bold 24px "Space Grotesk", sans-serif';
+    ctx.fillText("PocketTrack · Know Where Your Money Goes", 540, 1140);
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+    ctx.font = '500 18px Inter, sans-serif';
+    ctx.fillText("pockettrack.app", 540, 1180);
+
+    return canvas;
+};
+
+window.downloadWrappedCard = function() {
+    const canvas = window.generateWrappedShareImage();
+    if (!canvas) return;
+    try {
+        const link = document.createElement('a');
+        link.download = `PocketTrack_Wrapped_${wrappedData ? wrappedData.month + '_' + wrappedData.year : 'Story'}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        const toastFn = getSafeFn('toast');
+        if (toastFn) toastFn('📥 Story Card Downloaded!', 'success');
+    } catch(e) {
+        console.error('Download error:', e);
+    }
+};
+
 window.shareWrapped = async function() {
     const text = window.getWrappedShareText();
     if (navigator.share) {
@@ -155,7 +330,7 @@ window.shareWrapped = async function() {
             if (toastFn) toastFn('Copied to clipboard!', 'success');
         });
     }
-}
+};
 
 function capitalize(str) {
     if (!str) return '';
@@ -375,9 +550,14 @@ function renderOverlay() {
                     <div style="font-size: 20px; font-weight: 600; margin-bottom: 20px;">Health Score</div>
                     <div class="sub-text" style="font-size: 18px; max-width: 80%;">${d.verdict}</div>
                     
-                    <button class="share-btn" onclick="shareWrapped()">
-                        📤 Share My Wrapped
-                    </button>
+                    <div style="display:flex;gap:12px;margin-top:24px;flex-wrap:wrap;justify-content:center;z-index:10002;">
+                        <button class="share-btn" onclick="downloadWrappedCard()" style="background:linear-gradient(135deg,#8b5cf6,#3b82f6);border:none;margin-top:0;">
+                            📥 Download Story Card
+                        </button>
+                        <button class="share-btn" onclick="shareWrapped()" style="margin-top:0;">
+                            📤 Share Text
+                        </button>
+                    </div>
                 </div>
                 
             </div>
