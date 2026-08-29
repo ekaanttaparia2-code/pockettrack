@@ -2619,13 +2619,81 @@ window.deleteSharedIncome = deleteSharedIncome;
 // This is done at the bottom of the script
 
 
-// ============ SMART UPI NOTIFICATION LOGGER ============
+// ============ SMART UPI NOTIFICATION LOGGER & 100+ INDIAN MERCHANT NLP ============
 const MERCHANT_CATEGORY_MAP = {
-  food:{keywords:['swiggy','zomato','food','cafe','restaurant','pizza','burger','mcdonald','domino','kfc','subway','chai','samosa','mess','canteen','biryani','hotel','paratha','dosa','bhel','pani puri','vada pav','pav bhaji','bakery','cake','juice','smoothie','starbucks','barista','pizza hut','burger king','haldiram','sweet','mithai','grocery','bigbasket','blinkit','zepto','instamart','dmart','reliance fresh','supermarket']},
-  travel:{keywords:['uber','ola','rapido','metro','irctc','train','bus','flight','makemytrip','ixigo','redbus','auto','taxi','cab','petrol','diesel','fuel','parking','toll','airport']},
-  friends:{keywords:['movie','cinema','pvr','inox','game','gaming','steam','playstation','netflix','hotstar','prime video','spotify','concert','party','bar','pub','club','event','ticket','bookmyshow']},
-  home:{keywords:['electricity','bill','water','gas','internet','broadband','jio','airtel','vi ','bsnl','recharge','rent','maintenance','amazon','flipkart','meesho','ajio','myntra','shopping']},
+  food: {
+    keywords: [
+      'swiggy', 'zomato', 'blinkit', 'zepto', 'instamart', 'bigbasket', 'dmart', 'reliance fresh',
+      'mcdonald', 'domino', 'kfc', 'subway', 'burger king', 'pizza hut', 'starbucks', 'barista',
+      'chai point', 'chaayos', 'haldiram', 'bikaji', 'bikanervala', 'chai', 'samosa', 'mess', 'canteen',
+      'biryani', 'hotel', 'paratha', 'dosa', 'bhel', 'pani puri', 'vada pav', 'pav bhaji', 'bakery',
+      'cake', 'juice', 'smoothie', 'sweet', 'mithai', 'grocery', 'supermarket', 'doodh', 'milk', 'sabji',
+      'vegetable', 'fruit', 'sutta', 'sutte', 'snack', 'dhaba', 'bbq', 'barbeque nation', 'wow momo', 'behrouz'
+    ]
+  },
+  travel: {
+    keywords: [
+      'uber', 'ola', 'rapido', 'namma yatri', 'blusmart', 'metro', 'irctc', 'train', 'bus', 'flight',
+      'makemytrip', 'ixigo', 'redbus', 'yatra', 'goibibo', 'abhibus', 'easemytrip', 'cleartrip',
+      'auto', 'taxi', 'cab', 'petrol', 'diesel', 'fuel', 'cng', 'hpcl', 'bpcl', 'iocl', 'shell',
+      'fastag', 'toll', 'parking', 'airport', 'challan', 'chalan', 'puncture', 'service'
+    ]
+  },
+  shopping: {
+    keywords: [
+      'amazon', 'flipkart', 'myntra', 'nykaa', 'ajio', 'meesho', 'tata cliq', 'zara', 'h&m', 'uniqlo',
+      'reliance digital', 'croma', 'vijay sales', 'decathlon', 'lenskart', 'snitch', 'urbanic',
+      'westside', 'pantaloons', 'lifestyle', 'max fashion', 'shoppers stop', 'titan', 'fastrack',
+      'boat', 'noise', 'apple store', 'shopping', 'mall', 'clothes', 'shoes', 'dress', 'cosmetics'
+    ]
+  },
+  home: {
+    keywords: [
+      'rent', 'pg rent', 'room rent', 'hostel fee', 'society', 'maintenance', 'electricity', 'power',
+      'bescom', 'mseb', 'tneb', 'uppcl', 'dhbvn', 'adani electricity', 'tata power', 'water bill',
+      'igl', 'mahanagar gas', 'png', 'lpg', 'bharat gas', 'hp gas', 'indane', 'gas cylinder',
+      'maid', 'cook', 'driver', 'dhobi', 'laundry', 'ironing', 'urban company', 'housekeeping',
+      'pest control', 'carpenter', 'plumber', 'electrician', 'appliances', 'furniture', 'rentomojo', 'furlenco'
+    ]
+  },
+  friends: {
+    keywords: [
+      'movie', 'cinema', 'pvr', 'inox', 'cinepolis', 'bookmyshow', 'game', 'gaming', 'steam',
+      'playstation', 'netflix', 'hotstar', 'prime video', 'spotify', 'youtube premium', 'sonyliv',
+      'zee5', 'concert', 'party', 'bar', 'pub', 'club', 'beer', 'alcohol', 'event', 'ticket', 'bowling'
+    ]
+  },
+  health: {
+    keywords: [
+      'apollo', '1mg', 'pharmeasy', 'netmeds', 'medplus', 'practo', 'cult.fit', 'cult', 'gym',
+      'fitness', 'doctor', 'clinic', 'hospital', 'dental', 'dentist', 'pharmacy', 'medicine',
+      'tablet', 'syrup', 'injection', 'lab test', 'blood test', 'srl diagnostics', 'dr lal pathlabs',
+      'optician', 'physiotherapy', 'therapy', 'counseling'
+    ]
+  },
+  education: {
+    keywords: [
+      'fees', 'tuition', 'college', 'school', 'coaching', 'allen', 'akash', 'physicswallah', 'pw',
+      'unacademy', 'byjus', 'coursera', 'udemy', 'edx', 'books', 'stationery', 'xerox', 'photocopy',
+      'printout', 'exam fee', 'form fee', 'library', 'pen', 'notebook', 'notes'
+    ]
+  },
+  bills: {
+    keywords: [
+      'jio', 'airtel', 'vi ', 'vodafone', 'idea', 'bsnl', 'recharge', 'broadband', 'act fibernet',
+      'hathway', 'tata play', 'dish tv', 'dth', 'credit card bill', 'cred', 'loan', 'emi', 'sip',
+      'zerodha', 'groww', 'angelone', 'upstox', 'insurance', 'lic', 'policybazaar', 'tax', 'gst'
+    ]
+  },
+  work: {
+    keywords: [
+      'client', 'freelance', 'upwork', 'fiverr', 'invoice', 'salary', 'stipend', 'bonus', 'consultancy',
+      'domain', 'hosting', 'aws', 'google cloud', 'canva', 'chatgpt', 'openai', 'github', 'zoom',
+      'office expense', 'coworking', 'wework', 'awfis'
+    ]
+  }
 };
+window.MERCHANT_CATEGORY_MAP = MERCHANT_CATEGORY_MAP;
 
 function parseUpiNotification(text) {
   if (!text || !text.trim()) return null;
@@ -2644,7 +2712,7 @@ function parseUpiNotification(text) {
   let amount = null;
   const amountPatterns = [
     /(?:₹|रु\.?|Rs\.?|INR)\s*(\d+(?:,\d{2,3})*(?:\.\d{1,2})?)/i,
-    /(?:paid|sent|received|transferred|reciev|reieved)\s+(?:₹|Rs\.?|INR)?\s*(\d+(?:,\d{2,3})*(?:\.\d{1,2})?)/i,
+    /(?:paid|sent|received|transferred|reciev|reieved|debited)\s+(?:₹|Rs\.?|INR)?\s*(\d+(?:,\d{2,3})*(?:\.\d{1,2})?)/i,
     /(\d+(?:,\d{2,3})*(?:\.\d{1,2})?)\s*(?:to|se|from|ko|via)/i,
   ];
   for (const pat of amountPatterns) {
@@ -2666,16 +2734,70 @@ function parseUpiNotification(text) {
   }
   return { amount, direction, merchant, app, suggestedCat, raw };
 }
+window.parseUpiNotification = parseUpiNotification;
 
 function pasteFromClipboard() {
   if (navigator.clipboard && navigator.clipboard.readText) {
     navigator.clipboard.readText().then(text => {
-      document.getElementById('smart-log-input').value = text;
+      const upiInput = document.getElementById('smart-log-input');
+      if (upiInput) upiInput.value = text;
       onSmartLogInput();
       toast(currentLang==='hi' ? 'क्लिपबोर्ड से पढ़ा गया 🔒 (सुरक्षित रूप से प्रोसेस)' : 'Pasted from clipboard 🔒 (Processed securely on-device)', 'success');
     }).catch(() => toast('Please paste manually', 'error'));
   } else { toast('Please paste manually', 'error'); }
 }
+
+window.pasteFromClipboardAndLog = async function() {
+  if (!navigator.clipboard || !navigator.clipboard.readText) {
+    toast('Opening Smart UPI logger...', 'info');
+    setTab('upi');
+    return;
+  }
+
+  try {
+    const text = await navigator.clipboard.readText();
+    if (!text || !text.trim()) {
+      toast('Clipboard is empty. Copy an SMS or UPI payment alert first!', 'warning');
+      return;
+    }
+
+    const parsed = parseUpiNotification(text);
+    if (!parsed || !parsed.amount) {
+      const upiInput = document.getElementById('smart-log-input');
+      if (upiInput) upiInput.value = text;
+      setTab('upi');
+      if (typeof onSmartLogInput === 'function') onSmartLogInput();
+      toast('Text pasted into Smart UPI Logger. Please review.', 'info');
+      return;
+    }
+
+    const entryType = parsed.direction === 'received' ? 'income' : 'expense';
+    const entryLabel = parsed.merchant || (parsed.direction === 'received' ? 'UPI Received' : 'UPI Payment');
+    const entryCat = parsed.suggestedCat || 'other';
+
+    if (typeof openQuickComposer === 'function') {
+      openQuickComposer(entryType);
+      const amtEl = document.getElementById('composer-amount');
+      const noteEl = document.getElementById('composer-note');
+      const tagEl = document.getElementById('composer-tag');
+      if (amtEl) amtEl.value = parsed.amount;
+      if (noteEl) noteEl.value = entryLabel;
+      if (tagEl) tagEl.value = parsed.app ? `#${parsed.app.replace(/\s+/g,'')}` : '#UPI';
+
+      if (typeof selectComposerWalletById === 'function') selectComposerWalletById('bank');
+      if (typeof selectComposerCategoryById === 'function') selectComposerCategoryById(entryCat);
+
+      const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
+      toast(isHi 
+        ? `📋 ₹${parsed.amount} पहचान लिया गया (${entryLabel})` 
+        : `📋 Detected ₹${parsed.amount} (${entryLabel})`, 'success');
+    }
+  } catch (err) {
+    console.warn('Clipboard read error:', err.message);
+    toast('Please allow clipboard permission or paste in Smart UPI logger', 'info');
+    setTab('upi');
+  }
+};
 
 // =====================================================================
 // ACCESSIBILITY & FONT SCALE ENGINE
@@ -3116,40 +3238,67 @@ window.openAgeModeModal = function() {
   const currentMode = window.currentAppMode || localStorage.getItem('pockettrack_app_mode') || 'power';
 
   modal.innerHTML = `
-    <div style="max-width:440px;width:100%;background:linear-gradient(160deg,#1a133d,#0d0a21);border:1px solid rgba(139,92,246,0.5);border-radius:28px;padding:26px 22px;box-shadow:0 25px 70px rgba(0,0,0,0.85);color:#fff;text-align:center;position:relative;">
-      <div style="font-size:38px;margin-bottom:8px;">🎯</div>
-      <h3 style="margin:0 0 6px;font-family:'Space Grotesk',sans-serif;font-size:21px;font-weight:800;">
-        ${isHi ? 'अपनी आयु चुनें' : 'Choose Your Experience'}
+    <div style="max-width:460px;width:100%;background:linear-gradient(160deg,#1a133d,#0d0a21);border:1px solid rgba(139,92,246,0.5);border-radius:28px;padding:24px 20px;box-shadow:0 25px 70px rgba(0,0,0,0.85);color:#fff;text-align:center;position:relative;max-height:90vh;overflow-y:auto;">
+      <div style="font-size:36px;margin-bottom:6px;">🎯</div>
+      <h3 style="margin:0 0 4px;font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800;">
+        ${isHi ? 'अपना अनुभव चुनें' : 'Choose Your Daily Experience'}
       </h3>
-      <p style="font-size:12.5px;color:#cbd5e1;line-height:1.45;margin:0 0 20px;">
-        ${isHi ? 'हम आपके लिए सबसे आसान और उपयुक्त इंटरफ़ेस सेट करेंगे।' : 'Tailors text size, contrast, and features for your needs. Switch anytime.'}
+      <p style="font-size:12px;color:#cbd5e1;line-height:1.4;margin:0 0 16px;">
+        ${isHi ? 'हम आपके लिए सबसे आसान और उपयुक्त इंटरफ़ेस सेट करेंगे।' : 'Personalizes categories, recurring bills, and display mode for you.'}
       </p>
 
-      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px;">
-        <!-- Option 1: 40+ Senior / Simple -->
-        <div onclick="selectAgeExperience('40_plus')" style="background:${currentMode==='simple'?'rgba(52,211,153,0.15)':'rgba(255,255,255,0.04)'};border:2px solid ${currentMode==='simple'?'var(--green,#34d399)':'rgba(52,211,153,0.35)'};border-radius:20px;padding:16px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:14px;transition:all 0.18s;">
-          <div style="font-size:34px;width:44px;text-align:center;">👴</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+        <!-- Option 1: College Student -->
+        <div onclick="selectPersonaExperience('student')" style="background:rgba(255,255,255,0.04);border:1.5px solid rgba(139,92,246,0.3);border-radius:18px;padding:12px 14px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:12px;transition:all 0.18s;">
+          <div style="font-size:28px;width:38px;text-align:center;">🎓</div>
           <div style="flex:1;">
-            <div style="display:flex;align-items:center;justify-content:space-between;">
-              <div style="font-size:15.5px;font-weight:800;color:#34d399;">${isHi ? '40+ वर्ष (सरल मोड)' : '40+ Years (Simple Mode)'}</div>
-              ${currentMode==='simple'?'<span style="font-size:11px;background:#34d399;color:#000;font-weight:800;padding:2px 8px;border-radius:99px;">ACTIVE</span>':''}
-            </div>
-            <div style="font-size:12px;color:#94a3b8;margin-top:3px;line-height:1.35;">
-              ${isHi ? 'बड़ा टेक्स्ट, हाई कंट्रास्ट, 1-नंबर बजट, आसान पासबुक खाता और शून्य उलझन।' : 'Extra large readable text, high contrast, 1-number budget, simple passbook & zero clutter.'}
+            <div style="font-size:14px;font-weight:800;color:#c4b5fd;">${isHi ? 'कॉलेज छात्र / PG (Student)' : 'College Student / PG Hostel'}</div>
+            <div style="font-size:11.5px;color:#94a3b8;margin-top:2px;">
+              ${isHi ? 'हिंग्लिश वॉयस, रूममेट बिल शेयरिंग, दैनिक सुरक्षित खर्च और कैंटीन/मेस।' : 'Hinglish voice, roommate splitting, daily safe-to-spend & canteen/mess.'}
             </div>
           </div>
         </div>
 
-        <!-- Option 2: Below 40 Power Mode -->
-        <div onclick="selectAgeExperience('under_40')" style="background:${currentMode==='power'?'rgba(139,92,246,0.18)':'rgba(255,255,255,0.04)'};border:2px solid ${currentMode==='power'?'var(--accent,#8b5cf6)':'rgba(139,92,246,0.35)'};border-radius:20px;padding:16px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:14px;transition:all 0.18s;">
-          <div style="font-size:34px;width:44px;text-align:center;">⚡</div>
+        <!-- Option 2: Young Working Professional -->
+        <div onclick="selectPersonaExperience('young_pro')" style="background:rgba(255,255,255,0.04);border:1.5px solid rgba(59,130,246,0.3);border-radius:18px;padding:12px 14px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:12px;transition:all 0.18s;">
+          <div style="font-size:28px;width:38px;text-align:center;">💼</div>
           <div style="flex:1;">
-            <div style="display:flex;align-items:center;justify-content:space-between;">
-              <div style="font-size:15.5px;font-weight:800;color:#a78bfa;">${isHi ? '40 से कम (पावर मोड)' : 'Under 40 (Power Mode)'}</div>
-              ${currentMode==='power'?'<span style="font-size:11px;background:#8b5cf6;color:#fff;font-weight:800;padding:2px 8px;border-radius:99px;">ACTIVE</span>':''}
+            <div style="font-size:14px;font-weight:800;color:#60a5fa;">${isHi ? 'युवा कामकाजी पेशेवर (Working Pro)' : 'Young Working Professional'}</div>
+            <div style="font-size:11.5px;color:#94a3b8;margin-top:2px;">
+              ${isHi ? '1-टैप UPI क्लिपबोर्ड पेस्ट, 100+ भारतीय मर्चेंट और सैलरी फ्लो।' : '1-tap UPI paste, 100+ Indian merchant auto-categorization & salary burn.'}
             </div>
-            <div style="font-size:12px;color:#94a3b8;margin-top:3px;line-height:1.35;">
-              ${isHi ? 'मल्टी-वॉलेट्स, फ्यूचर मनी सिम्युलेटर, चिल्लर वॉल्ट, वित्तीय डीएनए और प्रो टूल्स।' : 'Multi-wallets & accounts, Future Simulator, Chillar Vault, Financial DNA & Pro tools.'}
+          </div>
+        </div>
+
+        <!-- Option 3: Teacher / Household Family -->
+        <div onclick="selectPersonaExperience('family')" style="background:rgba(255,255,255,0.04);border:1.5px solid rgba(251,191,36,0.3);border-radius:18px;padding:12px 14px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:12px;transition:all 0.18s;">
+          <div style="font-size:28px;width:38px;text-align:center;">🏠</div>
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:800;color:#fcd34d;">${isHi ? 'गृहस्थी / परिवार / शिक्षक (Family & Home)' : 'Family & Household (35–45)'}</div>
+            <div style="font-size:11.5px;color:#94a3b8;margin-top:2px;">
+              ${isHi ? 'शांत इंटरफ़ेस, घरेलू आवर्ती खर्च (कामवाली, दूधवाला, EMI, स्कूल फीस)।' : 'Calm view, household commitments (Maid, Milkman, School Fees, EMI).'}
+            </div>
+          </div>
+        </div>
+
+        <!-- Option 4: Senior Parent (55-70) -->
+        <div onclick="selectPersonaExperience('senior')" style="background:rgba(52,211,153,0.08);border:2px solid var(--green,#34d399);border-radius:18px;padding:12px 14px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:12px;transition:all 0.18s;">
+          <div style="font-size:28px;width:38px;text-align:center;">👴</div>
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:800;color:#34d399;">${isHi ? 'वरिष्ठ नागरिक (सरल बही-खाता 40+)' : 'Senior Citizen (Simple Bahi-Khata 55+)'}</div>
+            <div style="font-size:11.5px;color:#94a3b8;margin-top:2px;">
+              ${isHi ? 'बड़ा फ़ॉन्ट, हिंदी में आसान बोलकर लिखें, बैंक जैसा पासबुक और 0 उलझन।' : 'Large fonts, high contrast, Hindi voice entry & simple passbook.'}
+            </div>
+          </div>
+        </div>
+
+        <!-- Option 5: Freelancer / Side-Hustler -->
+        <div onclick="selectPersonaExperience('freelancer')" style="background:rgba(255,255,255,0.04);border:1.5px solid rgba(236,72,153,0.3);border-radius:18px;padding:12px 14px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:12px;transition:all 0.18s;">
+          <div style="font-size:28px;width:38px;text-align:center;">💻</div>
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:800;color:#f472b6;">${isHi ? 'फ्रीलांसर / साइड-हसलर (Freelancer)' : 'Freelancer / Side-Hustler'}</div>
+            <div style="font-size:11.5px;color:#94a3b8;margin-top:2px;">
+              ${isHi ? 'क्लाइंट/प्रोजेक्ट टैग्स (#Tag), बिजनेस वॉलेट और CA के लिए CSV एक्सपोर्ट।' : 'Client/project #tags, personal vs business wallets & CA-ready export.'}
             </div>
           </div>
         </div>
@@ -3162,6 +3311,39 @@ window.openAgeModeModal = function() {
   `;
 
   document.body.appendChild(modal);
+};
+
+window.selectPersonaExperience = function(personaKey) {
+  localStorage.setItem('pockettrack_user_persona', personaKey);
+  localStorage.setItem('pockettrack_app_mode_chosen', 'true');
+
+  if (personaKey === 'senior') {
+    window.selectAgeExperience('40_plus');
+    return;
+  }
+
+  if (personaKey === 'student') {
+    if (typeof setLanguage === 'function') setLanguage('hinglish');
+  } else if (personaKey === 'family') {
+    if (typeof setLanguage === 'function' && currentLang === 'en') {
+      // keep English or current
+    }
+  }
+
+  window.selectAgeExperience('under_40');
+  const m = document.getElementById('age-mode-modal');
+  if (m) m.remove();
+  
+  const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
+  const personaNames = {
+    student: isHi ? '🎓 छात्र मोड सेट हो गया' : '🎓 Student Mode Activated',
+    young_pro: isHi ? '💼 वर्किंग प्रोफेशनल मोड सेट हो गया' : '💼 Working Pro Mode Activated',
+    family: isHi ? '🏠 घरेलू परिवार मोड सेट हो गया' : '🏠 Household & Family Mode Activated',
+    freelancer: isHi ? '💻 फ्रीलांसर मोड सेट हो गया' : '💻 Freelancer Mode Activated'
+  };
+  if (typeof toast === 'function') {
+    toast(personaNames[personaKey] || 'Mode Updated', 'success');
+  }
 };
 
 window.selectAgeExperience = function(ageGroup) {

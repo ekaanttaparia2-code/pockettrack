@@ -228,6 +228,7 @@ function openQuickComposer(mode='expense', editEntry=null){
     document.getElementById('composer-amount').value = editEntry.amt || '';
     document.getElementById('composer-date').value = editEntry.date || todayStr();
     document.getElementById('composer-note').value = editEntry.note || editEntry.label || '';
+    document.getElementById('composer-tag').value = editEntry.tag || '';
     composerWallet = editEntry.walletId || ((typeof resolveEntryWalletId === 'function') ? resolveEntryWalletId(editEntry) : 'cash');
     composerSelection = (composerMode === 'expense') ? (editEntry.cat || 'other') : (editEntry.label || 'Salary');
     
@@ -242,6 +243,8 @@ function openQuickComposer(mode='expense', editEntry=null){
     document.getElementById('composer-amount').value = '';
     document.getElementById('composer-date').value = todayStr();
     document.getElementById('composer-note').value = '';
+    const tagEl = document.getElementById('composer-tag');
+    if (tagEl) tagEl.value = '';
     composerWallet = (typeof activeWalletId !== 'undefined' && activeWalletId !== 'all') ? activeWalletId : (mode === 'income' ? 'bank' : 'cash');
     composerSelection = composerMode === 'expense' ? 'food' : 'Salary';
     
@@ -271,6 +274,25 @@ function openQuickComposer(mode='expense', editEntry=null){
   document.body.classList.add('composer-open');
   setTimeout(()=>document.getElementById('composer-amount')?.focus(),180);
 }
+
+function selectComposerWalletById(walletId) {
+  composerWallet = walletId;
+  const wChipsEl = document.getElementById('composer-wallet-chips');
+  if (wChipsEl) {
+    wChipsEl.querySelectorAll('.composer-chip').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.wallet === walletId);
+    });
+  }
+}
+window.selectComposerWalletById = selectComposerWalletById;
+
+function selectComposerCategoryById(catId) {
+  composerSelection = catId;
+  document.querySelectorAll('#composer-expense-fields .composer-chip').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.cat === catId);
+  });
+}
+window.selectComposerCategoryById = selectComposerCategoryById;
 
 function closeTransactionComposer(){
   const backdrop=document.getElementById('transaction-composer-backdrop');
@@ -367,6 +389,7 @@ async function submitTransactionComposer(){
   const amt=parseFloat(document.getElementById('composer-amount')?.value);
   const date=document.getElementById('composer-date')?.value||todayStr();
   const note=(document.getElementById('composer-note')?.value||'').trim().slice(0,60);
+  const tag=(document.getElementById('composer-tag')?.value||'').trim().slice(0,30);
   const checkAmt = (typeof isValidAmount === 'function') ? isValidAmount : ((typeof window !== 'undefined' && typeof window.isValidAmount === 'function') ? window.isValidAmount : ((a) => typeof a === 'number' && isFinite(a) && a > 0));
   const checkDate = (typeof isValidDate === 'function') ? isValidDate : ((typeof window !== 'undefined' && typeof window.isValidDate === 'function') ? window.isValidDate : ((d) => !!d));
   if(!checkAmt(amt)){toast(TT('enter_valid_amount'),'error');return;}
@@ -383,12 +406,12 @@ async function submitTransactionComposer(){
     let payload;
     const chosenWallet = composerWallet || ((typeof activeWalletId !== 'undefined' && activeWalletId !== 'all') ? activeWalletId : (composerMode === 'income' ? 'bank' : 'cash'));
     if(composerMode==='expense'){
-      const labels={food:'Food & snacks',travel:'Travel/Convenience',friends:'Friends plan',home:'Household items',shopping:'Shopping',other:'Other'};
+      const labels={food:'Food & snacks',travel:'Travel/Convenience',friends:'Friends plan',home:'Household items',shopping:'Shopping',bills:'Bills & Utilities',health:'Health & Meds',education:'Education & Fees',work:'Work & Freelance',other:'Other'};
       const label=note||labels[composerSelection]||'Expense';
-      payload={type:'expense',cat:composerSelection,label,note:note||label,amt:Math.round(amt*100)/100,walletId:chosenWallet,date};
+      payload={type:'expense',cat:composerSelection,label,note:note||label,tag:tag||'',amt:Math.round(amt*100)/100,walletId:chosenWallet,date};
     }else{
       const label=note||composerSelection||'Income';
-      payload={type:'income',cat:'income',label,note:note||label,amt:Math.round(amt*100)/100,walletId:chosenWallet,date};
+      payload={type:'income',cat:'income',label,note:note||label,tag:tag||'',amt:Math.round(amt*100)/100,walletId:chosenWallet,date};
     }
 
     if (editingId) {

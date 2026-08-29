@@ -211,6 +211,45 @@ function copyReport(){
   });
 }
 
+window.exportCSV = function() {
+  const list = (typeof getReportEntries === 'function') ? getReportEntries() : (typeof mainEntries === 'function' ? mainEntries() : (typeof entries !== 'undefined' ? entries : []));
+  if (!list.length) {
+    toast('No entries to export', 'warning');
+    return;
+  }
+  
+  const headers = ['Date', 'Type', 'Amount (INR)', 'Category', 'Description / Merchant', 'Wallet / Account', 'Client / Tag', 'Notes'];
+  const rows = list.map(e => {
+    const d = e.date || '';
+    const t = e.type === 'income' ? 'Income' : (e.type === 'transfer' ? 'Transfer' : 'Expense');
+    const amt = Number(e.amt || 0).toFixed(2);
+    const cat = (typeof displayCatLabel === 'function') ? displayCatLabel(e) : (e.cat || 'other');
+    const label = (e.label || '').replace(/"/g, '""');
+    const wallet = (e.walletId || 'bank').toUpperCase();
+    const tag = (e.tag || '').replace(/"/g, '""');
+    const note = (e.note || '').replace(/"/g, '""');
+    return `"${d}","${t}",${amt},"${cat}","${label}","${wallet}","${tag}","${note}"`;
+  });
+
+  const csvContent = '\uFEFF' + headers.join(',') + '\n' + rows.join('\n');
+  const blob = (typeof Blob !== 'undefined') ? new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }) : null;
+  if (blob && typeof URL !== 'undefined' && URL.createObjectURL && typeof document !== 'undefined') {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const dStr = (typeof todayStr === 'function' ? todayStr() : new Date().toISOString().split('T')[0]);
+    a.href = url;
+    a.download = `PocketTrack_Statement_${dStr}.csv`;
+    if (document.body.appendChild) document.body.appendChild(a);
+    if (typeof a.click === 'function') a.click();
+    if (document.body.removeChild) document.body.removeChild(a);
+    if (URL.revokeObjectURL) URL.revokeObjectURL(url);
+  }
+
+  const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
+  toast(isHi ? '📊 CSV स्टेटमेंट डाउनलोड हो गया' : '📊 Financial Statement CSV exported successfully', 'success');
+  return csvContent;
+};
+
 const DEVA_FONT_NAME='NotoSansDevanagari';
 async function ensureDevanagariFont(doc){
   if(doc.internal.__ptDevaFont) return true;

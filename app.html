@@ -264,9 +264,9 @@
             <span class="action-circle-icon"><i class="ti ti-microphone"></i></span>
             <span class="action-circle-label" data-i18n="home_voice">Voice</span>
           </button>
-          <button class="hero-action-pill pill-transfer" onclick="openTransferModal()">
-            <span class="action-circle-icon"><i class="ti ti-arrows-exchange"></i></span>
-            <span class="action-circle-label">Transfer</span>
+          <button class="hero-action-pill pill-paste" onclick="pasteFromClipboardAndLog()" title="1-Tap Paste UPI or SMS alert">
+            <span class="action-circle-icon"><i class="ti ti-clipboard-text"></i></span>
+            <span class="action-circle-label">UPI Paste</span>
           </button>
         </div>
       </div>
@@ -448,8 +448,9 @@
         <div id="full-breakdown"></div>
       </div>
 
-      <div class="btn-row">
+      <div class="btn-row" style="flex-wrap:wrap;gap:8px;">
         <button class="btn" onclick="copyReport()"><i class="ti ti-copy"></i> <span data-i18n="btn_copy_report">Copy report</span></button>
+        <button class="btn" onclick="exportCSV()"><i class="ti ti-file-spreadsheet"></i> <span>Export CSV / Excel</span></button>
         <button class="btn primary" onclick="exportPDF()"><i class="ti ti-download"></i> <span data-i18n="btn_export_pdf">Export as PDF</span></button>
         <button class="btn danger" onclick="clearAll()">🗑️ <span data-i18n="btn_clear_all">Clear all</span></button>
       </div>
@@ -853,10 +854,15 @@
         <button id="composer-income-tab" class="composer-toggle-btn" onclick="setComposerMode('income')">💰 Income</button>
       </div>
 
-      <button type="button" class="rec-manage-btn" onclick="toggleRecurringSheet()">
-        <span class="rec-manage-main">🔁 Recurring expenses</span>
-        <span class="rec-manage-sub">rent · bills · subs — auto-logged</span>
-      </button>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;">
+        <button type="button" class="rec-manage-btn" onclick="toggleRecurringSheet()" style="margin:0;flex:1;">
+          <span class="rec-manage-main">🔁 Recurring</span>
+          <span class="rec-manage-sub">Rent, bills, subs</span>
+        </button>
+        <button type="button" class="btn btn-sm" onclick="pasteFromClipboardAndLog()" style="padding:10px 12px;background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.35);color:var(--accent-bright,#c4b5fd);border-radius:14px;font-size:11.5px;font-weight:700;display:flex;align-items:center;gap:5px;cursor:pointer;">
+          <i class="ti ti-clipboard-text"></i> Paste UPI
+        </button>
+      </div>
 
       <div class="composer-amount-wrap">
         <span>₹</span><input id="composer-amount" inputmode="decimal" type="number" min="0.01" step="0.01" placeholder="0" autocomplete="off"/>
@@ -865,11 +871,15 @@
       <div id="composer-expense-fields">
         <p class="composer-label">What was it for?</p>
         <div class="composer-chips">
-          <button class="composer-chip active" data-cat="food" onclick="selectComposerChip(this,'food')">🍔 Food</button>
-          <button class="composer-chip" data-cat="travel" onclick="selectComposerChip(this,'travel')">🚕 Travel</button>
-          <button class="composer-chip" data-cat="friends" onclick="selectComposerChip(this,'friends')">👯 Friends</button>
-          <button class="composer-chip" data-cat="home" onclick="selectComposerChip(this,'home')">🏠 Home</button>
+          <button class="composer-chip active" data-cat="food" onclick="selectComposerChip(this,'food')">🍔 Food &amp; Mess</button>
+          <button class="composer-chip" data-cat="travel" onclick="selectComposerChip(this,'travel')">🚕 Travel &amp; Fuel</button>
           <button class="composer-chip" data-cat="shopping" onclick="selectComposerChip(this,'shopping')">🛍️ Shopping</button>
+          <button class="composer-chip" data-cat="home" onclick="selectComposerChip(this,'home')">🏠 Home &amp; Rent</button>
+          <button class="composer-chip" data-cat="bills" onclick="selectComposerChip(this,'bills')">💡 Bills &amp; EMI</button>
+          <button class="composer-chip" data-cat="health" onclick="selectComposerChip(this,'health')">🩺 Health &amp; Meds</button>
+          <button class="composer-chip" data-cat="education" onclick="selectComposerChip(this,'education')">📚 Education &amp; Fees</button>
+          <button class="composer-chip" data-cat="friends" onclick="selectComposerChip(this,'friends')">👯 Friends &amp; Outings</button>
+          <button class="composer-chip" data-cat="work" onclick="selectComposerChip(this,'work')">💻 Work &amp; Freelance</button>
           <button class="composer-chip" data-cat="other" onclick="selectComposerChip(this,'other')">📦 Other</button>
           <button type="button" class="composer-chip custom-tag-btn" onclick="promptAddCustomTag()" style="border-style:dashed;">🏷️ + Tag</button>
         </div>
@@ -879,6 +889,7 @@
         <p class="composer-label">Where did it come from?</p>
         <div class="composer-chips">
           <button class="composer-chip active" data-source="Salary" onclick="selectComposerChip(this,'Salary')">💼 Salary</button>
+          <button class="composer-chip" data-source="Freelance" onclick="selectComposerChip(this,'Freelance')">💻 Client / Freelance</button>
           <button class="composer-chip" data-source="Allowance" onclick="selectComposerChip(this,'Allowance')">🎁 Allowance</button>
           <button class="composer-chip" data-source="Rent received" onclick="selectComposerChip(this,'Rent received')">🏠 Rent</button>
           <button class="composer-chip" data-source="Other" onclick="selectComposerChip(this,'Other')">✨ Other</button>
@@ -897,7 +908,14 @@
 
       <div class="composer-row">
         <label class="composer-field"><span>📅 Date</span><input id="composer-date" type="date"/></label>
-        <label class="composer-field composer-note"><span>📝 Note</span><input id="composer-note" type="text" maxlength="60" placeholder="Optional"/></label>
+        <label class="composer-field composer-note"><span>📝 Note</span><input id="composer-note" type="text" maxlength="60" placeholder="e.g. Swiggy, Milk, Petrol"/></label>
+      </div>
+
+      <div style="margin-top:6px;margin-bottom:12px;">
+        <label class="composer-field" style="width:100%;">
+          <span>🏷️ Client / Project / #Tag</span>
+          <input id="composer-tag" type="text" maxlength="30" placeholder="e.g. #ClientAcme, #GoaTrip, #TaxDeductible" style="width:100%;box-sizing:border-box;"/>
+        </label>
       </div>
 
       <div class="composer-actions">

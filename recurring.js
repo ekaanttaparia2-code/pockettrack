@@ -279,20 +279,64 @@ function editRecurring(id){
   showAddRecurringModal({label:r.label,amt:r.amt,type:r.type,cat:r.cat,freq:r.freq,nextDate:r.nextDate});
 }
 
+const INDIAN_RECURRING_PRESETS = [
+  { label: 'House / PG Rent', amt: 12000, cat: 'home', freq: 'monthly', icon: '🏠' },
+  { label: 'Maid / Cook Salary', amt: 3500, cat: 'home', freq: 'monthly', icon: '🧹' },
+  { label: 'Milkman (Doodhwala)', amt: 1800, cat: 'food', freq: 'monthly', icon: '🥛' },
+  { label: 'Society Maintenance', amt: 2500, cat: 'home', freq: 'monthly', icon: '🏢' },
+  { label: 'School / Tuition Fees', amt: 5000, cat: 'education', freq: 'monthly', icon: '🎓' },
+  { label: 'Home / Car Loan EMI', amt: 15000, cat: 'bills', freq: 'monthly', icon: '🚗' },
+  { label: 'WiFi & Mobile Recharge', amt: 999, cat: 'bills', freq: 'monthly', icon: '📶' },
+  { label: 'Monthly SIP / Savings', amt: 5000, cat: 'bills', freq: 'monthly', icon: '📈' },
+  { label: 'Netflix / OTT Subs', amt: 499, cat: 'friends', freq: 'monthly', icon: '🍿' }
+];
+window.INDIAN_RECURRING_PRESETS = INDIAN_RECURRING_PRESETS;
+
+function applyRecurringPreset(idx) {
+  const p = INDIAN_RECURRING_PRESETS[idx];
+  if (!p) return;
+  const labelEl = document.getElementById('rec-label');
+  const amtEl = document.getElementById('rec-amt');
+  const catEl = document.getElementById('rec-cat');
+  const freqEl = document.getElementById('rec-freq');
+  if (labelEl) labelEl.value = p.label;
+  if (amtEl) amtEl.value = p.amt;
+  if (catEl) catEl.value = p.cat;
+  if (freqEl) freqEl.value = p.freq;
+}
+window.applyRecurringPreset = applyRecurringPreset;
+
 function showAddRecurringModal(prefill){
   if(!currentUser){ toast(TT('not_logged_in'),'error'); return; }
   const pf=prefill||{};
   const isHi=currentLang==='hi';
   let catOptions='';
-  ['food','travel','friends','home','shopping','entertainment','health','education','work','other'].forEach(c=>{
-    catOptions+=`<option value="${c}"${pf.cat===c?' selected':''}>${CAT_LABEL(c)}</option>`;
+  ['food','travel','friends','home','shopping','bills','health','education','work','other'].forEach(c=>{
+    catOptions+=`<option value="${c}"${pf.cat===c?' selected':''}>${(typeof CAT_LABEL==='function')?CAT_LABEL(c):c}</option>`;
   });
+
+  const presetChipsHtml = !_recEditingId ? `
+    <div style="margin-bottom:12px;">
+      <span style="font-size:10.5px;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">
+        ${isHi ? '⚡ लोकप्रिय भारतीय आवर्ती खर्चे (1-टैप चुनें)' : '⚡ Quick Indian Templates (1-Tap)'}
+      </span>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;max-height:80px;overflow-y:auto;">
+        ${INDIAN_RECURRING_PRESETS.map((p, i) => `
+          <button type="button" class="btn btn-sm" onclick="applyRecurringPreset(${i})" style="font-size:11px;padding:4px 8px;border-radius:10px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:#fff;cursor:pointer;">
+            ${p.icon} ${p.label}
+          </button>
+        `).join('')}
+      </div>
+    </div>
+  ` : '';
+
   openRecurringModal(`
-    <h3 style="margin:0 0 14px;font-family:'Space Grotesk',sans-serif;">${isHi?(_recEditingId?'✏️ नियम बदलें':'🔁 आवर्ती नियम जोड़ें'):(_recEditingId?'✏️ Edit Recurring Rule':'🔁 Add Recurring Rule')}</h3>
+    <h3 style="margin:0 0 12px;font-family:'Space Grotesk',sans-serif;">${isHi?(_recEditingId?'✏️ नियम बदलें':'🔁 आवर्ती नियम जोड़ें'):(_recEditingId?'✏️ Edit Recurring Rule':'🔁 Add Recurring Rule')}</h3>
+    ${presetChipsHtml}
     <label style="font-size:11px;color:var(--text-dim)">${isHi?'क्या':'What'}</label>
-    <input id="rec-label" type="text" maxlength="40" value="${pf.label?escapeHTML(pf.label):''}" placeholder="${isHi?'जैसे Netflix, किराया, EMI':'e.g. Netflix, Rent, EMI'}" style="width:100%;box-sizing:border-box"/>
+    <input id="rec-label" type="text" maxlength="40" value="${pf.label?escapeHTML(pf.label):''}" placeholder="${isHi?'जैसे Maid, किराया, EMI, दूध':'e.g. Maid, Rent, EMI, Milk'}" style="width:100%;box-sizing:border-box"/>
     <label style="font-size:11px;color:var(--text-dim);margin-top:8px;display:block">${isHi?'कितना':'Amount (₹)'}</label>
-    <input id="rec-amt" type="number" min="1" step="0.01" ${pf.amt?`value="${pf.amt}"`:''} style="width:100%;box-sizing:border-box"/>
+    <input id="rec-amt" type="number" min="1" step="0.01" ${pf.amt?`value="${pf.amt}"`:''} placeholder="0" style="width:100%;box-sizing:border-box"/>
     <label style="font-size:11px;color:var(--text-dim);margin-top:8px;display:block">${isHi?'प्रकार':'Type'}</label>
     <select id="rec-type" onchange="document.getElementById('rec-cat-wrap').style.display=this.value==='income'?'none':'block'" style="width:100%">
       <option value="expense"${pf.type!=='income'?' selected':''}>${isHi?'खर्च':'Expense'}</option>
