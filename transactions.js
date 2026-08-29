@@ -246,7 +246,7 @@ function renderHomeSnapshot(){
   const wrap=document.getElementById('home-recent-activity');
   const insight=document.getElementById('home-insight-text');
   if(!wrap)return;
-  const list=mainEntries().slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))).slice(0,5);
+  const list=mainEntries().slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))).slice(0,3);
   if(!list.length){
     wrap.innerHTML='<div class="empty-mini"><i class="ti ti-sparkles"></i><span>'+(currentLang==='hi'?'अपनी पहली आय या खर्च से शुरुआत करें।':'Start with your first income or expense.')+'</span></div>';
     if(insight)insight.textContent=currentLang==='hi'?'कुछ एंट्रीज़ के बाद PocketTrack यहां उपयोगी पैटर्न दिखाना शुरू करेगा।':'Once you have a few entries, PocketTrack will start surfacing useful patterns here.';

@@ -137,6 +137,8 @@ header{
   background:linear-gradient(120deg,#fff 30%,var(--accent-bright));
   -webkit-background-clip:text;background-clip:text;
   -webkit-text-fill-color:transparent;
+  margin:0;
+}
 .brand-actions {
   display: flex;
   align-items: center;
@@ -2120,46 +2122,217 @@ textarea{
   box-sizing:border-box;
 }
 
-/* Phone-width polish. */
+/* ================================================================
+   COMPACT FINTECH MOBILE ERGONOMICS (<600px)
+   Snug paddings, crisp typography, and zero excessive scrolling.
+   ================================================================ */
 @media (max-width:600px){
-  .shell{padding-top:calc(10px + env(safe-area-inset-top,0px));padding-left:12px;padding-right:12px;}
-  header{align-items:flex-start}
-  .brand{min-width:0;flex:1}
-  .brand p{font-size:11px}
-  .pill{max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .grid3,.insights-hero-stats{grid-template-columns:1fr !important}
-  .card, .hero-card, .recent-card{
-    backdrop-filter:blur(8px);
-    -webkit-backdrop-filter:blur(8px);
-    background:rgba(20, 14, 46, 0.92);
-    transform:translateZ(0);
+  .shell{
+    padding-top:calc(6px + env(safe-area-inset-top,0px)) !important;
+    padding-left:10px !important;
+    padding-right:10px !important;
+    padding-bottom:calc(84px + env(safe-area-inset-bottom, 16px)) !important;
   }
+  
+  /* Compact Header */
+  header{
+    margin-bottom:8px !important;
+    min-height:36px !important;
+    align-items:center !important;
+  }
+  .brand{
+    gap:7px !important;
+    min-height:36px !important;
+  }
+  .brand-logo-wrap, .brand-logo-wrap .brand-logo-img{
+    width:30px !important;
+    height:30px !important;
+    border-radius:9px !important;
+  }
+  .brand h1{
+    font-size:16px !important;
+  }
+  .mode-toggle-pill{
+    font-size:10.5px !important;
+    padding:4px 8px !important;
+  }
+  .pill{
+    font-size:10px !important;
+    padding:4px 7px !important;
+    max-width:none !important;
+  }
+
+  /* Compact Hero Balance Card */
+  .hero-card, .hero-card-v2{
+    padding:14px 12px 12px !important;
+    border-radius:22px !important;
+    margin-bottom:10px !important;
+    box-shadow:0 14px 36px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.15) !important;
+  }
+  .hero-top{
+    margin-bottom:4px !important;
+  }
+  .hero-label{
+    font-size:9.5px !important;
+    letter-spacing:0.8px !important;
+  }
+  .hero-caption{
+    font-size:9.5px !important;
+    margin-top:1px !important;
+  }
+  .hero-chip{
+    width:30px !important;
+    height:30px !important;
+    border-radius:9px !important;
+    font-size:15px !important;
+  }
+  .hero-balance{
+    font-size:32px !important;
+    letter-spacing:-1px !important;
+    margin:2px 0 8px !important;
+  }
+
+  /* Compact Inset Safe-to-Spend Pill */
+  .hero-safe-spend-pill{
+    padding:6px 10px !important;
+    border-radius:12px !important;
+    margin-bottom:8px !important;
+    gap:8px !important;
+  }
+  .safe-spend-badge{
+    width:26px !important;
+    height:26px !important;
+    border-radius:8px !important;
+    font-size:13px !important;
+  }
+  .safe-spend-label{
+    font-size:9px !important;
+  }
+  .safe-spend-val{
+    font-size:13px !important;
+  }
+  .safe-spend-sub{
+    font-size:9.5px !important;
+  }
+
+  /* Compact Inset Flow Strip */
+  .hero-flow-strip{
+    padding:5px 8px !important;
+    border-radius:10px !important;
+    margin-bottom:10px !important;
+    font-size:10.5px !important;
+  }
+  .flow-item{
+    gap:4px !important;
+    font-size:10.5px !important;
+  }
+  .flow-item strong{
+    font-size:11px !important;
+  }
+
+  /* Compact Action Pills */
+  .hero-action-pills-row{
+    margin-top:0 !important;
+  }
+  .action-circle-icon{
+    width:38px !important;
+    height:38px !important;
+    font-size:15px !important;
+  }
+  .action-circle-label{
+    font-size:10px !important;
+    margin-top:2px !important;
+  }
+
+  /* Compact Section Headers & Cards */
+  .home-section-head{
+    margin-top:8px !important;
+    margin-bottom:6px !important;
+  }
+  .home-section-head h3{
+    font-size:14.5px !important;
+  }
+  .section-kicker{
+    font-size:8.5px !important;
+    letter-spacing:1px !important;
+    margin-bottom:2px !important;
+  }
+  .card{
+    padding:12px 10px !important;
+    border-radius:16px !important;
+    margin-bottom:10px !important;
+  }
+  .recent-card{
+    padding:8px 10px !important;
+    border-radius:16px !important;
+    margin-bottom:10px !important;
+  }
+  .home-entry-row, .entry-row{
+    padding:7px 4px !important;
+    font-size:12px !important;
+    gap:9px !important;
+  }
+  .home-entry-icon{
+    width:32px !important;
+    height:32px !important;
+    border-radius:10px !important;
+    font-size:14px !important;
+  }
+  .home-entry-main strong, .entry-title{
+    font-size:12.5px !important;
+  }
+  .home-entry-main span, .entry-cat{
+    font-size:10.5px !important;
+  }
+  .home-entry-amt, .entry-amt{
+    font-size:13px !important;
+  }
+
+  /* Compact Bottom Navigation */
+  .bottom-tab-bar{
+    height:56px !important;
+    border-radius:18px !important;
+    padding:3px 4px !important;
+    bottom:calc(6px + env(safe-area-inset-bottom, 4px)) !important;
+    width:calc(100% - 16px) !important;
+    left:8px !important;
+    right:8px !important;
+  }
+  .bottom-tab{
+    padding:3px 0 !important;
+  }
+  .bottom-tab i{
+    font-size:16px !important;
+    margin-bottom:1px !important;
+  }
+  .bottom-tab span{
+    font-size:8.5px !important;
+  }
+
+  /* Floating Mic Button */
+  .voice-fab{
+    width:46px !important;
+    height:46px !important;
+    font-size:20px !important;
+    right:14px !important;
+    bottom:calc(68px + env(safe-area-inset-bottom,4px)) !important;
+  }
+
+  .grid3, .insights-hero-stats{grid-template-columns:1fr !important}
   .hero-actions{grid-template-columns:1fr 1fr !important}
-  .hero-action.voice-action{grid-column:1 / -1}
-  .composer-head h2{font-size:20px}
-  .composer-amount-wrap input{font-size:38px}
+  .composer-head h2{font-size:18px}
+  .composer-amount-wrap input{font-size:32px}
   .composer-chips{grid-template-columns:repeat(2,1fr) !important}
   .composer-row{grid-template-columns:1fr !important}
 }
 
 @media (max-width:380px){
-  :root{--pt-bottom-nav-h:68px}
-  .bottom-tab{padding-left:1px !important;padding-right:1px !important}
-  .bottom-tab i{font-size:17px !important}
-  .bottom-tab span{font-size:8px !important}
-  .bottom-add-icon{width:44px !important;height:44px !important}
-  .voice-fab{width:54px;height:54px}
+  .hero-balance{font-size:28px !important}
+  .action-circle-icon{width:34px !important;height:34px !important;font-size:13.5px !important}
+  .action-circle-label{font-size:9px !important}
 }
 
-/* Respect reduced motion while keeping interactions obvious. */
-@media (prefers-reduced-motion:reduce){
-  html{scroll-behavior:auto}
-  .bottom-tab,
-  .voice-fab,
-  .transaction-composer{transition:none !important;animation:none !important}
-}
-
-/* Desktop/tablet enhancement: keep a compact dock instead of stretching it edge-to-edge. */
+/* Desktop/tablet enhancement: keep a compact centered dock */
 @media (min-width:769px){
   body{
     padding-bottom:calc(92px + env(safe-area-inset-bottom,0px));
@@ -2170,7 +2343,7 @@ textarea{
     bottom:calc(14px + env(safe-area-inset-bottom,0px)) !important;
     transform:translateX(-50%) !important;
     width:min(470px,94vw) !important;
-    height:68px !important;
+    height:64px !important;
     border:1px solid rgba(255,255,255,.13) !important;
     border-radius:26px !important;
     padding:6px !important;
@@ -2182,25 +2355,6 @@ textarea{
   .transaction-composer-backdrop{
     padding-bottom:calc(92px + env(safe-area-inset-bottom,0px)) !important;
   }
-}
-
-/* Offline-first sync status pill (Phase 2) */
-.pill-offline .dot{background:var(--red,#f87171)!important;box-shadow:0 0 10px var(--red,#f87171)!important}
-.pill-syncing .dot{background:var(--amber,#fbbf24)!important;box-shadow:0 0 10px var(--amber,#fbbf24)!important;animation:pulseDot 1.2s ease-in-out infinite}
-@keyframes pulseDot{0%,100%{opacity:1}50%{opacity:0.4}}
-
-/* --- Mobile density polish (appended) --- */
-@media(max-width:480px){
-  .shortcut-icon{font-size:20px !important}
-  .home-shortcuts .shortcut-btn span{font-size:10.8px}
-  .card{padding:15px 13px;border-radius:18px}
-  .entry-row{gap:8px;font-size:12.5px;padding:9px 0}
-  .sec-title{font-size:13.5px;margin-bottom:8px}
-  .voice-fab{width:54px;height:54px;font-size:22px;right:18px;bottom:calc(88px + env(safe-area-inset-bottom,0px))}
-}
-@media(max-width:380px){
-  .shortcut-icon{font-size:18px !important}
-  .card{padding:13px 11px;border-radius:16px}
 }
 
 /* --- Recurring manage button in composer --- */
