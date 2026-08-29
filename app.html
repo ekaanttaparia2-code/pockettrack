@@ -204,71 +204,52 @@
   <div id="tab-log">
     <!-- POWER MODE HOME VIEW -->
     <div id="power-mode-home-container">
-      <!-- 1. Hero Balance Card -->
-      <div class="hero-card hero-card-v2" id="hero-balance-card">
+      <div class="home-greeting">
+        <div>
+          <p class="eyebrow" style="letter-spacing:1.5px;font-size:9.5px;font-weight:800;color:#c4b5fd;margin:0 0 2px;">POCKETTRACK</p>
+          <h2 style="font-size:22px;font-weight:800;margin:0;" data-i18n="home_glance">Your money, at a glance.</h2>
+        </div>
+        <button class="home-add-mini" onclick="openQuickComposer()" aria-label="Add transaction" style="width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,#a855f7,#ec4899);color:#fff;border:none;display:grid;place-items:center;font-size:16px;cursor:pointer;box-shadow:0 6px 18px rgba(168,85,247,0.4);"><i class="ti ti-plus"></i></button>
+      </div>
+
+      <!-- 1. The Iconic Royal Blue Hero Balance Card -->
+      <div class="hero-card hero-card-classic" id="hero-balance-card">
         <div class="hero-top">
           <div>
-            <span class="hero-label" data-i18n="stat_balance">TOTAL BALANCE</span>
-            <p class="hero-caption" data-i18n="home_available">Across all active wallets</p>
+            <span class="hero-label" style="color:rgba(255,255,255,0.85);font-weight:800;letter-spacing:1px;font-size:11px;" data-i18n="stat_balance">BALANCE</span>
+            <p class="hero-caption" style="color:rgba(255,255,255,0.65);font-size:11px;margin-top:2px;" data-i18n="home_available">Available across your tracked money</p>
           </div>
-          <span class="hero-chip" title="Wallet Currency">₹</span>
-        </div>
-        <p class="hero-balance" id="hdr-balance">₹0</p>
-        
-        <!-- Daily Safe-to-Spend Inset Rectangle -->
-        <div class="hero-safe-spend-pill" id="hero-safe-spend-pill" onclick="openSafeSpendExplainer()" style="cursor:pointer;" title="Tap to view exact Daily Safe-to-Spend calculation">
-          <div class="safe-spend-badge" id="hero-safe-spend-badge">
-            <span id="hero-safe-spend-icon">🎯</span>
-          </div>
-          <div class="safe-spend-info">
-            <div class="safe-spend-label" id="hero-safe-spend-label">Daily Safe-to-Spend</div>
-            <div class="safe-spend-val-row">
-              <strong class="safe-spend-val" id="hero-safe-spend-val">₹0/day</strong>
-              <span class="safe-spend-sub" id="hero-safe-spend-sub">· Calculating...</span>
-            </div>
-          </div>
-          <div class="safe-spend-action">
-            <i class="ti ti-chevron-right"></i>
+          <div class="hero-chip-coin">
+            <span>💰</span>
           </div>
         </div>
         
-        <!-- Cash Flow Strip Inset Rectangle -->
-        <div class="hero-flow-strip">
-          <div class="flow-item flow-inc">
-            <span class="flow-dot green-dot"></span>
-            <span class="flow-label" data-i18n="stat_income">Income</span>
-            <strong class="green" id="hero-income">+₹0</strong>
+        <p class="hero-balance" id="hdr-balance" style="font-family:'Space Grotesk',sans-serif;font-size:42px;font-weight:800;color:#fff;margin:8px 0 14px;letter-spacing:-1.5px;text-shadow:0 4px 16px rgba(0,0,0,0.3);">₹0</p>
+        
+        <div class="hero-metrics">
+          <div>
+            <span data-i18n="stat_income">INCOME</span>
+            <strong class="green" id="hero-income">₹0</strong>
           </div>
-          <div class="flow-divider"></div>
-          <div class="flow-item flow-exp">
-            <span class="flow-dot red-dot"></span>
-            <span class="flow-label" data-i18n="stat_spent">Spent</span>
-            <strong class="red" id="hero-spent">-₹0</strong>
+          <div>
+            <span data-i18n="stat_spent">SPENT</span>
+            <strong class="red" id="hero-spent">₹0</strong>
           </div>
-          <div class="flow-divider"></div>
-          <div class="flow-item flow-cnt">
-            <span class="flow-dot purple-dot"></span>
-            <span class="flow-label" data-i18n="stat_entries">Entries</span>
+          <div>
+            <span data-i18n="stat_entries">ENTRIES</span>
             <strong id="hero-count">0</strong>
           </div>
         </div>
 
-        <div class="hero-action-pills-row">
-          <button class="hero-action-pill pill-exp" onclick="openQuickComposer('expense')">
-            <span class="action-circle-icon"><i class="ti ti-arrow-up-right"></i></span>
-            <span class="action-circle-label" data-i18n="home_add_expense">Expense</span>
+        <div class="hero-actions-classic">
+          <button class="btn-hero-action btn-hero-exp" onclick="openQuickComposer('expense')">
+            <span>💸</span> <span data-i18n="home_add_expense">Add expense</span>
           </button>
-          <button class="hero-action-pill pill-inc" onclick="openQuickComposer('income')">
-            <span class="action-circle-icon"><i class="ti ti-arrow-down-left"></i></span>
-            <span class="action-circle-label" data-i18n="home_add_income">Income</span>
+          <button class="btn-hero-action btn-hero-inc" onclick="openQuickComposer('income')">
+            <span>💵</span> <span data-i18n="home_add_income">Add Income</span>
           </button>
-          <button class="hero-action-pill pill-transfer" onclick="openTransferModal()" title="Transfer funds between Cash, Bank, Card">
-            <span class="action-circle-icon"><i class="ti ti-arrows-left-right"></i></span>
-            <span class="action-circle-label">Transfer</span>
-          </button>
-          <button class="hero-action-pill pill-paste" onclick="pasteFromClipboardAndLog()" title="1-Tap Paste UPI or SMS alert">
-            <span class="action-circle-icon"><i class="ti ti-clipboard-text"></i></span>
-            <span class="action-circle-label">UPI Paste</span>
+          <button class="btn-hero-action btn-hero-voice" onclick="startVoiceRecognition()">
+            <span>🎙️</span> <span data-i18n="home_voice">Voice</span>
           </button>
         </div>
       </div>

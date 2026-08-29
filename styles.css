@@ -1495,17 +1495,27 @@ header{margin-bottom:1.1rem}
 .home-greeting .eyebrow,.section-kicker{color:#d9caff;opacity:.78;letter-spacing:1.6px;font-size:9px;font-weight:800}
 .home-greeting h2{font-size:25px;line-height:1.08;letter-spacing:-.8px;margin-top:3px}
 .home-add-mini{width:44px;height:44px;border-radius:15px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(135deg,#9b5cff,#ff3db8);color:#fff;box-shadow:0 10px 26px rgba(155,92,255,.35);font-size:18px}
-.hero-card-v2{
-  border-radius:30px!important;
-  padding:22px 14px 18px!important;
-  margin-bottom:18px!important;
-  background:
-    radial-gradient(360px 220px at 90% -10%,rgba(139,92,246,.32),transparent 75%),
-    radial-gradient(300px 200px at 0% 110%,rgba(59,130,246,.25),transparent 75%),
-    linear-gradient(145deg,#1c1244 0%,#10092c 55%,#09051c 100%)!important;
-  border:1px solid rgba(255,255,255,.16)!important;
-  box-shadow:0 26px 60px rgba(0,0,0,.65),inset 0 1px 0 rgba(255,255,255,.2)!important;
-  overflow:hidden;position:relative;
+/* The Iconic Royal Blue Hero Balance Card (Original Flagship Design) */
+.hero-card-classic {
+  position: relative !important;
+  overflow: hidden !important;
+  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 32%, #3b82f6 60%, #1e1b4b 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  border-radius: 26px !important;
+  padding: 20px 18px 16px !important;
+  margin-bottom: 14px !important;
+  box-shadow: 0 20px 50px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+.hero-card-classic::after {
+  content: '';
+  position: absolute;
+  top: -30px;
+  right: -30px;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.22), transparent 70%);
+  pointer-events: none;
 }
 .hero-top {
   display: flex !important;
@@ -1514,10 +1524,89 @@ header{margin-bottom:1.1rem}
   width: 100% !important;
   margin-bottom: 4px !important;
 }
-.hero-label{font-size:11px;font-weight:800;color:var(--accent-bright,#c4b5fd);letter-spacing:1.2px;text-transform:uppercase;}
-.hero-caption{font-size:11px;color:rgba(255,255,255,.55);margin-top:2px}
-.hero-chip{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.18);font-size:18px;color:var(--green,#34d399);font-weight:800;box-shadow:inset 0 1px 0 rgba(255,255,255,.15);flex-shrink:0;}
-.hero-balance{font-family:'Space Grotesk',sans-serif;font-size:38px;font-weight:800;letter-spacing:-1.5px;margin:4px 0 12px;color:#fff;text-shadow:0 4px 18px rgba(0,0,0,.4)}
+.hero-label{font-size:11px;font-weight:800;color:rgba(255,255,255,0.85);letter-spacing:1px;text-transform:uppercase;}
+.hero-caption{font-size:11px;color:rgba(255,255,255,0.65);margin-top:2px}
+.hero-chip-coin {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  flex-shrink: 0;
+}
+.hero-balance{font-family:'Space Grotesk',sans-serif;font-size:42px;font-weight:800;letter-spacing:-1.5px;margin:8px 0 14px;color:#fff;text-shadow:0 4px 18px rgba(0,0,0,.3)}
+
+/* Inset Metrics 3-Col Box */
+.hero-metrics {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 8px !important;
+  background: rgba(0, 0, 0, 0.24) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 14px !important;
+  padding: 10px 12px !important;
+  margin-bottom: 14px !important;
+}
+.hero-metrics div {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 3px !important;
+  text-align: left !important;
+}
+.hero-metrics span {
+  font-size: 9.5px !important;
+  color: rgba(255, 255, 255, 0.65) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
+  text-transform: uppercase !important;
+}
+.hero-metrics strong {
+  font-family: 'Space Grotesk', sans-serif !important;
+  font-size: 14.5px !important;
+  font-weight: 800 !important;
+}
+.hero-metrics strong.green { color: #34d399 !important; }
+.hero-metrics strong.red { color: #fca5a5 !important; }
+
+/* 3 Wide Pill Action Buttons */
+.hero-actions-classic {
+  display: grid !important;
+  grid-template-columns: 1.2fr 1.2fr 1fr !important;
+  gap: 8px !important;
+  width: 100% !important;
+}
+.btn-hero-action {
+  border: none !important;
+  border-radius: 14px !important;
+  padding: 11px 6px !important;
+  font-weight: 700 !important;
+  font-size: 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  cursor: pointer !important;
+  color: #fff !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+.btn-hero-action:active { transform: scale(0.96) !important; }
+.btn-hero-exp {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35) !important;
+}
+.btn-hero-inc {
+  background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35) !important;
+}
+.btn-hero-voice {
+  background: linear-gradient(135deg, #ec4899, #d946ef) !important;
+  box-shadow: 0 6px 18px rgba(236, 72, 153, 0.35) !important;
+}
 
 /* Hero Safe-to-Spend Pill */
 .hero-safe-spend-pill {
