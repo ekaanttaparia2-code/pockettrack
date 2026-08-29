@@ -27,6 +27,106 @@ if (typeof window !== 'undefined') {
   window.getWalletBadgeHtml = getWalletBadgeHtml;
 }
 
+function computeCurrentSafeToSpend() {
+  const list = (typeof mainEntries === 'function') ? mainEntries() : (typeof entries !== 'undefined' ? entries : []);
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+  const totalDays = new Date(currentYear, currentMonth + 1, 0).getDate();
+  const currentDay = now.getDate();
+  const remainingDays = Math.max(1, totalDays - currentDay + 1);
+
+  let monthIncome = 0;
+  let monthSpent = 0;
+  let todaySpent = 0;
+  const todayStrVal = (typeof todayStr === 'function') ? todayStr() : new Date().toISOString().split('T')[0];
+
+  list.forEach(e => {
+    if (!e || !e.date || typeof e.date !== 'string') return;
+    const parts = e.date.split('-');
+    if (parts.length !== 3) return;
+    const y = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10) - 1;
+    const amt = parseFloat(e.amt) || 0;
+
+    if (y === currentYear && m === currentMonth) {
+      if (e.type === 'income') monthIncome += amt;
+      else if (e.type === 'expense') {
+        monthSpent += amt;
+        if (e.date === todayStrVal) todaySpent += amt;
+      }
+    }
+  });
+
+  let budgetPool = monthIncome;
+  if (typeof weeklyBudget !== 'undefined' && weeklyBudget > 0) {
+    budgetPool = Math.max(budgetPool, weeklyBudget * 4.2);
+  }
+  if (budgetPool <= 0) budgetPool = 25000;
+
+  const remainingMonthPool = Math.max(0, budgetPool - monthSpent + todaySpent);
+  const dailyAllowance = Math.max(50, Math.round(remainingMonthPool / remainingDays));
+  const todayRemaining = dailyAllowance - todaySpent;
+  const burnPercent = Math.min(100, Math.round((todaySpent / dailyAllowance) * 100));
+
+  return {
+    remainingDays,
+    dailyAllowance,
+    todaySpent,
+    todayRemaining,
+    burnPercent,
+    isSafe: todayRemaining >= 0
+  };
+}
+window.computeCurrentSafeToSpend = computeCurrentSafeToSpend;
+
+function updateHomeSafeToSpendUI() {
+  const pillEl = document.getElementById('hero-safe-spend-pill');
+  if (!pillEl) return;
+
+  const badgeEl = document.getElementById('hero-safe-spend-badge');
+  const iconEl = document.getElementById('hero-safe-spend-icon');
+  const labelEl = document.getElementById('hero-safe-spend-label');
+  const valEl = document.getElementById('hero-safe-spend-val');
+  const subEl = document.getElementById('hero-safe-spend-sub');
+
+  const data = computeCurrentSafeToSpend();
+  const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
+
+  if (labelEl) {
+    labelEl.textContent = isHi ? 'दैनिक सुरक्षित सीमा' : 'Daily Safe-to-Spend';
+  }
+
+  if (valEl) {
+    valEl.textContent = `₹${data.dailyAllowance.toLocaleString('en-IN')}${isHi ? '/दिन' : '/day'}`;
+    valEl.className = 'safe-spend-val' + (data.todaySpent > data.dailyAllowance ? ' red' : (data.burnPercent > 80 ? ' amber' : ''));
+  }
+
+  if (badgeEl && iconEl) {
+    if (data.todaySpent > data.dailyAllowance) {
+      badgeEl.className = 'safe-spend-badge red';
+      iconEl.textContent = '⚠️';
+    } else if (data.burnPercent > 80) {
+      badgeEl.className = 'safe-spend-badge amber';
+      iconEl.textContent = '⏳';
+    } else {
+      badgeEl.className = 'safe-spend-badge';
+      iconEl.textContent = '🎯';
+    }
+  }
+
+  if (subEl) {
+    if (data.todaySpent > data.dailyAllowance) {
+      const over = data.todaySpent - data.dailyAllowance;
+      subEl.textContent = isHi ? `· आज ₹${over.toLocaleString('en-IN')} अधिक खर्च (${data.remainingDays} दिन बाकी)` : `· ₹${over.toLocaleString('en-IN')} over daily limit (${data.remainingDays}d left)`;
+    } else {
+      const leftToday = Math.max(0, data.todayRemaining);
+      subEl.textContent = isHi ? `· आज ₹${leftToday.toLocaleString('en-IN')} बाकी (${data.remainingDays} दिन बचे)` : `· ₹${leftToday.toLocaleString('en-IN')} left today (${data.remainingDays}d left)`;
+    }
+  }
+}
+window.updateHomeSafeToSpendUI = updateHomeSafeToSpendUI;
+
 function updateHeaderStats(){
   const list = mainEntries();
   const income=list.filter(e=>e.type==='income').reduce((s,e)=>s+e.amt,0);
@@ -42,10 +142,14 @@ function updateHeaderStats(){
     animateNumber('hero-spent', spent);
     animateNumber('hero-count', list.length, '', '');
   } else {
-    document.getElementById('hdr-income').textContent='₹'+income;
-    document.getElementById('hdr-spent').textContent='₹'+spent;
-    document.getElementById('hdr-balance').textContent='₹'+balance;
-    document.getElementById('hdr-count').textContent=list.length;
+    const elInc = document.getElementById('hdr-income');
+    const elExp = document.getElementById('hdr-spent');
+    const elBal = document.getElementById('hdr-balance');
+    const elCnt = document.getElementById('hdr-count');
+    if (elInc) elInc.textContent='₹'+income;
+    if (elExp) elExp.textContent='₹'+spent;
+    if (elBal) elBal.textContent='₹'+balance;
+    if (elCnt) elCnt.textContent=list.length;
     const heroIncome=document.getElementById('hero-income');
     const heroSpent=document.getElementById('hero-spent');
     const heroCount=document.getElementById('hero-count');
@@ -53,6 +157,7 @@ function updateHeaderStats(){
     if(heroSpent)heroSpent.textContent='₹'+spent;
     if(heroCount)heroCount.textContent=list.length;
   }
+  updateHomeSafeToSpendUI();
   renderHomeSnapshot();
   if (typeof renderSimpleModePassbook === 'function') renderSimpleModePassbook();
 }

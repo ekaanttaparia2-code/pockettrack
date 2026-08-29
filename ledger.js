@@ -419,22 +419,70 @@ async function saveLedgerTx(personId, type, amount, note) {
     : 'Recorded ' + (type === 'gave' ? 'Gave' : 'Received') + ' ₹' + amount, 'success');
 }
 
-// 1-Tap Settle Debt Function
-window.settlePersonDebt = function(personId, currentBalance) {
-  if (currentBalance === 0) return;
+// Settle Debt Functions (Full & Partial)
+window.openPartialSettleModal = function(personId, currentBalance) {
+  const list = getLedgerPeopleList();
+  const person = list.find(p => p._id === personId);
+  if (!person || currentBalance === 0) return;
   const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
+  const maxAmt = Math.abs(currentBalance);
   const type = currentBalance > 0 ? 'received' : 'gave';
-  const amount = Math.abs(currentBalance);
-  
-  if (typeof showAppConfirm === 'function') {
-    showAppConfirm(isHi ? `क्या आप ₹${amount} का हिसाब पूरा चुकता (Settle) करना चाहते हैं?` : `Mark ₹${amount} debt as completely settled?`, () => {
-      saveLedgerTx(personId, type, amount, 'Full Debt Settlement 🤝');
-      toast(isHi ? 'हिसाब चुकता हो गया 🤝' : 'Debt settled successfully 🤝', 'success');
-    });
-  } else {
-    saveLedgerTx(personId, type, amount, 'Full Debt Settlement 🤝');
-    toast('Debt settled successfully 🤝', 'success');
+  const actionLabel = currentBalance > 0 ? (isHi ? 'प्राप्त हुए (Received)' : 'Mark as Received') : (isHi ? 'दिए (Paid)' : 'Mark as Paid');
+
+  const html = `
+    <div style="text-align:center; margin-bottom:16px;">
+      <h3 style="margin:0 0 4px; font-family:'Space Grotesk',sans-serif; font-size:20px; font-weight:800;">
+        ${isHi ? 'हिसाब चुकता करें (Settle Up)' : 'Settle Debt'}
+      </h3>
+      <p style="font-size:12px; color:var(--text-dim); margin:0;">
+        ${escapeHTML(person.name)} · <strong>${currentBalance > 0 ? (isHi ? 'बकाया: ₹' : 'Owes you ₹') : (isHi ? 'देना है: ₹' : 'You owe ₹')}${maxAmt.toLocaleString('en-IN')}</strong>
+      </p>
+    </div>
+
+    <div style="margin-bottom:14px;">
+      <label style="font-size:12px; font-weight:600; color:var(--text-dim); display:block; margin-bottom:4px;">
+        ${isHi ? 'चुकता करने की राशि (₹)' : 'Settlement Amount (₹)'}
+      </label>
+      <input type="number" id="partial-settle-amt" value="${maxAmt}" max="${maxAmt}" min="1" step="1" style="width:100%; padding:12px 14px; border-radius:14px; border:1px solid var(--border); background:rgba(0,0,0,0.3); color:#fff; font-size:18px; font-weight:800; box-sizing:border-box;"/>
+      <div style="display:flex; justify-content:space-between; margin-top:6px;">
+        <button class="btn btn-sm" style="font-size:11px; padding:3px 8px;" onclick="document.getElementById('partial-settle-amt').value = ${Math.round(maxAmt/2)}">50% (₹${Math.round(maxAmt/2)})</button>
+        <button class="btn btn-sm" style="font-size:11px; padding:3px 8px;" onclick="document.getElementById('partial-settle-amt').value = ${maxAmt}">100% Full (₹${maxAmt})</button>
+      </div>
+    </div>
+
+    <div style="margin-bottom:18px;">
+      <label style="font-size:12px; font-weight:600; color:var(--text-dim); display:block; margin-bottom:4px;">
+        ${isHi ? 'नोट (ऐच्छिक)' : 'Note (optional)'}
+      </label>
+      <input type="text" id="partial-settle-note" placeholder="${isHi ? 'जैसे UPI से मिला, नकद' : 'e.g. Received via GPay, Cash'}" style="width:100%; padding:12px 14px; border-radius:14px; border:1px solid var(--border); background:rgba(0,0,0,0.3); color:#fff; font-size:14px; box-sizing:border-box;"/>
+    </div>
+
+    <div class="btn-row" style="gap:10px;">
+      <button class="btn" style="flex:1" onclick="showPersonDetail('${personId}')">${isHi ? 'रद्द करें' : 'Cancel'}</button>
+      <button class="btn primary" style="flex:1.2; padding:12px; font-weight:700;" onclick="submitPartialSettle('${personId}', '${type}', ${maxAmt})">
+        ${actionLabel}
+      </button>
+    </div>
+  `;
+  openLedgerModal(html);
+};
+
+window.submitPartialSettle = function(personId, type, maxAmt) {
+  const amtEl = document.getElementById('partial-settle-amt');
+  const noteEl = document.getElementById('partial-settle-note');
+  if (!amtEl) return;
+  const val = parseFloat(amtEl.value);
+  if (isNaN(val) || val <= 0) {
+    toast('Please enter a valid amount', 'error');
+    return;
   }
+  const note = (noteEl && noteEl.value.trim()) ? noteEl.value.trim() : (val >= maxAmt ? 'Full Debt Settlement 🤝' : 'Partial Settlement 🤝');
+  closeLedgerModal();
+  saveLedgerTx(personId, type, val, note);
+};
+
+window.settlePersonDebt = function(personId, currentBalance) {
+  window.openPartialSettleModal(personId, currentBalance);
 };
 
 // Sleek In-App Person Detail Card Modal

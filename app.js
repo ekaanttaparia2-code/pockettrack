@@ -240,6 +240,7 @@ function applyLanguage(){
   if(typeof ptSyncGates==='function') ptSyncGates();
   checkBudget();
   renderStreak();
+  if(typeof updateHomeSafeToSpendUI==='function') updateHomeSafeToSpendUI();
   if(typeof renderHomeSnapshot==='function') renderHomeSnapshot();
   if(typeof renderHomeContextualNudge==='function') renderHomeContextualNudge();
   if(typeof renderFinancialDNACard==='function') renderFinancialDNACard();
@@ -2460,25 +2461,66 @@ function renderSettlement(){
     settledEl.style.display = 'block';
   } else {
     settledEl.style.display = 'none';
+    const isHi = currentLang === 'hi';
     transfersEl.innerHTML = `
-      <div style="font-size:11px;color:var(--text-faint);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.3px">${currentLang==='hi'?'भुगतान करें':'Who pays whom'}</div>
-      ${result.transfers.map(t => `
-        <div class="settlement-card">
-          <div style="display:flex;align-items:center;justify-content:space-between">
-            <div style="display:flex;align-items:center;flex-wrap:wrap">
-              <span style="font-weight:600;color:var(--red)">${escapeHTML(t.from)}</span>
-              <span class="settlement-arrow">→</span>
-              <span style="font-weight:600;color:var(--green)">${escapeHTML(t.to)}</span>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span style="font-size:11px;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.3px">${isHi ? 'किसे किसको देना है' : 'Who pays whom (Minimized)'}</span>
+        <button class="btn btn-sm" style="font-size:11px;padding:3px 8px;background:#25D366;color:#fff;border:none;" onclick="shareEventWhatsAppSummary('${currentEventId}')">
+          <i class="ti ti-brand-whatsapp"></i> ${isHi ? 'WhatsApp पर शेयर करें' : 'Share on WhatsApp'}
+        </button>
+      </div>
+      ${result.transfers.map(t => {
+        const upiLink = `upi://pay?pn=${encodeURIComponent(t.to)}&am=${t.amount}&cu=INR&tn=${encodeURIComponent('PocketTrack ' + (currentEventName || 'Event'))}`;
+        const waMsg = isHi
+          ? `नमस्ते ${t.from}! 🙏 "${currentEventName || 'आयोजन'}" के सेटलमेंट के अनुसार आपको ${t.to} को ₹${t.amount.toLocaleString('en-IN')} देने हैं।\n⚡ सीधे UPI से भुगतान करें: ${upiLink}`
+          : `Hey ${t.from}! 👋 For "${currentEventName || 'our event'}", you owe ${t.to} ₹${t.amount.toLocaleString('en-IN')}.\n⚡ Pay instantly via UPI: ${upiLink}`;
+        const waLink = `https://wa.me/?text=${encodeURIComponent(waMsg)}`;
+
+        return `
+        <div class="settlement-card" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:12px;margin-bottom:8px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+              <span style="font-weight:700;color:var(--red,#f87171);font-size:13.5px;">${escapeHTML(t.from)}</span>
+              <span class="settlement-arrow" style="color:var(--text-dim);">→</span>
+              <span style="font-weight:700;color:var(--green,#34d399);font-size:13.5px;">${escapeHTML(t.to)}</span>
             </div>
-            <div style="display:flex;align-items:center;gap:8px">
-              <span style="font-size:15px;font-weight:700;color:var(--text)">₹${t.amount}</span>
-            </div>
+            <strong style="font-size:15px;font-weight:800;color:#fff;">₹${t.amount.toLocaleString('en-IN')}</strong>
           </div>
-        </div>
-      `).join('')}
+          <div style="display:flex;gap:6px;justify-content:flex-end;">
+            <a href="${upiLink}" class="btn btn-sm" style="font-size:11.5px;padding:5px 10px;background:rgba(139,92,246,0.2);color:var(--accent-bright,#c4b5fd);border:1px solid rgba(139,92,246,0.4);border-radius:8px;text-decoration:none;">
+              ⚡ ${isHi ? 'UPI भुगतान' : 'Pay via UPI'}
+            </a>
+            <a href="${waLink}" target="_blank" class="btn btn-sm" style="font-size:11.5px;padding:5px 10px;background:rgba(37,211,102,0.15);color:#25D366;border:1px solid rgba(37,211,102,0.35);border-radius:8px;text-decoration:none;">
+              💬 ${isHi ? 'रिमाइंडर' : 'Remind'}
+            </a>
+          </div>
+        </div>`;
+      }).join('')}
     `;
   }
 }
+
+window.shareEventWhatsAppSummary = function(eventId) {
+  const ev = events.find(e => e._id === eventId);
+  if (!ev) return;
+  const result = calculateSettlement();
+  if (!result || !result.transfers.length) {
+    toast('No pending settlements to share', 'info');
+    return;
+  }
+  const isHi = (currentLang === 'hi');
+  let msg = isHi 
+    ? `🎉 *PocketTrack सेटलमेंट हिसाब: ${ev.name}*\n`
+    : `🎉 *PocketTrack Settlement Summary: ${ev.name}*\n`;
+  
+  msg += `\n*${isHi ? 'बकाया भुगतान (Who pays whom):' : 'Final Payments Needed:'}*\n`;
+  result.transfers.forEach(t => {
+    msg += `• ${t.from} ➔ ${t.to}: ₹${t.amount.toLocaleString('en-IN')}\n`;
+  });
+  msg += `\n${isHi ? 'PocketTrack से आसानी से हिसाब चुकता करें 🤝' : 'Settled via PocketTrack 🤝'}`;
+
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+};
 
 function renderEventDetail(){
   if(!currentEventName || !currentEventId) return;
@@ -3161,4 +3203,55 @@ document.addEventListener('DOMContentLoaded', () => {
   const savedMode = localStorage.getItem('pockettrack_app_mode') || 'power';
   window.setAppMode(savedMode, false);
 });
+
+// --- PocketTrack Labs Launcher ---
+window.openFinancialDNALab = function() {
+  if (typeof renderFinancialDNA === 'function') {
+    renderFinancialDNA();
+  }
+  toast('🧬 Financial DNA Lab loaded', 'info');
+};
+
+window.openMoneySimulatorLab = function() {
+  if (typeof renderReport === 'function') {
+    setTab('report');
+    setTimeout(() => {
+      const sim = document.getElementById('future-money-simulator-card') || document.getElementById('cat-pie-wrap');
+      if (sim && typeof sim.scrollIntoView === 'function') sim.scrollIntoView({ behavior: 'smooth' });
+    }, 200);
+  }
+  toast('🔮 Future Money Simulator loaded', 'info');
+};
+
+window.openDigitalVaultLab = function() {
+  if (typeof updateDigitalVaultUI === 'function') {
+    updateDigitalVaultUI();
+  }
+  toast('🪙 Digital Chillar Vault loaded', 'info');
+};
+
+window.openWrappedStoryLab = function() {
+  if (typeof openWrappedStoryModal === 'function') {
+    openWrappedStoryModal();
+  } else if (typeof generateWrappedShareImage === 'function') {
+    generateWrappedShareImage();
+  }
+  toast('🎁 Financial Wrapped Story loaded', 'info');
+};
+
+window.openAuraSenseLab = function() {
+  if (typeof openAuraSenseModal === 'function') {
+    openAuraSenseModal();
+  }
+  toast('🌀 AuraSense Bio-Rhythm loaded', 'info');
+};
+
+window.openGoalSIPLab = function() {
+  if (typeof openGoalPlannerModal === 'function') {
+    openGoalPlannerModal();
+  } else if (typeof renderGoalWidget === 'function') {
+    renderGoalWidget();
+  }
+  toast('📈 SIP Compounding Planner loaded', 'info');
+};
 
