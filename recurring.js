@@ -24,7 +24,8 @@ function listenToRecurring(){
   detachRecurringListener();
   try {
     recUnsubscribe = db.collection('users').doc(currentUser.uid).collection('recurring')
-      .onSnapshot(snap => {
+      .onSnapshot({includeMetadataChanges:true}, snap => {
+        if(typeof trackPendingWrite === 'function') trackPendingWrite('recurring', !!snap.metadata && snap.metadata.hasPendingWrites);
         recurringRules = snap.docs.map(d => ({ ...d.data(), _id: d.id }));
         renderRecurring();
         if(typeof renderSubscriptionRadar==='function') renderSubscriptionRadar();

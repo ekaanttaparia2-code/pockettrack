@@ -103,7 +103,8 @@ function listenToLedger() {
 
   try {
     ledgerUnsubscribe = db.collection('users').doc(currentUser.uid).collection('ledger')
-      .onSnapshot((snap) => {
+      .onSnapshot({includeMetadataChanges:true}, (snap) => {
+        if(typeof trackPendingWrite === 'function') trackPendingWrite('ledger', !!snap.metadata && snap.metadata.hasPendingWrites);
         ledgerTxUnsubs.forEach(u => { try { u(); } catch(e){} });
         ledgerTxUnsubs = [];
         
@@ -126,7 +127,10 @@ function listenToLedger() {
         let loadedCount = 0;
         newPeopleList.forEach(person => {
           const u = db.collection('users').doc(currentUser.uid).collection('ledger').doc(person._id).collection('transactions')
-            .onSnapshot((txSnap) => {
+            .onSnapshot({includeMetadataChanges:true}, (txSnap) => {
+              if(typeof trackPendingWrite === 'function' && txSnap.metadata && txSnap.metadata.hasPendingWrites) {
+                trackPendingWrite('ledger', true);
+              }
               person.transactions = txSnap.docs.map(td => ({
                 _id: td.id,
                 amount: td.data().amount || 0,

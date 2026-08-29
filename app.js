@@ -2950,33 +2950,71 @@ window.renderSimpleModePassbook = function() {
   container.innerHTML = html;
 };
 
-window.setAppMode = function(mode, save = true) {
-  window.currentAppMode = mode;
-  const isSimple = (mode === 'simple');
-  
-  if (document.body) document.body.classList.toggle('app-mode-simple', isSimple);
-  if (document.documentElement) document.documentElement.classList.toggle('app-mode-simple', isSimple);
-  
-  const iconEl = document.getElementById('mode-icon');
-  const labelEl = document.getElementById('mode-label');
+function showPersistenceWarningNotice(code) {
+  try {
+    if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('pockettrack_persistence_warned')) return;
+    if (typeof sessionStorage !== 'undefined') sessionStorage.setItem('pockettrack_persistence_warned', 'true');
+  } catch(e){}
 
-  if (isSimple) {
-    if (iconEl) iconEl.textContent = '👴';
-    if (labelEl) labelEl.textContent = 'Simple';
-    if (typeof window.renderSimpleModePassbook === 'function') {
-      window.renderSimpleModePassbook();
+  const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
+  const msg = (code === 'failed-precondition')
+    ? (isHi ? '⚠️ मल्टी-टैब मोड: ऑफ़लाइन स्टोरेज केवल एक टैब में सक्रिय रहता है। ऑनलाइन सिंक सुरक्षित है।' : '⚠️ Multiple tabs open: offline cache is active in one tab. Online sync remains safe.')
+    : (isHi ? '⚠️ प्राइवेट ब्राउज़िंग: इस ब्राउज़र सेशन में ऑफ़लाइन स्टोरेज समर्थित नहीं है। डेटा ऑनलाइन सिंक रहेगा।' : '⚠️ Private browsing: offline storage is not supported in this session. Data syncs when online.');
+
+  if (typeof toast === 'function') {
+    toast(msg, 'warning', 5000);
+  }
+}
+window.showPersistenceWarningNotice = showPersistenceWarningNotice;
+
+window.setAppMode = function(mode, save = true) {
+  try {
+    window.currentAppMode = mode === 'simple' ? 'simple' : 'power';
+    const isSimple = (window.currentAppMode === 'simple');
+    
+    if (document.body) document.body.classList.toggle('app-mode-simple', isSimple);
+    if (document.documentElement) document.documentElement.classList.toggle('app-mode-simple', isSimple);
+
+    const powerHome = document.getElementById('power-mode-home-container');
+    const simpleHome = document.getElementById('simple-mode-home-container');
+    if (powerHome && simpleHome) {
+      powerHome.style.display = isSimple ? 'none' : 'block';
+      simpleHome.style.display = isSimple ? 'block' : 'none';
     }
-    if (save) {
-      localStorage.setItem('pockettrack_app_mode', 'simple');
-      if (typeof toast === 'function') toast('Switched to Simple Mode (40+)', 'success');
+    
+    const iconEl = document.getElementById('mode-icon');
+    const labelEl = document.getElementById('mode-label');
+
+    if (isSimple) {
+      if (iconEl) iconEl.textContent = '👴';
+      if (labelEl) labelEl.textContent = 'Simple';
+      if (typeof window.renderSimpleModePassbook === 'function') {
+        try { window.renderSimpleModePassbook(); } catch(e){ console.warn('Simple passbook render warn:', e.message); }
+      }
+      if (save) {
+        try { localStorage.setItem('pockettrack_app_mode', 'simple'); } catch(e){}
+        if (typeof toast === 'function') toast('Switched to Simple Mode (40+)', 'success');
+      }
+    } else {
+      if (iconEl) iconEl.textContent = '⚡';
+      if (labelEl) labelEl.textContent = 'Power';
+      if (typeof window.renderHomeSnapshot === 'function') {
+        try { window.renderHomeSnapshot(); } catch(e){ console.warn('Home snapshot render warn:', e.message); }
+      }
+      if (typeof window.renderHomeContextualNudge === 'function') {
+        try { window.renderHomeContextualNudge(); } catch(e){ console.warn('Contextual nudge render warn:', e.message); }
+      }
+      if (save) {
+        try { localStorage.setItem('pockettrack_app_mode', 'power'); } catch(e){}
+        if (typeof toast === 'function') toast('Switched to Power Mode', 'success');
+      }
     }
-  } else {
-    if (iconEl) iconEl.textContent = '⚡';
-    if (labelEl) labelEl.textContent = 'Power';
-    if (save) {
-      localStorage.setItem('pockettrack_app_mode', 'power');
-      if (typeof toast === 'function') toast('Switched to Power Mode', 'success');
+
+    if (typeof updateHeaderStats === 'function') {
+      try { updateHeaderStats(); } catch(e){}
     }
+  } catch(err) {
+    console.error('Critical error in setAppMode:', err);
   }
 };
 

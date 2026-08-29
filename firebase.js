@@ -17,12 +17,24 @@ const db = firebase.firestore();
 // True offline-first: cache all synced data to IndexedDB and let the SDK queue
 // writes made while offline, persisting the queue across app restarts (not just
 // in-memory, which would lose pending changes if the app closes while offline).
-db.enablePersistence({synchronizeTabs:true}).catch(err=>{
-  if(err.code==='failed-precondition'){
+window.offlinePersistenceState = { enabled: false, ready: false };
+
+db.enablePersistence({synchronizeTabs:true}).then(() => {
+  window.offlinePersistenceState = { enabled: true, ready: true };
+}).catch(err => {
+  window.offlinePersistenceState = { enabled: false, ready: true, code: err.code, message: err.message };
+  if(err.code === 'failed-precondition'){
     console.warn('Offline persistence: multiple tabs open without sync support — falling back to in-memory only.');
-  } else if(err.code==='unimplemented'){
+  } else if(err.code === 'unimplemented'){
     console.warn('Offline persistence: not supported in this browser — falling back to in-memory only.');
   } else {
     console.warn('Offline persistence could not be enabled:', err.message);
   }
+  
+  // Surface clear, non-intrusive warning so user knows offline storage is disabled on this session
+  setTimeout(() => {
+    if (typeof showPersistenceWarningNotice === 'function') {
+      showPersistenceWarningNotice(err.code);
+    }
+  }, 1500);
 });
