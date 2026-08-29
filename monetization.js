@@ -15,6 +15,12 @@ const PT_STORE = {
 };
 
 // =====================================================================
+// TESTER CONFIGURATION — Force Pro for evaluation / hackathon testing
+// Set PT_TESTER_FORCE_PRO = false to restore strict Razorpay gating.
+// =====================================================================
+const PT_TESTER_FORCE_PRO = true;
+
+// =====================================================================
 // BILINGUAL TEXT (en/hi) — Pro tab, themes, checkout and gates translate
 // when the app language switches to Hindi.
 // =====================================================================
@@ -112,8 +118,9 @@ function isPro() {
 }
 window.isPro = isPro;
 
+// TEMP — TESTER MODE: forces Pro on for everyone. REMOVE before real users/launch. Added 2026-08-29.
 function proEnabled() {
-  return isPro();
+  return PT_TESTER_FORCE_PRO ? true : isPro();
 }
 window.proEnabled = proEnabled;
 
@@ -311,8 +318,6 @@ const PT_THEMES = [
 ];
 
 // ---- Pro state -------------------------------------------------------
-function proEnabled(){ return true; }
-
 function setPro(on){
   if (on) localStorage.setItem(PT_STORE.pro, '1');
   else localStorage.removeItem(PT_STORE.pro);
