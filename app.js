@@ -2463,11 +2463,27 @@ function renderSettlement(){
   } else {
     settledEl.style.display = 'none';
     const isHi = currentLang === 'hi';
+    const numPeople = participants.length;
+    const naiveTxCount = Math.max(1, (numPeople * (numPeople - 1)) / 2);
+    const optimizedCount = result.transfers.length;
+
     transfersEl.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <span style="font-size:11px;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.3px">${isHi ? 'किसे किसको देना है' : 'Who pays whom (Minimized)'}</span>
-        <button class="btn btn-sm" style="font-size:11px;padding:3px 8px;background:#25D366;color:#fff;border:none;" onclick="shareEventWhatsAppSummary('${currentEventId}')">
-          <i class="ti ti-brand-whatsapp"></i> ${isHi ? 'WhatsApp पर शेयर करें' : 'Share on WhatsApp'}
+      <div style="background:linear-gradient(135deg,rgba(16,185,129,0.15),rgba(59,130,246,0.12));border:1px solid rgba(16,185,129,0.4);border-radius:14px;padding:12px;margin-bottom:12px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+          <span style="font-size:16px;">⚡</span>
+          <strong style="font-size:13px;color:#6ee7b7;">${isHi ? 'स्मार्ट डेट मिनिमाइज़ेशन सक्रिय' : 'Smart Debt Minimization Engine'}</strong>
+        </div>
+        <div style="font-size:12px;color:#e2e8f0;line-height:1.4;">
+          ${isHi
+            ? `आपस के जटिल हिसाब को <strong>${naiveTxCount} संभावित पेमेंट्स</strong> से घटाकर <strong>सिर्फ ${optimizedCount} आसान ट्रांसफर</strong> में बदल दिया गया है!`
+            : `Circular debts compressed from <strong>${naiveTxCount} potential transfers</strong> into just <strong>${optimizedCount} net payments</strong>!`}
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <span style="font-size:11px;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.3px;font-weight:700;">${isHi ? 'किसे किसको देना है' : 'Settlement Transfers'}</span>
+        <button class="btn" style="font-size:12px;padding:8px 14px;background:#25D366;color:#fff;border:none;border-radius:12px;font-weight:800;display:flex;align-items:center;gap:6px;box-shadow:0 4px 14px rgba(37,211,102,0.3);" onclick="shareEventWhatsAppSummary('${currentEventId}')">
+          <i class="ti ti-brand-whatsapp" style="font-size:15px;"></i> <span>${isHi ? 'पूरा स्लिप WhatsApp पर भेजें' : 'Share WhatsApp Slip'}</span>
         </button>
       </div>
       ${result.transfers.map(t => {
@@ -3219,6 +3235,56 @@ window.renderSimpleModePassbook = function() {
   container.innerHTML = html;
 };
 
+window.speakSeniorDailySummary = function() {
+  const safeData = (typeof computeCurrentSafeToSpend === 'function') ? computeCurrentSafeToSpend() : { todaySpent: 0 };
+  const rawEntries = (typeof allRawMainEntries === 'function') ? allRawMainEntries() : [];
+  
+  let totalInc = 0, totalExp = 0;
+  rawEntries.forEach(e => {
+    const amt = parseFloat(e.amt) || 0;
+    if (e.type === 'income') totalInc += amt;
+    else totalExp += amt;
+  });
+  const netBalance = totalInc - totalExp;
+  const todaySpent = safeData.todaySpent || 0;
+
+  const textToSpeak = `नमस्ते! आज आपने कुल ${todaySpent.toLocaleString('hi-IN')} रुपये खर्च किए हैं। आपके पास कुल बचा हुआ बैलेंस ${netBalance.toLocaleString('hi-IN')} रुपये है। आपका खाता पूरी तरह सुरक्षित है।`;
+
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    try {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(textToSpeak);
+      utterance.lang = 'hi-IN';
+      utterance.rate = 0.9;
+      utterance.pitch = 1.0;
+      
+      const voices = window.speechSynthesis.getVoices() || [];
+      const hiVoice = voices.find(v => v.lang && (v.lang.includes('hi') || v.lang.includes('IN')));
+      if (hiVoice) utterance.voice = hiVoice;
+
+      window.speechSynthesis.speak(utterance);
+    } catch(e){}
+    if (typeof toast === 'function') toast('🔊 ' + textToSpeak, 'info', 6000);
+  } else {
+    if (typeof toast === 'function') toast('🔊 ' + textToSpeak, 'info', 6000);
+  }
+};
+
+window.quickElderlyExpense = function(label, cat, emoji) {
+  if (typeof openQuickComposer === 'function') openQuickComposer('expense');
+  setTimeout(() => {
+    const descInput = document.getElementById('exp-note');
+    const catSelect = document.getElementById('exp-cat');
+    const amtInput = document.getElementById('exp-amt');
+    if (descInput) descInput.value = label;
+    if (catSelect && cat) catSelect.value = cat;
+    if (amtInput) {
+      amtInput.focus();
+      if (typeof toast === 'function') toast(`रुपये डालें (${label})`, 'info');
+    }
+  }, 100);
+};
+
 function showPersistenceWarningNotice(code) {
   try {
     if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('pockettrack_persistence_warned')) return;
@@ -3540,5 +3606,92 @@ window.openGoalSIPLab = function() {
     renderGoalWidget();
   }
   toast('📈 SIP Compounding Planner loaded', 'info');
+};
+
+// =====================================================================
+// INTERACTIVE GUEST ONBOARDING TOUR (15-20 Second Walkthrough)
+// =====================================================================
+window.launchGuestTour = function(step = 1) {
+  const existing = document.getElementById('pockettrack-guest-tour-modal');
+  if (existing) existing.remove();
+
+  const isHi = (typeof currentLang !== 'undefined' && currentLang === 'hi');
+
+  const tourSteps = [
+    {
+      title: isHi ? '🎯 दैनिक सुरक्षित सीमा (Safe-to-Spend)' : '🎯 Daily Safe-to-Spend Limit',
+      badge: 'Step 1 of 3 · The Daily Hero',
+      icon: '🎯',
+      desc: isHi
+        ? 'महीने के अंत में पैसे खत्म होने से बचें! यह नंबर आपको बताता है कि आज आप बिना किसी चिंता के कितना खर्च कर सकते हैं।'
+        : 'Never run out of money before month-end! This live number tells you exactly how much you can safely spend today.',
+      highlightTarget: '#hero-safe-spend-pill',
+      btnText: isHi ? 'आगे बढ़ें →' : 'Next: Fast Logging →'
+    },
+    {
+      title: isHi ? '⚡ 1-टैप UPI पेस्ट व हिंग्लिश वॉयस' : '⚡ 1-Tap UPI Paste & Voice AI',
+      badge: 'Step 2 of 3 · Sub-15ms Logging',
+      icon: '📋',
+      desc: isHi
+        ? 'GPay, PhonePe या बैंक का कोई भी SMS कॉपी करें और <strong>📋 UPI Paste</strong> दबाएं। 1 सेकंड में दर्ज हो जाएगा!'
+        : 'Copy any GPay, PhonePe, or Bank alert and tap <strong>📋 UPI Paste</strong> to auto-log in <15ms. Or just speak in Hinglish!',
+      highlightTarget: '.hero-action-pills-row',
+      btnText: isHi ? 'आगे बढ़ें →' : 'Next: Roomie Ledger →'
+    },
+    {
+      title: isHi ? '📒 रूममेट और दोस्तों का खाता (Ledger)' : '📒 Splitwise-Grade Roomie Ledger',
+      badge: 'Step 3 of 3 · WhatsApp Settlements',
+      icon: '🤝',
+      desc: isHi
+        ? 'रूममेट्स और दोस्तों के साझा खर्च बांटें। 1-टैप में WhatsApp सेटलमेंट स्लिप और UPI लिंक भेजें!'
+        : 'Track flat & trip expenses. PocketTrack minimizes circular debts and lets you settle up in 1-tap via WhatsApp & UPI!',
+      highlightTarget: '#bottom-tab-bar [data-tab="ledger"]',
+      btnText: isHi ? 'शुरू करें! 🚀' : 'Start Exploring! 🚀'
+    }
+  ];
+
+  const current = tourSteps[step - 1];
+  if (!current) return;
+
+  const modal = document.createElement('div');
+  modal.id = 'pockettrack-guest-tour-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(8,5,20,0.85);backdrop-filter:blur(12px);z-index:999999;display:flex;align-items:center;justify-content:center;padding:20px;';
+
+  modal.innerHTML = `
+    <div class="card" style="width:100%;max-width:420px;background:linear-gradient(165deg,rgba(30,20,65,0.95),rgba(15,10,35,0.98));border:1.5px solid rgba(192,132,252,0.5);border-radius:26px;padding:26px;box-shadow:0 24px 60px rgba(0,0,0,0.7);text-align:center;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <span style="font-size:11px;font-weight:800;color:var(--accent-bright,#c4b5fd);background:rgba(139,92,246,0.2);padding:4px 10px;border-radius:99px;border:1px solid rgba(139,92,246,0.4);letter-spacing:0.5px;">
+          ${current.badge}
+        </span>
+        <button onclick="document.getElementById('pockettrack-guest-tour-modal')?.remove()" style="background:transparent;border:none;color:#94a3b8;font-size:18px;cursor:pointer;">✕</button>
+      </div>
+
+      <div style="font-size:46px;margin-bottom:10px;">${current.icon}</div>
+      <h3 style="margin:0 0 8px;font-family:'Space Grotesk',sans-serif;font-size:21px;font-weight:800;color:#fff;">
+        ${current.title}
+      </h3>
+      <p style="font-size:13.5px;color:#cbd5e1;line-height:1.45;margin:0 0 20px;">
+        ${current.desc}
+      </p>
+
+      <!-- Step Progress Dots -->
+      <div style="display:flex;justify-content:center;gap:6px;margin-bottom:20px;">
+        <div style="width:24px;height:6px;border-radius:3px;background:${step === 1 ? '#a855f7' : 'rgba(255,255,255,0.2)'}"></div>
+        <div style="width:24px;height:6px;border-radius:3px;background:${step === 2 ? '#a855f7' : 'rgba(255,255,255,0.2)'}"></div>
+        <div style="width:24px;height:6px;border-radius:3px;background:${step === 3 ? '#a855f7' : 'rgba(255,255,255,0.2)'}"></div>
+      </div>
+
+      <div class="btn-row" style="gap:10px;">
+        <button class="btn" style="flex:1;padding:12px;border-radius:14px;font-size:13px;" onclick="document.getElementById('pockettrack-guest-tour-modal')?.remove()">
+          ${isHi ? 'छोड़ें' : 'Skip Tour'}
+        </button>
+        <button class="btn primary" style="flex:1.4;padding:12px;border-radius:14px;font-weight:800;background:linear-gradient(135deg,#8b5cf6,#ec4899);box-shadow:0 6px 20px rgba(139,92,246,0.4);" onclick="${step < 3 ? `window.launchGuestTour(${step + 1})` : `document.getElementById('pockettrack-guest-tour-modal')?.remove();toast('Enjoy PocketTrack Sandbox! 🚀', 'success');`}">
+          ${current.btnText}
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
 };
 

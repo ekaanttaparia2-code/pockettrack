@@ -216,18 +216,33 @@
         
         <!-- Daily Safe-to-Spend Live Indicator -->
         <div class="hero-safe-spend-pill" id="hero-safe-spend-pill" onclick="openSafeSpendExplainer()" style="cursor:pointer;" title="Tap to view exact Daily Safe-to-Spend calculation">
-          <div class="safe-spend-badge" id="hero-safe-spend-badge">
-            <span id="hero-safe-spend-icon">🎯</span>
-          </div>
-          <div class="safe-spend-info">
-            <div class="safe-spend-label" id="hero-safe-spend-label">Daily Safe-to-Spend</div>
-            <div class="safe-spend-val-row">
-              <strong class="safe-spend-val" id="hero-safe-spend-val">₹0/day</strong>
-              <span class="safe-spend-sub" id="hero-safe-spend-sub">· Calculating...</span>
+          <div style="display:flex;align-items:center;justify-content:space-between;width:100%;gap:10px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="safe-spend-badge" id="hero-safe-spend-badge">
+                <span id="hero-safe-spend-icon">🎯</span>
+              </div>
+              <div class="safe-spend-info">
+                <div class="safe-spend-label" id="hero-safe-spend-label">Daily Safe-to-Spend</div>
+                <div class="safe-spend-val-row">
+                  <strong class="safe-spend-val" id="hero-safe-spend-val">₹0/day</strong>
+                  <span class="safe-spend-sub" id="hero-safe-spend-sub">· Calculating...</span>
+                </div>
+              </div>
+            </div>
+            <div class="safe-spend-action">
+              <span style="font-size:11px;color:var(--accent-bright,#c4b5fd);font-weight:700;margin-right:2px;">Math Sheet</span>
+              <i class="ti ti-chevron-right"></i>
             </div>
           </div>
-          <div class="safe-spend-action">
-            <i class="ti ti-chevron-right"></i>
+          
+          <!-- Live Daily Burn Progress Bar -->
+          <div style="width:100%;height:6px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden;margin:10px 0 6px;">
+            <div id="hero-safe-spend-meter-fill" style="width:0%;height:100%;background:linear-gradient(90deg,#10b981,#34d399);border-radius:4px;transition:width 0.6s ease, background 0.4s ease;"></div>
+          </div>
+          
+          <!-- Live Emotional Guidance Sentence -->
+          <div id="hero-safe-spend-sentence" style="font-size:12px;color:#e2e8f0;font-weight:500;line-height:1.35;margin-top:2px;">
+            Calculating your daily spending allowance...
           </div>
         </div>
         
@@ -291,7 +306,12 @@
     <div id="simple-mode-home-container" style="display:none;">
       <!-- Total Money Available Summary -->
       <div class="simple-bahi-summary-card">
-        <span class="simple-summary-label">आपके पास कुल</span>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <span class="simple-summary-label">आपके पास कुल बैलेंस</span>
+          <button onclick="speakSeniorDailySummary()" class="btn" style="padding:6px 12px;font-size:12px;font-weight:700;border-radius:12px;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.25);display:flex;align-items:center;gap:6px;">
+            <span style="font-size:14px;">🔊</span> <span>आज का हिसाब सुनें</span>
+          </button>
+        </div>
         <h1 class="simple-summary-balance" id="simple-home-balance">₹0</h1>
         <div class="simple-summary-sub">
           <span>कुल जमा: <strong class="green" id="simple-home-income">₹0</strong></span>
@@ -307,6 +327,31 @@
           <span class="simple-voice-subtitle">बोलें: "350 रुपये दवाई का खर्च" या "20000 पेंशन मिली"</span>
         </div>
       </button>
+
+      <!-- 1-Tap Quick Elderly Expense Chips -->
+      <div class="senior-quick-chips-container" style="margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:700;color:var(--text-dim,#cbd5e1);margin-bottom:8px;">⚡ झटपट खर्च चुनें (1-Tap Quick):</div>
+        <div class="senior-chips-row" style="display:grid;grid-template-columns:repeat(3, 1fr);gap:8px;">
+          <button class="senior-chip-btn" onclick="quickElderlyExpense('दूध (Milk)', 'food', '🥛')" style="padding:10px 6px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:#fff;font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;">
+            <span>🥛</span> <span>दूध</span>
+          </button>
+          <button class="senior-chip-btn" onclick="quickElderlyExpense('सब्जी / फल', 'food', '🥦')" style="padding:10px 6px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:#fff;font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;">
+            <span>🥦</span> <span>सब्जी</span>
+          </button>
+          <button class="senior-chip-btn" onclick="quickElderlyExpense('दवाई (Meds)', 'health', '💊')" style="padding:10px 6px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:#fff;font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;">
+            <span>💊</span> <span>दवाई</span>
+          </button>
+          <button class="senior-chip-btn" onclick="quickElderlyExpense('बिजली बिल', 'home', '⚡')" style="padding:10px 6px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:#fff;font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;">
+            <span>⚡</span> <span>बिजली</span>
+          </button>
+          <button class="senior-chip-btn" onclick="quickElderlyExpense('पूजा / मंदिर', 'other', '🛕')" style="padding:10px 6px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:#fff;font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;">
+            <span>🛕</span> <span>पूजा</span>
+          </button>
+          <button class="senior-chip-btn" onclick="quickElderlyExpense('कामवाली / नौकर', 'home', '🧹')" style="padding:10px 6px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:#fff;font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;">
+            <span>🧹</span> <span>सफाई</span>
+          </button>
+        </div>
+      </div>
 
       <!-- Secondary Manual Form Buttons -->
       <div class="simple-manual-actions" style="display:flex;gap:10px;margin-bottom:18px;">
@@ -963,26 +1008,26 @@
   </button>
 </div>
 
-<script src="app.js?v=1.1.6"></script>
-<script src="reports.js?v=1.1.6"></script>
-<script src="animations.js?v=1.1.6"></script>
-<script src="smart_engine.js?v=1.1.6"></script>
-<script src="transactions.js?v=1.1.6"></script>
-<script src="auth.js?v=1.1.6"></script>
-<script src="onboarding.js?v=1.1.6"></script>
-<script src="voice.js?v=1.1.6"></script>
-<script src="ledger.js?v=1.1.6"></script>
-<script src="recurring.js?v=1.1.6"></script>
-<script src="monetization.js?v=1.1.6"></script>
-<script src="aurasense.js?v=1.1.6"></script>
-<script src="financial_dna.js?v=1.1.6"></script>
-<script src="wrapped.js?v=1.1.6"></script>
-<script src="shared_portfolios.js?v=1.1.6"></script>
-<script src="wallets.js?v=1.1.6"></script>
-<script src="daily_burn_meter.js?v=1.1.6"></script>
-<script src="digital_vault.js?v=1.1.6"></script>
-<script src="upi_qr_generator.js?v=1.1.6"></script>
-<script src="goal_sip_planner.js?v=1.1.6"></script>
+<script src="app.js?v=1.1.8"></script>
+<script src="reports.js?v=1.1.8"></script>
+<script src="animations.js?v=1.1.8"></script>
+<script src="smart_engine.js?v=1.1.8"></script>
+<script src="transactions.js?v=1.1.8"></script>
+<script src="auth.js?v=1.1.8"></script>
+<script src="onboarding.js?v=1.1.8"></script>
+<script src="voice.js?v=1.1.8"></script>
+<script src="ledger.js?v=1.1.8"></script>
+<script src="recurring.js?v=1.1.8"></script>
+<script src="monetization.js?v=1.1.8"></script>
+<script src="aurasense.js?v=1.1.8"></script>
+<script src="financial_dna.js?v=1.1.8"></script>
+<script src="wrapped.js?v=1.1.8"></script>
+<script src="shared_portfolios.js?v=1.1.8"></script>
+<script src="wallets.js?v=1.1.8"></script>
+<script src="daily_burn_meter.js?v=1.1.8"></script>
+<script src="digital_vault.js?v=1.1.8"></script>
+<script src="upi_qr_generator.js?v=1.1.8"></script>
+<script src="goal_sip_planner.js?v=1.1.8"></script>
 </body>
 </html>
 

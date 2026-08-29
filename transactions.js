@@ -202,6 +202,43 @@ function updateHomeSafeToSpendUI() {
       subEl.textContent = isHi ? `· आज ₹${leftToday.toLocaleString('en-IN')} बाकी (${data.remainingDays} दिन बचे)` : `· ₹${leftToday.toLocaleString('en-IN')} left today (${data.remainingDays}d left)`;
     }
   }
+
+  const meterFillEl = document.getElementById('hero-safe-spend-meter-fill');
+  const sentenceEl = document.getElementById('hero-safe-spend-sentence');
+
+  if (meterFillEl) {
+    const pct = Math.min(100, Math.max(0, data.burnPercent));
+    meterFillEl.style.width = pct + '%';
+    if (data.todaySpent > data.dailyAllowance) {
+      meterFillEl.style.background = 'linear-gradient(90deg, #ef4444, #dc2626)';
+    } else if (data.burnPercent > 75) {
+      meterFillEl.style.background = 'linear-gradient(90deg, #f59e0b, #fbbf24)';
+    } else {
+      meterFillEl.style.background = 'linear-gradient(90deg, #10b981, #34d399)';
+    }
+  }
+
+  if (sentenceEl) {
+    if (data.todaySpent > data.dailyAllowance) {
+      const over = data.todaySpent - data.dailyAllowance;
+      sentenceEl.innerHTML = isHi
+        ? `🔴 <strong>आज ₹${over.toLocaleString('en-IN')} ज्यादा खर्च हुआ</strong> — महीने का संतुलन बनाए रखने के लिए कल कम खर्च करें।`
+        : `🔴 <strong>Heavy spending day (₹${over.toLocaleString('en-IN')} over target)</strong> — Keep tomorrow light to stay on track.`;
+      sentenceEl.style.color = '#fca5a5';
+    } else if (data.burnPercent > 75) {
+      const left = Math.max(0, data.todayRemaining);
+      sentenceEl.innerHTML = isHi
+        ? `🟡 <strong>मध्यम गति:</strong> आज के बजट में से ₹${left.toLocaleString('en-IN')} बाकी हैं (${data.remainingDays} दिन बचे हैं)।`
+        : `🟡 <strong>Approaching daily cap:</strong> You have ₹${left.toLocaleString('en-IN')} safe allowance left today (${data.remainingDays}d left in month).`;
+      sentenceEl.style.color = '#fde68a';
+    } else {
+      const left = Math.max(0, data.todayRemaining);
+      sentenceEl.innerHTML = isHi
+        ? `🟢 <strong>आप पूरी तरह सुरक्षित हैं:</strong> बिना किसी चिंता के आज ₹${left.toLocaleString('en-IN')} और खर्च कर सकते हैं।`
+        : `🟢 <strong>Safe & on track:</strong> You can spend <strong>₹${left.toLocaleString('en-IN')} more today</strong> without breaking the month.`;
+      sentenceEl.style.color = '#86efac';
+    }
+  }
 }
 window.updateHomeSafeToSpendUI = updateHomeSafeToSpendUI;
 

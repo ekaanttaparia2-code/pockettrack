@@ -116,8 +116,10 @@ function startGuestSandboxMode(){
   if (typeof setTab === 'function') setTab('log');
   if (typeof updateHeaderStats === 'function') updateHeaderStats();
   if (typeof renderHomeSnapshot === 'function') renderHomeSnapshot();
-  if (typeof renderHomeContextualNudge === 'function') renderHomeContextualNudge();
   toast(currentLang === 'hi' ? 'गैस्ट सैंडबॉक्स मोड सक्रिय — परीक्षण करें!' : 'Guest Sandbox Mode active — feel free to explore!', 'success');
+  setTimeout(() => {
+    if (typeof window.launchGuestTour === 'function') window.launchGuestTour(1);
+  }, 400);
 }
 window.startGuestSandboxMode = startGuestSandboxMode;
 
