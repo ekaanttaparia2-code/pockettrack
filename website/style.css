@@ -838,15 +838,18 @@ body {
   transform: scale(0.94) !important;
 }
 
-/* Tablet & Mobile Media Queries */
+/* =========================================================
+   MOBILE-FIRST RESPONSIVENESS & CLEAN ALIGNMENT
+   ========================================================= */
+
 @media (max-width: 900px) {
   .hero-title {
-    font-size: clamp(34px, 8vw, 56px);
-    letter-spacing: -1.5px;
+    font-size: clamp(32px, 6.5vw, 52px);
+    letter-spacing: -1.2px;
   }
   .grid-features {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 18px;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
   }
   .leak-metrics-grid {
     grid-template-columns: 1fr;
@@ -856,102 +859,164 @@ body {
 @media (max-width: 768px) {
   .container {
     padding: 0 16px;
+    box-sizing: border-box;
   }
   
-  /* Mobile Navigation */
+  /* Mobile Navigation — Clean, Uncluttered App Bar */
   .navbar {
     top: 8px;
-    padding: 10px 16px;
+    padding: 10px 14px;
     margin: 8px auto 0;
-    border-radius: 18px;
-    flex-wrap: wrap;
-    gap: 12px;
+    border-radius: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+  .nav-brand {
+    flex-shrink: 0;
+    gap: 8px;
   }
   .nav-logo {
-    width: 34px;
-    height: 34px;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
   }
   .nav-title {
-    font-size: 18px;
+    font-size: 17px;
   }
   .nav-links {
-    gap: 12px;
-    width: 100%;
-    justify-content: space-between;
-    overflow-x: auto;
-    padding-bottom: 4px;
-    -webkit-overflow-scrolling: touch;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
-  .nav-link {
-    font-size: 13px;
-    white-space: nowrap;
+  /* Hide standard desktop text links on mobile to eliminate clutter */
+  .nav-item-link,
+  .nav-item-sandbox {
+    display: none !important;
   }
-  .navbar .btn-primary {
+  .nav-item-launch {
+    display: block !important;
+  }
+  .btn-launch-nav {
     padding: 8px 14px !important;
-    font-size: 12.5px !important;
+    font-size: 13px !important;
+    border-radius: 12px !important;
+    white-space: nowrap;
   }
 
   /* Mobile Hero */
   .hero {
-    padding: 45px 0 35px;
+    padding: 32px 0 24px;
+  }
+  .pill-badge {
+    font-size: 12px;
+    padding: 6px 14px;
+    margin-bottom: 18px;
+    line-height: 1.4;
+    max-width: 100%;
   }
   .hero-title {
-    font-size: clamp(30px, 8.5vw, 44px);
-    line-height: 1.12;
-    margin-bottom: 18px;
+    font-size: clamp(28px, 7.5vw, 40px);
+    line-height: 1.15;
+    margin-bottom: 14px;
+    letter-spacing: -0.8px;
   }
   .hero-desc {
-    font-size: 15.5px;
-    margin-bottom: 28px;
+    font-size: 14.5px;
+    margin-bottom: 22px;
+    line-height: 1.55;
+    padding: 0 4px;
   }
   .hero-cta-group {
     flex-direction: column;
     width: 100%;
-    gap: 12px;
+    gap: 10px;
   }
   .hero-cta-group .btn {
     width: 100%;
-    padding: 16px 20px !important;
-    font-size: 15.5px !important;
+    padding: 15px 18px !important;
+    font-size: 15px !important;
+    box-sizing: border-box;
   }
   
-  /* Mobile Simulator & Cards */
+  /* Mobile Phone Mockup */
+  .hero-phone-container {
+    perspective: none;
+    margin-top: 24px;
+    width: 100%;
+  }
+  .phone-mockup-frame {
+    transform: none !important;
+    max-width: min(340px, 92vw);
+    margin: 0 auto;
+    border-radius: 32px;
+    padding: 10px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+  }
+  .phone-screen {
+    padding: 14px 12px !important;
+    border-radius: 24px !important;
+  }
+
+  /* Mobile Calculator & Cards */
   .calculator-box {
-    padding: 24px 16px;
-    border-radius: 24px;
+    padding: 22px 14px;
+    border-radius: 22px;
+  }
+  #leak-income-val {
+    font-size: 36px !important;
   }
   .grid-features {
     grid-template-columns: 1fr;
     gap: 14px;
-    padding: 20px 0 50px;
+    padding: 20px 0 40px;
   }
   .card-glass {
-    padding: 24px 20px;
+    padding: 22px 18px;
     border-radius: 20px;
     animation: mobilePulseGlow 8s infinite alternate ease-in-out;
   }
   
+  /* Comparison Matrix */
+  .comparison-section {
+    padding: 40px 0;
+  }
+  .comparison-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 18px;
+  }
+  .comp-row {
+    min-width: 480px;
+    padding: 14px 16px;
+    font-size: 13px;
+  }
+
   /* Mobile Mockup Stage */
   .device-mockup-wrap {
-    padding: 16px;
-    border-radius: 24px;
+    padding: 16px 12px;
+    border-radius: 22px;
   }
   
   /* Mobile Testimonials */
   .testimonial-card {
-    min-width: 270px;
-    max-width: 270px;
-    padding: 18px;
+    min-width: 260px;
+    max-width: 260px;
+    padding: 16px;
   }
   
   /* Mobile CTA Banner */
   .cta-banner {
-    margin: 50px 0 30px;
-    padding: 40px 20px;
+    margin: 40px 0 24px;
+    padding: 36px 18px;
     border-radius: 24px;
   }
   .cta-banner h2 {
-    font-size: 26px !important;
+    font-size: 24px !important;
   }
   .cta-banner .btn {
     width: 100%;
@@ -959,26 +1024,31 @@ body {
   
   /* Mobile Footer */
   .footer-site {
-    margin-top: 40px;
-    padding: 40px 0 30px;
+    margin-top: 36px;
+    padding: 36px 0 24px;
   }
   .footer-links {
     flex-wrap: wrap;
-    gap: 16px;
+    gap: 14px;
   }
 }
 
 @media (max-width: 480px) {
   .top-bar-live {
-    font-size: 11.5px;
-    padding: 6px 10px;
-    flex-wrap: wrap;
+    font-size: 11px;
+    padding: 6px 8px;
+    gap: 4px;
   }
-  .hero-title {
-    font-size: 28px;
+  .top-bar-live span:nth-child(2),
+  .top-bar-live span:nth-child(4) {
+    display: none;
   }
   .section-title {
-    font-size: 24px;
+    font-size: 22px;
+    letter-spacing: -0.5px;
+  }
+  .section-subtitle {
+    font-size: 14px;
   }
 }
 
