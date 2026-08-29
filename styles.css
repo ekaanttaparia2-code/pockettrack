@@ -137,16 +137,41 @@ header{
   background:linear-gradient(120deg,#fff 30%,var(--accent-bright));
   -webkit-background-clip:text;background-clip:text;
   -webkit-text-fill-color:transparent;
-  margin:0;
+.brand-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
 }
-.brand p{display:none;}
-.pill{
-  font-size:11px;color:var(--text-dim);
-  background:rgba(255,255,255,0.06);border:1px solid var(--border);
-  padding:5px 11px;border-radius:var(--radius-pill);display:flex;align-items:center;gap:6px;
-  backdrop-filter:blur(12px);box-shadow:var(--shadow-sm);
+.mode-toggle-pill {
+  font-size: 11px;
+  padding: 5px 9px;
+  border-radius: 12px;
+  background: rgba(139, 92, 246, 0.18);
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  color: #fff;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  white-space: nowrap;
 }
-.pill .dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
+.pill {
+  font-size: 11px;
+  color: var(--text-dim);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
+  padding: 5px 9px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-sm);
+  white-space: nowrap;
+}
+.pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); flex-shrink: 0; }
 
 .hero-chip{
   width:38px;height:38px;border-radius:12px;
@@ -712,18 +737,18 @@ footer{text-align:center;color:var(--text-faint);font-size:11.5px;margin-top:2re
 .voice-fab {
   display: none; /* hidden until signed in — JS sets it via updateVoiceFabVisibility() */
   position: fixed;
-  /* Sit ABOVE the floating bottom pill so the bar never covers the mic button */
-  bottom: calc(96px + env(safe-area-inset-bottom, 0px));
-  right: 24px;
-  width: 62px;
-  height: 62px;
+  /* Sit neatly above the bottom tab bar without obscuring content */
+  bottom: calc(76px + env(safe-area-inset-bottom, 8px));
+  right: 18px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   align-items: center;
   justify-content: center;
-  font-size: 26px;
+  font-size: 22px;
   color: white;
   background: linear-gradient(135deg, var(--accent, #8b5cf6), var(--accent2, #ff7eb3));
-  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.5), 0 0 0 3px rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 22px rgba(139, 92, 246, 0.45), 0 0 0 2px rgba(255, 255, 255, 0.15);
   z-index: 9999;
   cursor: pointer;
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
@@ -1480,11 +1505,17 @@ header{margin-bottom:1.1rem}
   box-shadow:0 26px 60px rgba(0,0,0,.65),inset 0 1px 0 rgba(255,255,255,.2)!important;
   overflow:hidden;position:relative;
 }
-.hero-card-v2::after{content:'';position:absolute;width:180px;height:180px;border-radius:50%;right:-60px;bottom:-80px;background:rgba(139,92,246,.18);filter:blur(30px);pointer-events:none;}
+.hero-top {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  margin-bottom: 4px !important;
+}
 .hero-label{font-size:11px;font-weight:800;color:var(--accent-bright,#c4b5fd);letter-spacing:1.2px;text-transform:uppercase;}
 .hero-caption{font-size:11px;color:rgba(255,255,255,.55);margin-top:2px}
-.hero-chip{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.18);font-size:20px;color:var(--green,#34d399);font-weight:800;box-shadow:inset 0 1px 0 rgba(255,255,255,.15)}
-.hero-balance{font-family:'Space Grotesk',sans-serif;font-size:42px;font-weight:800;letter-spacing:-1.8px;margin:10px 0 10px;color:#fff;text-shadow:0 4px 18px rgba(0,0,0,.4)}
+.hero-chip{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.18);font-size:18px;color:var(--green,#34d399);font-weight:800;box-shadow:inset 0 1px 0 rgba(255,255,255,.15);flex-shrink:0;}
+.hero-balance{font-family:'Space Grotesk',sans-serif;font-size:38px;font-weight:800;letter-spacing:-1.5px;margin:4px 0 12px;color:#fff;text-shadow:0 4px 18px rgba(0,0,0,.4)}
 
 /* Hero Safe-to-Spend Pill */
 .hero-safe-spend-pill {
