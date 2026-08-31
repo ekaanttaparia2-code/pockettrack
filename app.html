@@ -3,1091 +3,457 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
-<title>PocketTrack — Simple Expense Tracker</title>
-<meta name="description" content="Track your daily income and expenses, see spending reports, and export PDFs — synced securely to the cloud."/>
+<title>PocketTrack — Clean Personal Finance</title>
+<meta name="description" content="Track your daily income, expenses, and wallet balances effortlessly with zero clutter."/>
 <link rel="manifest" href="manifest.json"/>
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"/>
 <link rel="apple-touch-icon" href="icon-192.png"/>
-<meta name="theme-color" content="#070414"/>
+<meta name="theme-color" content="#f8fafc"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="PocketTrack"/>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="icons.css">
+<link rel="stylesheet" href="icons.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script src="firebase.js"></script>
-  <script src="offline.js"></script>
-  <script>
-    window.currentAppMode = localStorage.getItem('pockettrack_app_mode') || 'power';
-    window.currentAppTheme = localStorage.getItem('pocketTrackTheme') || 'light';
-
-    function applyAppTheme(theme) {
-      var isLight = (theme === 'light');
-      if (document.documentElement) {
-        if (isLight) {
-          document.documentElement.setAttribute('data-theme', 'light');
-          document.documentElement.classList.add('light-theme');
-        } else {
-          document.documentElement.removeAttribute('data-theme');
-          document.documentElement.classList.remove('light-theme');
-        }
-      }
-      if (document.body) {
-        document.body.classList.toggle('light-theme', isLight);
-        if (isLight) document.body.setAttribute('data-theme', 'light');
-        else document.body.removeAttribute('data-theme');
-      }
-      var icon = document.getElementById('theme-icon');
-      if (icon) icon.textContent = isLight ? '🌙' : '☀️';
-      var metaTheme = document.querySelector('meta[name="theme-color"]');
-      if (metaTheme) metaTheme.setAttribute('content', isLight ? '#f8fafc' : '#070414');
-    }
-
-    function setAppTheme(theme, save) {
-      if (save === undefined) save = true;
-      window.currentAppTheme = theme;
-      applyAppTheme(theme);
-      if (save) {
-        localStorage.setItem('pocketTrackTheme', theme);
-        if (typeof toast === 'function') toast(theme === 'light' ? 'Light Theme activated ☀️' : 'Dark Theme activated 🌙', 'info');
-      }
-    }
-    window.setAppTheme = setAppTheme;
-
-    function toggleTheme() {
-      var isLight = (document.documentElement && document.documentElement.getAttribute('data-theme') === 'light') || 
-                    (document.body && document.body.classList.contains('light-theme')) || 
-                    (window.currentAppTheme === 'light');
-      var next = isLight ? 'dark' : 'light';
-      setAppTheme(next, true);
-    }
-    window.toggleTheme = toggleTheme;
-
-    // Apply immediately to prevent flash of dark theme
-    if (window.currentAppTheme === 'light') {
-      document.documentElement.setAttribute('data-theme', 'light');
-      document.documentElement.classList.add('light-theme');
-    }
-
-    function applyAppModeClass(mode) {
-      var isSimple = (mode === 'simple');
-      if (document.documentElement) document.documentElement.classList.toggle('app-mode-simple', isSimple);
-      if (document.body) document.body.classList.toggle('app-mode-simple', isSimple);
-      var iconEl = document.getElementById('mode-icon');
-      var labelEl = document.getElementById('mode-label');
-      if (iconEl) iconEl.textContent = isSimple ? '👴' : '⚡';
-      if (labelEl) labelEl.textContent = isSimple ? 'Simple' : 'Power';
-    }
-    function setAppMode(mode, save) {
-      if (save === undefined) save = true;
-      window.currentAppMode = mode;
-      applyAppModeClass(mode);
-      if (mode === 'simple') {
-        if (typeof window.switchActiveWallet === 'function') window.switchActiveWallet('all');
-      }
-      if (typeof renderWalletSwitcher === 'function') renderWalletSwitcher();
-      if (typeof updateHeaderStats === 'function') updateHeaderStats();
-      if (typeof renderHomeSnapshot === 'function') renderHomeSnapshot();
-      if (typeof renderEntries === 'function') renderEntries();
-      if (typeof renderBudgetEditor === 'function') renderBudgetEditor();
-      if (typeof renderReport === 'function') renderReport();
-      if (save) {
-        localStorage.setItem('pockettrack_app_mode', mode);
-        if (typeof toast === 'function') toast(mode === 'simple' ? 'Switched to Simple Mode (40+)' : 'Switched to Power Mode', 'success');
-      }
-    }
-    function toggleAppMode() {
-      var current = window.currentAppMode || (document.body && document.body.classList.contains('app-mode-simple') ? 'simple' : 'power');
-      var nextMode = (current === 'simple') ? 'power' : 'simple';
-      if (typeof window.setAppMode === 'function') {
-        window.setAppMode(nextMode, true);
+<script src="firebase.js"></script>
+<script src="offline.js"></script>
+<script>
+  window.currentAppTheme = localStorage.getItem('pocketTrackTheme') || 'light';
+  function applyAppTheme(theme) {
+    var isLight = (theme === 'light');
+    if (document.documentElement) {
+      if (isLight) {
+        document.documentElement.setAttribute('data-theme', 'light');
+        document.documentElement.classList.add('light-theme');
       } else {
-        setAppMode(nextMode, true);
+        document.documentElement.removeAttribute('data-theme');
+        document.documentElement.classList.remove('light-theme');
       }
     }
-    if (localStorage.getItem('pockettrack_app_mode') === 'simple') {
-      document.documentElement.classList.add('app-mode-simple');
+    if (document.body) {
+      document.body.classList.toggle('light-theme', isLight);
+      if (isLight) document.body.setAttribute('data-theme', 'light');
+      else document.body.removeAttribute('data-theme');
     }
-    document.addEventListener('DOMContentLoaded', function() {
-      applyAppModeClass(window.currentAppMode);
-    });
-  </script>
+    var icon = document.getElementById('theme-icon');
+    if (icon) icon.textContent = isLight ? '🌙' : '☀️';
+    var metaTheme = document.querySelector('meta[name="theme-color"]');
+    if (metaTheme) metaTheme.setAttribute('content', isLight ? '#f8fafc' : '#070414');
+  }
+
+  function setAppTheme(theme, save) {
+    if (save === undefined) save = true;
+    window.currentAppTheme = theme;
+    applyAppTheme(theme);
+    if (save) {
+      localStorage.setItem('pocketTrackTheme', theme);
+      if (typeof toast === 'function') toast(theme === 'light' ? 'Light Theme activated ☀️' : 'Dark Theme activated 🌙', 'info');
+    }
+  }
+  window.setAppTheme = setAppTheme;
+
+  function toggleTheme() {
+    var isLight = (document.documentElement && document.documentElement.getAttribute('data-theme') === 'light') || 
+                  (document.body && document.body.classList.contains('light-theme')) || 
+                  (window.currentAppTheme === 'light');
+    var next = isLight ? 'dark' : 'light';
+    setAppTheme(next, true);
+  }
+  window.toggleTheme = toggleTheme;
+
+  if (window.currentAppTheme === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+    document.documentElement.classList.add('light-theme');
+  }
+</script>
 </head>
 <body>
-<div id="onboarding-screen" style="display:none;">
-  <div class="ob-header-bar">
-    <span class="ob-step-tag" id="ob-step-indicator">Step 1 of 4</span>
-    <button class="ob-skip-btn" id="ob-skip-btn" onclick="finishOnboarding()">Skip Intro</button>
-  </div>
-  <div class="ob-progress-track">
-    <div class="ob-progress-fill" id="ob-progress-bar-fill"></div>
-  </div>
-  <div id="ob-content" class="ob-content-card">
-    <div id="ob-preview-container"></div>
-    <h2 id="ob-title">Title</h2>
-    <p id="ob-desc">Desc</p>
-  </div>
-  <div class="ob-footer-controls">
-    <button id="ob-prev-btn" class="ob-btn-back" onclick="prevObSlide()" style="visibility:hidden">← Back</button>
-    <button id="ob-btn" onclick="nextObSlide()" class="ob-btn-next">Next →</button>
-  </div>
-</div>
 
-<div id="toast-container" style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:999999;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none"></div>
-
-<div id="app-modal-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:900;align-items:center;justify-content:center;padding:20px">
-  <div id="app-modal-box">
-      <p id="app-modal-title"></p>
-      <p id="app-modal-message"></p>
-      <div id="app-modal-buttons" class="btn-row"></div>
-  </div>
-</div>
-
-<div id="manage-modal-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:899;align-items:center;justify-content:center;padding:20px">
-  <div id="manage-modal-box">
-    <div class="manage-modal-head">
-      <p id="manage-modal-title"></p>
-      <button class="icon-btn" onclick="closeManageOptions()" aria-label="close">✕</button>
-    </div>
-    <div id="manage-modal-list"></div>
-  </div>
-</div>
-<div class="blob blob1"></div>
-<div class="blob blob2"></div>
-<div class="blob blob3"></div>
+<div id="toast" class="toast"></div>
 
 <!-- AUTH OVERLAY -->
-<div id="auth-screen" style="position:fixed;inset:0;background:radial-gradient(900px 500px at 12% -8%, rgba(139,92,246,0.32), transparent 60%),linear-gradient(170deg,var(--bg1),var(--bg2) 52%,var(--bg3) 100%);z-index:999999;display:flex;align-items:center;justify-content:center;padding:20px">
-  <div id="auth-main-view" style="width:100%;max-width:380px;background:linear-gradient(165deg, rgba(255,255,255,0.09), rgba(255,255,255,0.035));border:1px solid rgba(255,255,255,0.14);border-radius:24px;padding:30px;box-shadow:0 22px 60px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.10);backdrop-filter:blur(20px)">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
-      <div class="brand-icon brand-logo-wrap"><img class="brand-logo-img" src="icon-192.png" alt="PocketTrack" width="48" height="48"></div>
+<div id="auth-screen" style="position:fixed;inset:0;background:radial-gradient(900px 500px at 12% -8%, rgba(79,70,229,0.25), transparent 60%),linear-gradient(170deg,var(--bg1),var(--bg2) 52%,var(--bg3) 100%);z-index:999999;display:flex;align-items:center;justify-content:center;padding:20px;">
+  <div id="auth-main-view" class="card" style="width:100%;max-width:380px;padding:28px;border-radius:24px;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
+      <div class="brand-icon brand-logo-wrap"><img class="brand-logo-img" src="icon-192.png" alt="PocketTrack" width="44" height="44"></div>
       <div>
-        <h1 class="auth-brand-title">PocketTrack</h1>
-        <p class="auth-brand-sub" data-i18n="auth_sub">Sign in to sync your data</p>
+        <h1 style="font-family:'Space Grotesk',sans-serif;font-size:22px;margin:0;letter-spacing:-0.5px;">PocketTrack</h1>
+        <p style="font-size:11.5px;color:var(--text-dim);margin:2px 0 0;">Sign in to sync your data across devices</p>
       </div>
     </div>
-    <label data-i18n="lbl_email">Email</label>
-    <input type="email" id="auth-email" placeholder="you@example.com" data-i18n-ph="ph_email"/>
-    <label data-i18n="lbl_password">Password</label>
-    <input type="password" id="auth-pass" placeholder="At least 6 characters" data-i18n-ph="ph_pass"/>
-    <p class="auth-forgot"><a href="#" onclick="handleForgotPassword();return false;" data-i18n="lnk_forgot_pass">Forgot password?</a></p>
-    <p id="auth-error" style="color:var(--red);font-size:12.5px;display:none;margin:6px 0 0"></p>
-    <div class="btn-row" style="margin-top:14px">
-      <button class="btn primary auth-action-btn" id="auth-login-btn" onclick="authAction('login')"><i class="ti ti-login"></i> <span data-i18n="btn_login">Log in</span></button>
-      <button class="btn auth-action-btn" id="auth-signup-btn" onclick="authAction('signup')"><i class="ti ti-user-plus"></i> <span data-i18n="btn_signup">Sign up</span></button>
+    
+    <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px;">Email</label>
+    <input type="email" id="auth-email" placeholder="you@example.com" style="margin-bottom:12px;"/>
+    
+    <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px;">Password</label>
+    <input type="password" id="auth-pass" placeholder="At least 6 characters" style="margin-bottom:8px;"/>
+    
+    <p id="auth-error" style="color:var(--red);font-size:12px;display:none;margin:4px 0 8px;"></p>
+    
+    <div class="btn-row" style="display:flex;gap:10px;margin-top:10px;">
+      <button class="btn btn-primary" id="auth-login-btn" onclick="authAction('login')" style="flex:1;"><i class="ti ti-login"></i> Log in</button>
+      <button class="btn" id="auth-signup-btn" onclick="authAction('signup')" style="flex:1;"><i class="ti ti-user-plus"></i> Sign up</button>
     </div>
 
-    <div style="display:flex;align-items:center;gap:10px;margin:16px 0">
+    <div style="display:flex;align-items:center;gap:10px;margin:16px 0;">
       <div style="flex:1;height:1px;background:var(--border)"></div>
-      <span style="font-size:11.5px;color:var(--text-faint)" data-i18n="lbl_or">or</span>
+      <span style="font-size:11.5px;color:var(--text-faint)">or</span>
       <div style="flex:1;height:1px;background:var(--border)"></div>
     </div>
 
-    <button class="btn auth-google-btn" id="auth-google-btn" onclick="signInWithGoogle()">
+    <button class="btn auth-google-btn" id="auth-google-btn" onclick="signInWithGoogle()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;">
       <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg>
-      <span data-i18n="btn_google">Continue with Google</span>
+      <span>Continue with Google</span>
     </button>
 
-    <div style="margin-top:14px;text-align:center;">
-      <button class="btn auth-guest-btn" onclick="startGuestSandboxMode()" style="width:100%;background:linear-gradient(135deg,rgba(139,92,246,0.35),rgba(236,72,153,0.25));border:1.5px solid rgba(192,132,252,0.6);color:#fff;border-radius:14px;padding:12px 14px;font-weight:800;font-size:13.5px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 8px 24px rgba(139,92,246,0.35);cursor:pointer;">
-        <span style="font-size:16px;">🎮</span>
+    <div style="margin-top:12px;text-align:center;">
+      <button class="btn auth-guest-btn" onclick="startGuestSandboxMode()" style="width:100%;border-radius:14px;padding:11px 14px;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;gap:8px;">
+        <span>🎮</span>
         <span>Explore as Guest (Instant Demo)</span>
       </button>
     </div>
-
-    <p class="auth-footer-note" data-i18n="auth_footer_note">Your data is stored securely in the cloud and synced across your devices.</p>
   </div>
 </div>
 
 <div class="shell">
-  <!-- GUEST SANDBOX BANNER -->
-  <div class="card" id="guest-mode-banner" style="display:none;background:linear-gradient(135deg,rgba(139,92,246,0.18),rgba(59,130,246,0.12));border:1px solid rgba(139,92,246,0.35);padding:10px 14px;margin-bottom:0.75rem;border-radius:16px;">
+  <!-- GUEST BANNER -->
+  <div class="card" id="guest-mode-banner" style="display:none;padding:10px 14px;margin-bottom:0.75rem;border-radius:16px;">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
-      <p style="font-size:12px;margin:0;color:#e2e8f0;"><i class="ti ti-sparkles" style="color:#c084fc;"></i> <strong>Guest Sandbox Mode</strong> · Testing locally. Sign in whenever to enable cloud backup.</p>
-      <button class="btn btn-sm" onclick="showAuthScreen()" style="font-size:11.5px;padding:4px 12px;border-radius:10px;background:#fff;color:#0f0928;font-weight:800;">Sign in to Sync</button>
+      <p style="font-size:12px;margin:0;color:var(--text-dim);"><i class="ti ti-sparkles" style="color:var(--accent);"></i> <strong>Guest Demo Mode</strong> · Testing locally.</p>
+      <button class="btn btn-sm" onclick="showAuthScreen()" style="font-size:11.5px;padding:4px 10px;border-radius:10px;">Sign in</button>
     </div>
   </div>
 
+  <!-- MAIN HEADER -->
   <header>
     <div class="brand">
-      <div class="brand-icon brand-logo-wrap"><img class="brand-logo-img" src="icon-192.png" alt="PocketTrack" width="36" height="36"></div>
+      <div class="brand-icon brand-logo-wrap"><img class="brand-logo-img" src="icon-192.png" alt="PocketTrack" width="34" height="34"></div>
       <div>
         <h1>PocketTrack</h1>
       </div>
     </div>
     <div class="brand-actions">
-      <button class="pill theme-toggle-pill" id="theme-toggle-pill" onclick="toggleTheme()" title="Toggle Light / Dark Mode">
+      <button class="pill theme-toggle-pill" id="theme-toggle-pill" onclick="toggleTheme()" title="Toggle Light / Dark Mode" aria-label="Toggle Theme">
         <span id="theme-icon">☀️</span>
       </button>
-      <button class="mode-toggle-pill" id="header-mode-toggle" onclick="toggleAppMode()" title="Switch Simple (40+) / Power Mode">
-        <span id="mode-icon">⚡</span> <span id="mode-label">Power</span>
-      </button>
-      <button class="pill sync-pill-btn" id="sync-pill-btn" onclick="triggerManualSync()" title="Cloud Sync Status · Tap to Sync">
+      <button class="pill sync-pill-btn" id="sync-pill-btn" onclick="triggerManualSync()" title="Cloud Sync Status">
         <span class="dot"></span><span id="sync-status">Synced</span>
       </button>
-      <button class="btn btn-sm install-btn" id="install-app-btn" style="display:none" onclick="promptInstallApp()"><i class="ti ti-download"></i></button>
     </div>
   </header>
 
-  <div class="card" id="verify-banner" style="display:none;background:rgba(255,184,77,0.1);border-color:rgba(255,184,77,0.35);padding:10px 14px;margin-bottom:0.75rem">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
-      <p class="banner-text" data-i18n="verify_banner_text" style="font-size:12px;">Please verify your email to recover your account.</p>
-      <button class="btn banner-btn" onclick="resendVerification()" style="font-size:11.5px;padding:4px 10px;"><span data-i18n="btn_resend_verify">Resend email</span></button>
-    </div>
-  </div>
-
-  <div class="card" id="limit-banner" style="display:none;background:rgba(255,184,77,0.1);border-color:rgba(255,184,77,0.35);padding:10px 14px;margin-bottom:0.75rem">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
-      <p id="limit-banner-text" class="banner-text" style="font-size:12px;"></p>
-    </div>
-  </div>
-
-  <div id="tab-log">
-    <!-- POWER MODE HOME VIEW -->
-    <div id="power-mode-home-container">
-      <div class="home-greeting">
-        <div>
-          <p class="eyebrow" style="letter-spacing:1.5px;font-size:9.5px;font-weight:800;color:#c4b5fd;margin:0 0 2px;">POCKETTRACK</p>
-          <h2 style="font-size:22px;font-weight:800;margin:0;" data-i18n="home_glance">Your money, at a glance.</h2>
-        </div>
-        <button class="home-add-mini" onclick="openQuickComposer()" aria-label="Add transaction" style="width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,#a855f7,#ec4899);color:#fff;border:none;display:grid;place-items:center;font-size:16px;cursor:pointer;box-shadow:0 6px 18px rgba(168,85,247,0.4);"><i class="ti ti-plus"></i></button>
+  <!-- ==========================================
+       TAB 1: HOME
+       ========================================== -->
+  <div id="tab-home" class="tab-content active">
+    <div class="home-greeting">
+      <div>
+        <p class="eyebrow" style="letter-spacing:1.5px;font-size:9.5px;font-weight:800;color:var(--accent);margin:0 0 2px;">OVERVIEW</p>
+        <h2 style="font-size:22px;font-weight:800;margin:0;">Your money, at a glance.</h2>
       </div>
-
-      <!-- 1. Sleek Modern Balance Card -->
-      <div class="hero-card hero-card-modern" id="hero-balance-card">
-        <div class="hero-top">
-          <div>
-            <span class="hero-label" data-i18n="stat_balance">BALANCE</span>
-            <p class="hero-caption" data-i18n="home_available">Available across your tracked money</p>
-          </div>
-          <div class="hero-chip-green-rupee">
-            <span>₹</span>
-          </div>
-        </div>
-        
-        <p class="hero-balance" id="hdr-balance">₹0</p>
-        
-        <!-- Highlighted Metrics Pill Strip Inside Card -->
-        <div class="hero-metrics-pill">
-          <div class="hero-metric-item">
-            <span class="hero-metric-dot green"></span>
-            <span class="hero-metric-label" data-i18n="stat_income">Income</span>
-            <strong class="green" id="hero-income">₹0</strong>
-          </div>
-          <div class="hero-metric-item">
-            <span class="hero-metric-dot red"></span>
-            <span class="hero-metric-label" data-i18n="stat_spent">Spent</span>
-            <strong class="red" id="hero-spent">₹0</strong>
-          </div>
-          <div class="hero-metric-item">
-            <span class="hero-metric-dot purple"></span>
-            <span class="hero-metric-label" data-i18n="stat_entries">Entries</span>
-            <strong id="hero-count">0</strong>
-          </div>
-        </div>
-
-        <!-- 4 Circular Action Buttons (Expense, Income, Transfer, UPI Paste) -->
-        <div class="hero-actions-grid-4">
-          <button class="hero-action-btn-item" onclick="openQuickComposer('expense')">
-            <div class="hero-action-btn-circle expense">
-              <i class="ti ti-arrow-up-right" style="font-size:22px;"></i>
-            </div>
-            <span class="hero-action-btn-label" data-i18n="home_add_expense">Expense</span>
-          </button>
-          <button class="hero-action-btn-item" onclick="openQuickComposer('income')">
-            <div class="hero-action-btn-circle income">
-              <i class="ti ti-arrow-down-left" style="font-size:22px;"></i>
-            </div>
-            <span class="hero-action-btn-label" data-i18n="home_add_income">Income</span>
-          </button>
-          <button class="hero-action-btn-item" onclick="openTransferModal()">
-            <div class="hero-action-btn-circle transfer">
-              <i class="ti ti-arrows-left-right" style="font-size:22px;"></i>
-            </div>
-            <span class="hero-action-btn-label" data-i18n="action_transfer">Transfer</span>
-          </button>
-          <button class="hero-action-btn-item" onclick="pasteFromClipboardAndLog()">
-            <div class="hero-action-btn-circle upi">
-              <i class="ti ti-clipboard-text" style="font-size:22px;"></i>
-            </div>
-            <span class="hero-action-btn-label" data-i18n="action_upi_paste">UPI Paste</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- 2. Daily Safe-to-Spend Card -->
-      <div class="card safe-to-spend-card" id="home-safe-to-spend-card" style="margin-bottom:14px;border-radius:22px;padding:16px 18px;background:linear-gradient(165deg,rgba(16,185,129,0.12) 0%,rgba(16,185,129,0.03) 100%);border:1px solid rgba(52,211,153,0.3);position:relative;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-          <div style="display:flex;align-items:center;gap:8px;">
-            <div style="width:34px;height:34px;border-radius:10px;background:rgba(52,211,153,0.18);display:flex;align-items:center;justify-content:center;font-size:18px;">🎯</div>
-            <span style="font-size:11.5px;font-weight:800;letter-spacing:0.8px;color:#34d399;text-transform:uppercase;" data-i18n="safe_to_spend_title">DAILY SAFE-TO-SPEND</span>
-          </div>
-          <button class="btn btn-sm" onclick="openSafeToSpendExplainer()" style="font-size:11px;padding:4px 10px;border-radius:10px;background:rgba(255,255,255,0.08);color:#e2e8f0;border:1px solid rgba(255,255,255,0.15);font-weight:700;">Math Sheet</button>
-        </div>
-        <div style="display:flex;align-items:baseline;gap:8px;margin-top:4px;">
-          <h2 id="home-safe-spend-val" style="font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:800;color:#fff;margin:0;letter-spacing:-0.5px;">₹0/day</h2>
-          <span id="home-safe-spend-sub" style="font-size:12px;color:var(--text-dim,#94a3b8);font-weight:600;">· ₹0 left today</span>
-        </div>
-      </div>
-
-      <!-- 2. Streak Badge Card (From Original Design) -->
-      <div class="card streak-card" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:18px;margin-top:12px;margin-bottom:12px;">
-        <span style="font-size:22px;">🔥</span>
-        <div>
-          <strong style="font-size:13.5px;color:#fff;display:block;" id="home-streak-text">1 day streak</strong>
-          <span style="font-size:11px;color:var(--text-dim,#94a3b8);">Log something every day to keep it going</span>
-        </div>
-      </div>
-
-      <!-- 3. Recent Activity / Khata -->
-      <div class="home-section-head" style="margin-top:10px;">
-        <div>
-          <p class="section-kicker" data-i18n="home_recent_kicker">RECENT TRANSACTIONS</p>
-          <h3 data-i18n="home_recent_title">What moved your money?</h3>
-        </div>
-        <button class="text-action" onclick="setTab('entries')"><span data-i18n="home_view_all">View all</span> <i class="ti ti-arrow-right"></i></button>
-      </div>
-      <div class="recent-card" id="home-recent-activity">
-        <div class="empty-mini">Your latest entries will appear here.</div>
-      </div>
-
-      <!-- 3. Contextual Smart Nudge (ONLY ONE) -->
-      <div id="home-contextual-nudge" style="margin-top:14px;"></div>
     </div>
 
-    <!-- SIMPLE SENIOR (40+) BAHI-KHATA HOME VIEW -->
-    <div id="simple-mode-home-container" style="display:none;">
-      <!-- Total Money Available Summary -->
-      <div class="simple-bahi-summary-card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-          <span class="simple-summary-label">आपके पास कुल बैलेंस</span>
-          <button onclick="speakSeniorDailySummary()" class="btn" style="padding:6px 12px;font-size:12px;font-weight:700;border-radius:12px;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.25);display:flex;align-items:center;gap:6px;">
-            <span style="font-size:14px;">🔊</span> <span>आज का हिसाब सुनें</span>
-          </button>
+    <!-- The Sleek Modern Hero Balance Card -->
+    <div class="hero-card hero-card-modern" id="hero-balance-card">
+      <div class="hero-top">
+        <div>
+          <span class="hero-label">BALANCE</span>
+          <p class="hero-caption">Available across your tracked money</p>
         </div>
-        <h1 class="simple-summary-balance" id="simple-home-balance">₹0</h1>
-        <div class="simple-summary-sub">
-          <span>कुल जमा: <strong class="green" id="simple-home-income">₹0</strong></span>
-          <span>कुल खर्च: <strong class="red" id="simple-home-spent">₹0</strong></span>
+        <div class="hero-chip-green-rupee">
+          <span>₹</span>
+        </div>
+      </div>
+      
+      <p class="hero-balance" id="hdr-balance">₹0</p>
+      
+      <!-- Highlighted Metrics Capsule Inside Card -->
+      <div class="hero-metrics-pill">
+        <div class="hero-metric-item">
+          <span class="hero-metric-dot green"></span>
+          <span class="hero-metric-label">Income</span>
+          <strong class="green" id="hero-income">₹0</strong>
+        </div>
+        <div class="hero-metric-item">
+          <span class="hero-metric-dot red"></span>
+          <span class="hero-metric-label">Spent</span>
+          <strong class="red" id="hero-spent">₹0</strong>
+        </div>
+        <div class="hero-metric-item">
+          <span class="hero-metric-dot purple"></span>
+          <span class="hero-metric-label">Entries</span>
+          <strong id="hero-count">0</strong>
         </div>
       </div>
 
-      <!-- Primary Large Voice Button -->
-      <button class="simple-voice-hero-btn" onclick="startVoiceRecognition()">
-        <div class="simple-voice-icon-wrap"><i class="ti ti-microphone"></i></div>
-        <div class="simple-voice-text-wrap">
-          <strong class="simple-voice-title">🎙️ बोलकर बताइए</strong>
-          <span class="simple-voice-subtitle">बोलें: "350 रुपये दवाई का खर्च" या "20000 पेंशन मिली"</span>
-        </div>
+      <!-- 4 Circular Action Buttons -->
+      <div class="hero-actions-grid-4">
+        <button class="hero-action-btn-item" onclick="openQuickComposer('expense')">
+          <div class="hero-action-btn-circle expense">
+            <i class="ti ti-arrow-up-right"></i>
+          </div>
+          <span class="hero-action-btn-label">Expense</span>
+        </button>
+        <button class="hero-action-btn-item" onclick="openQuickComposer('income')">
+          <div class="hero-action-btn-circle income">
+            <i class="ti ti-arrow-down-left"></i>
+          </div>
+          <span class="hero-action-btn-label">Income</span>
+        </button>
+        <button class="hero-action-btn-item" onclick="openTransferModal()">
+          <div class="hero-action-btn-circle transfer">
+            <i class="ti ti-arrows-left-right"></i>
+          </div>
+          <span class="hero-action-btn-label">Transfer</span>
+        </button>
+        <button class="hero-action-btn-item" onclick="pasteFromClipboardAndLog()">
+          <div class="hero-action-btn-circle upi">
+            <i class="ti ti-clipboard-text"></i>
+          </div>
+          <span class="hero-action-btn-label">UPI Paste</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Recent Activity Section -->
+    <div class="home-section-head" style="display:flex;justify-content:space-between;align-items:center;margin:18px 2px 10px;">
+      <div>
+        <p class="section-kicker" style="font-size:10px;font-weight:800;color:var(--text-dim);letter-spacing:1px;margin:0 0 2px;">RECENT ACTIVITY</p>
+        <h3 style="font-size:16px;font-weight:700;margin:0;">Latest Transactions</h3>
+      </div>
+      <button class="text-action" onclick="setTab('activity')" style="background:none;border:none;color:var(--accent);font-weight:700;font-size:12.5px;cursor:pointer;display:flex;align-items:center;gap:4px;">
+        <span>View all</span> <i class="ti ti-arrow-right"></i>
       </button>
+    </div>
 
-      <!-- 1-Tap Quick Elderly Expense Chips -->
-      <div class="senior-quick-chips-container" style="margin-bottom:14px;">
-        <div style="font-size:12px;font-weight:700;color:var(--text-dim,#cbd5e1);margin-bottom:8px;">⚡ झटपट खर्च चुनें (1-Tap Quick):</div>
-        <div class="senior-chips-row" style="display:grid;grid-template-columns:repeat(3, 1fr);gap:8px;">
-          <button class="senior-chip-btn" onclick="quickElderlyExpense('दूध (Milk)', 'food', '🥛')" style="padding:10px 6px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:#fff;font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;">
-            <span>🥛</span> <span>दूध</span>
-          </button>
-          <button class="senior-chip-btn" onclick="quickElderlyExpense('सब्जी / फल', 'food', '🥦')" style="padding:10px 6px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:#fff;font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;">
-            <span>🥦</span> <span>सब्जी</span>
-          </button>
-          <button class="senior-chip-btn" onclick="quickElderlyExpense('दवाई (Meds)', 'health', '💊')" style="padding:10px 6px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:#fff;font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;">
-            <span>💊</span> <span>दवाई</span>
-          </button>
-          <button class="senior-chip-btn" onclick="quickElderlyExpense('बिजली बिल', 'home', '⚡')" style="padding:10px 6px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:#fff;font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;">
-            <span>⚡</span> <span>बिजली</span>
-          </button>
-          <button class="senior-chip-btn" onclick="quickElderlyExpense('पूजा / मंदिर', 'other', '🛕')" style="padding:10px 6px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:#fff;font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;">
-            <span>🛕</span> <span>पूजा</span>
-          </button>
-          <button class="senior-chip-btn" onclick="quickElderlyExpense('कामवाली / नौकर', 'home', '🧹')" style="padding:10px 6px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:#fff;font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;">
-            <span>🧹</span> <span>सफाई</span>
-          </button>
-        </div>
-      </div>
+    <div class="recent-card card" id="home-recent-activity" style="padding:4px 14px;border-radius:20px;">
+      <div class="empty-mini" style="padding:24px 0;text-align:center;color:var(--text-dim);font-size:13px;">No entries logged yet. Tap <strong>Expense</strong> or <strong>Income</strong> above!</div>
+    </div>
+  </div>
 
-      <!-- Secondary Manual Form Buttons -->
-      <div class="simple-manual-actions" style="display:flex;gap:10px;margin-bottom:18px;">
-        <button class="btn" onclick="openQuickComposer('expense')" style="flex:1;padding:14px 10px;font-size:14px;font-weight:700;border-radius:16px;background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.35);color:#fca5a5;">
-          📤 खर्च लिखें
-        </button>
-        <button class="btn" onclick="openQuickComposer('income')" style="flex:1;padding:14px 10px;font-size:14px;font-weight:700;border-radius:16px;background:rgba(52,211,153,0.12);border:1px solid rgba(52,211,153,0.35);color:#6ee7b7;">
-          📥 आमदनी लिखें
+  <!-- ==========================================
+       TAB 2: ACTIVITY / PASSBOOK
+       ========================================== -->
+  <div id="tab-activity" class="tab-content" style="display:none;">
+    <div class="activity-header" style="margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <h2 style="font-size:20px;font-weight:800;margin:0;">Passbook & History</h2>
+        <button class="btn btn-sm" onclick="exportTransactionsCSV()" style="font-size:11.5px;padding:6px 12px;border-radius:12px;">
+          <i class="ti ti-download"></i> Export CSV
         </button>
       </div>
-
-      <!-- Bahi-Khata Chronological Ledger Header -->
-      <div class="simple-bahi-header">
-        <h3 style="margin:0;font-size:17px;font-weight:800;color:#fff;">📖 बही-खाता (Passbook)</h3>
-        <span style="font-size:12px;color:var(--text-dim,#cbd5e1);">तारीख और हिसाब</span>
+      
+      <!-- Search Bar -->
+      <div class="search-wrap" style="position:relative;margin-bottom:10px;">
+        <i class="ti ti-search" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-dim);font-size:16px;"></i>
+        <input type="text" id="activity-search-input" placeholder="Search notes, merchants, amounts..." oninput="onActivitySearch(this.value)" style="padding-left:38px;border-radius:16px;"/>
       </div>
 
-      <!-- Bahi-Khata Chronological List with Running Balances -->
-      <div id="simple-bahi-khata-list" class="simple-bahi-list">
-        <div class="empty-mini" style="padding:30px 10px;font-size:14px;">अभी तक कोई हिसाब नहीं लिखा गया। ऊपर माइक दबाकर बोलें!</div>
+      <!-- Filter Category Chips -->
+      <div class="filter-chips-bar" id="activity-filter-chips" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;">
+        <button class="filter-chip active" onclick="setActivityFilter('all', this)">All</button>
+        <button class="filter-chip" onclick="setActivityFilter('expense', this)">💸 Expenses</button>
+        <button class="filter-chip" onclick="setActivityFilter('income', this)">💵 Income</button>
+        <button class="filter-chip" onclick="setActivityFilter('transfer', this)">⇄ Transfers</button>
       </div>
+    </div>
+
+    <div class="card" id="entries-list" style="padding:4px 14px;border-radius:20px;">
+      <!-- Populated via transactions.js -->
+      <div class="empty-mini" style="padding:32px 0;text-align:center;color:var(--text-dim);font-size:13px;">No transactions found.</div>
     </div>
   </div>
 
-  <div id="tab-entries" style="display:none">
-    <div class="card">
-      <div class="filter-bar">
-        <span class="date-label" data-i18n="lbl_from">From</span>
-        <input type="date" id="filter-from" onchange="renderEntries()"/>
-        <span class="date-label" data-i18n="lbl_to">To</span>
-        <input type="date" id="filter-to" onchange="renderEntries()"/>
-        <button class="btn btn-sm" onclick="resetFilter()"><i class="ti ti-refresh"></i></button>
-      </div>
-      <div class="filter-bar" style="margin-top:-6px">
-        <span class="date-label" data-i18n="lbl_sort">Sort</span>
-        <select id="entry-sort" onchange="renderEntries()">
-          <option value="date-desc" data-hi="नई तारीख पहले">Newest day first</option>
-          <option value="date-asc" data-hi="पुरानी तारीख पहले">Oldest day first</option>
-          <option value="amt-desc" data-hi="राशि: ज्यादा से कम">Amount: high to low</option>
-          <option value="amt-asc" data-hi="राशि: कम से ज्यादा">Amount: low to high</option>
-        </select>
-      </div>
-      <p class="sec-title" style="margin-bottom:8px"><i class="ti ti-list"></i><span data-i18n="sec_entries">Entries</span></p>
-      <div id="entries-list"><p class="empty" data-i18n="msg_no_entries">No entries yet — log something!</p></div>
-    </div>
-  </div>
+  <!-- ==========================================
+       TAB 3: SETTINGS & WALLETS
+       ========================================== -->
+  <div id="tab-settings" class="tab-content" style="display:none;">
+    <h2 style="font-size:20px;font-weight:800;margin:0 0 14px;">Settings & Wallets</h2>
 
-  <div id="tab-report" style="display:none" class="tab-content">
-    <!-- Sub-tab toggle bar for Insights -->
-    <div class="split-toggle" id="insights-subview-toggle" style="display:flex;gap:6px;background:rgba(255,255,255,0.06);padding:4px;border-radius:14px;margin-bottom:14px;border:1px solid rgba(255,255,255,0.1);">
-      <button class="btn btn-sm active" id="insights-sub-overview-btn" onclick="switchInsightsSubView('overview')" style="flex:1;border-radius:10px;padding:8px 6px;font-size:12px;font-weight:600;"><i class="ti ti-chart-bar"></i> <span data-i18n="insights_sub_overview">Overview & Budget</span></button>
-      <button class="btn btn-sm" id="insights-sub-deep-btn" onclick="switchInsightsSubView('deep')" style="flex:1;border-radius:10px;padding:8px 6px;font-size:12px;font-weight:600;"><i class="ti ti-microscope"></i> <span data-i18n="insights_sub_deep">Deep Tools & DNA</span></button>
-    </div>
-
-    <!-- SUBVIEW 1: OVERVIEW & BUDGET -->
-    <div id="insights-overview-subview">
-      <div id="sub-radar"></div>
-      <!-- Insights Top Control Center: Account Selector + Period Timeframe -->
-      <div class="card insights-top-bar" id="insights-top-bar">
-        <div class="insights-bar-row">
-          <div class="insights-bar-label">
-            <span class="insights-bar-icon">💳</span>
-            <span data-i18n="lbl_account_filter">Wallet / Account</span>
-          </div>
-          <div class="insights-wallet-pills" id="insights-wallet-pills-list"></div>
+    <!-- Wallets Card -->
+    <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:20px;">👛</span>
+          <h3 style="font-size:16px;font-weight:700;margin:0;">Wallets & Accounts</h3>
         </div>
-
-        <div class="insights-bar-divider"></div>
-
-        <div class="insights-bar-row">
-          <div class="insights-bar-label">
-            <span class="insights-bar-icon">📅</span>
-            <span data-i18n="lbl_period">Period</span>
-          </div>
-          <div class="toggle-grp period-toggle-v2" id="period-toggle">
-            <button class="active" onclick="setPeriod('week')" data-i18n="period_week">This week</button>
-            <button onclick="setPeriod('month')" data-i18n="period_month">This month</button>
-            <button onclick="setPeriod('all')" data-i18n="period_all">All time</button>
-            <button onclick="setPeriod('custom')" data-i18n="period_custom">Custom</button>
-          </div>
-        </div>
-
-        <div id="insights-custom-dates-wrap" class="insights-custom-dates-wrap" style="display:none">
-          <div class="insights-date-input-wrap">
-            <label data-i18n="lbl_from">From</label>
-            <input type="date" id="rep-from" onchange="renderReport()"/>
-          </div>
-          <span id="rep-to-label" class="date-label" style="display:none" data-i18n="lbl_to">To</span>
-          <div class="insights-date-input-wrap">
-            <label data-i18n="lbl_to">To</label>
-            <input type="date" id="rep-to" onchange="renderReport()"/>
-          </div>
-        </div>
+        <button class="btn btn-sm" onclick="openNewWalletModal()" style="font-size:11.5px;padding:4px 10px;border-radius:10px;">
+          <i class="ti ti-plus"></i> Add
+        </button>
       </div>
-
-      <div id="insights-hero" class="insights-hero"></div>
-      <div id="smart-insights-slot"></div>
-
-      <div class="grid4">
-        <div class="metric"><div class="metric-label" data-i18n="metric_total_income">Total income</div><div class="metric-val green" id="r-income">₹0</div></div>
-        <div class="metric"><div class="metric-label" data-i18n="metric_total_spent">Total spent</div><div class="metric-val red" id="r-spent">₹0</div></div>
-        <div class="metric"><div class="metric-label" data-i18n="metric_balance_left">Balance left</div><div class="metric-val amber" id="r-balance">₹0</div></div>
-        <div class="metric"><div class="metric-label" data-i18n="metric_entries">Entries</div><div class="metric-val" id="r-count">0</div></div>
-      </div>
-
-      <div id="smart-insights-grid" class="smart-insights-grid"></div>
-
-      <div class="card">
-        <p class="sec-title"><i class="ti ti-chart-pie"></i><span data-i18n="sec_cat">Spending by category</span></p>
-        <div id="cat-pie-wrap" class="pie-wrap"></div>
-        <div id="cat-breakdown"></div>
-      </div>
-
-      <div class="card" id="budget-main-card">
-        <p class="sec-title"><i class="ti ti-target-arrow"></i><span data-i18n="sec_budget">Budget Control</span></p>
-        <div id="budget-editor"></div>
-      </div>
-
-      <div class="card tip-card">
-        <div class="tip-head">
-          <p class="sec-title" style="margin:0"><i class="ti ti-bulb"></i><span data-i18n="sec_money_tip">Money-saving tip</span></p>
-        </div>
-        <p id="money-tip-text" class="tip-text"></p>
-        <button class="btn budget-save-btn" onclick="showNextTip()"><i class="ti ti-refresh"></i> <span data-i18n="btn_next_tip">Show me another tip</span></button>
+      <div id="settings-wallets-list" style="display:flex;flex-direction:column;gap:8px;">
+        <!-- Populated via wallets.js -->
       </div>
     </div>
 
-    <!-- SUBVIEW 2: DEEP TOOLS & DNA -->
-    <div id="insights-deep-subview" style="display:none">
-      <div id="health-score-card"></div>
-      <div id="leak-detector-card" style="margin-bottom:1.1rem"></div>
-      <div id="future-money-simulator-card" style="margin-bottom:1.1rem"></div>
-      <div id="wallet-distribution-slot" style="margin-bottom:1.1rem"></div>
-      <div id="home-daily-burn-slot" style="margin-bottom:1.1rem"></div>
-      <div id="home-dna-slot" style="margin-bottom:1.1rem"></div>
-
-      <div class="card">
-        <p class="sec-title"><i class="ti ti-history"></i><span data-i18n="sec_full">Full breakdown</span></p>
-        <div id="full-breakdown"></div>
+    <!-- Monthly Budget Card -->
+    <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <span style="font-size:20px;">🎯</span>
+        <h3 style="font-size:16px;font-weight:700;margin:0;">Monthly Budget Limit</h3>
       </div>
-
-      <div class="btn-row" style="flex-wrap:wrap;gap:8px;">
-        <button class="btn" onclick="copyReport()"><i class="ti ti-copy"></i> <span data-i18n="btn_copy_report">Copy report</span></button>
-        <button class="btn" onclick="exportCSV()"><i class="ti ti-file-spreadsheet"></i> <span>Export CSV / Excel</span></button>
-        <button class="btn primary" onclick="exportPDF()"><i class="ti ti-download"></i> <span data-i18n="btn_export_pdf">Export as PDF</span></button>
-        <button class="btn danger" onclick="clearAll()">🗑️ <span data-i18n="btn_clear_all">Clear all</span></button>
+      <div style="display:flex;gap:8px;">
+        <input type="number" id="budget-input" placeholder="e.g. 15000" style="flex:1;font-size:15px;font-weight:700;"/>
+        <button class="btn btn-primary" onclick="saveMonthlyBudget()" style="padding:0 16px;">Save</button>
       </div>
-    </div>
-  </div>
-
-  <!-- TAB: LEDGER (Person Ledgers + Events Mini-Ledgers) -->
-  <div id="tab-ledger" style="display:none" class="tab-content">
-    <div class="split-toggle" id="ledger-subview-toggle" style="display:flex;gap:6px;background:rgba(255,255,255,0.06);padding:4px;border-radius:14px;margin-bottom:14px;border:1px solid rgba(255,255,255,0.1);">
-      <button class="btn btn-sm active" id="ledger-sub-people-btn" onclick="switchLedgerSubView('people')" style="flex:1;border-radius:10px;padding:8px 6px;font-size:12px;font-weight:600;"><i class="ti ti-users"></i> <span data-i18n="nav_ledger">Person Ledgers</span></button>
-      <button class="btn btn-sm" id="ledger-sub-events-btn" onclick="switchLedgerSubView('events')" style="flex:1;border-radius:10px;padding:8px 6px;font-size:12px;font-weight:600;"><i class="ti ti-calendar-event"></i> <span data-i18n="sec_your_events">Events & Trips</span></button>
+      <p style="font-size:11px;color:var(--text-dim);margin:6px 0 0;">Sets your monthly expenditure target.</p>
     </div>
 
-    <!-- SUBVIEW 1: PERSON LEDGERS -->
-    <div id="ledger-people-subview">
-      <div class="tab-head" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-        <h2 class="sec-title" style="margin:0"><i class="ti ti-notebook"></i> <span data-i18n="nav_ledger">Ledger Accounts</span></h2>
-        <button class="btn primary btn-sm" onclick="showAddPersonModal()"><i class="ti ti-plus"></i> <span data-i18n="btn_add_person">Add Person</span></button>
-      </div>
-      <div class="card ledger-hero">
-        <div class="grid2">
-          <div class="metric">
-            <div class="metric-label" data-i18n="ledger_total_owed_to_you">Total Owed to You</div>
-            <div class="metric-val green" id="ledger-total-owed">₹0</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label" data-i18n="ledger_total_you_owe">You Owe</div>
-            <div class="metric-val red" id="ledger-total-owe">₹0</div>
-          </div>
-        </div>
-      </div>
-      <div id="ledger-people-list"></div>
-    </div>
-
-    <!-- SUBVIEW 2: EVENTS & GROUP TRIPS -->
-    <div id="ledger-events-subview" style="display:none">
-      <div id="events-list-view">
-        <div class="card">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <p class="sec-title" style="margin:0"><i class="ti ti-calendar-event"></i><span data-i18n="sec_your_events">Your events</span></p>
-            <button class="btn primary btn-sm" onclick="toggleAddEventForm()"><i class="ti ti-plus"></i> <span data-i18n="btn_add_event">Add event</span></button>
-          </div>
-          <p class="events-desc" data-i18n="events_desc">Track a birthday, wedding, trip or any occasion as its own mini ledger — with its own log, entries and totals.</p>
-        </div>
-
-        <div class="card" id="add-event-form" style="display:none">
-          <p class="sec-title" id="event-form-title"><i class="ti ti-sparkles"></i><span data-i18n="sec_create_event">Create a new event</span></p>
-          <div class="grid3">
-            <div>
-              <label data-i18n="lbl_event_type">Event type</label>
-              <select id="new-event-type">
-                <option value="Birthday" data-hi="🎂 जन्मदिन">🎂 Birthday</option>
-                <option value="Wedding" data-hi="💍 शादी">💍 Wedding</option>
-                <option value="Trip" data-hi="✈️ यात्रा">✈️ Trip</option>
-                <option value="Festival" data-hi="🎆 त्योहार">🎆 Festival</option>
-                <option value="Party" data-hi="🎉 पार्टी">🎉 Party</option>
-                <option value="Other">📌 Other</option>
-              </select>
-            </div>
-            <div style="grid-column:span 2">
-              <label data-i18n="lbl_event_name">Event name</label>
-              <input type="text" id="new-event-name" placeholder="e.g. Riya's Birthday Bash" maxlength="40" data-i18n-ph="ph_event_name"/>
-            </div>
-          </div>
-          <div class="grid3">
-            <div>
-              <label data-i18n="lbl_from">From</label>
-              <input type="date" id="new-event-from"/>
-            </div>
-            <div>
-              <label data-i18n="lbl_till">Till</label>
-              <input type="date" id="new-event-till"/>
-            </div>
-          </div>
-          <label data-i18n="lbl_desc_opt">Description (optional)</label>
-          <input type="text" id="new-event-desc" placeholder="e.g. Turning 16, small get-together at home" maxlength="100" data-i18n-ph="ph_event_desc"/>
-          <div class="btn-row">
-            <button class="btn primary" id="event-form-submit-btn" onclick="createNewEvent()"><i class="ti ti-check"></i> <span data-i18n="btn_create_event">Create event</span></button>
-            <button class="btn" onclick="toggleAddEventForm()" data-i18n="btn_cancel">Cancel</button>
-          </div>
-        </div>
-
-        <div id="events-list"></div>
-      </div>
-
-      <!-- EVENT DETAIL VIEW -->
-      <div id="event-detail-view" style="display:none">
-        <button class="btn" style="margin-bottom:12px" onclick="backToEventsList()"><i class="ti ti-arrow-left"></i> Back to events</button>
-
-        <div class="card">
-          <p class="sec-title" id="event-detail-title" style="margin-bottom:2px"></p>
-          <p id="event-detail-desc" class="event-detail-desc"></p>
-        </div>
-
-        <div class="stat-pills">
-          <div class="stat-pill"><span class="stat-pill-label" data-i18n="stat_income">Income</span><span class="stat-pill-val green" id="ev-income">₹0</span></div>
-          <div class="stat-pill"><span class="stat-pill-label" data-i18n="stat_spent">Spent</span><span class="stat-pill-val red" id="ev-spent">₹0</span></div>
-          <div class="stat-pill"><span class="stat-pill-label" data-i18n="stat_balance">Balance</span><span class="stat-pill-val amber" id="ev-balance">₹0</span></div>
-          <div class="stat-pill"><span class="stat-pill-label" data-i18n="stat_entries">Entries</span><span class="stat-pill-val" id="ev-count">0</span></div>
-        </div>
-
-        <!-- PARTICIPANTS MANAGEMENT -->
-        <div class="card">
-          <p class="sec-title"><i class="ti ti-users"></i><span data-i18n="sec_participants">Participants</span></p>
-          <p class="participants-desc" data-i18n="participants_desc">Add your friends to split shared expenses and track who owes whom.</p>
-          <div id="participants-tags-display" style="margin-bottom:10px"></div>
-          <div style="display:flex;gap:8px;align-items:center">
-            <div style="flex:1">
-              <input type="text" id="new-participant-name" placeholder="Friend's name" maxlength="20"/>
-            </div>
-            <button class="btn" onclick="addParticipant()" style="white-space:nowrap"><i class="ti ti-plus"></i> <span data-i18n="btn_add">Add</span></button>
-          </div>
-          <p id="manage-participants-link" style="display:none;font-size:12px;margin:8px 0 0"><a href="#" onclick="openManageParticipants();return false;" style="color:var(--accent);text-decoration:none" data-i18n="lnk_manage_participants">Manage your participants</a></p>
-        </div>
-
-        <!-- SETTLEMENT SECTION -->
-        <div class="card" id="settlement-section" style="display:none">
-          <p class="sec-title"><i class="ti ti-arrows-exchange"></i><span data-i18n="sec_settlement">Settlement</span></p>
-          <p style="font-size:12px;color:var(--text-dim);margin:0 0 10px" data-i18n="settlement_desc">Smart calculation — minimizes the number of payments needed.</p>
-          <div id="settlement-balances"></div>
-          <div id="settlement-transfers"></div>
-          <div id="settlement-settled" style="display:none;text-align:center;padding:16px;color:var(--green)">
-            <p style="font-size:28px;margin:0">✅</p>
-            <p style="font-size:13px;margin:4px 0 0" data-i18n="all_settled">All settled up!</p>
-          </div>
-        </div>
-
-        <div class="card">
-          <p class="sec-title"><i class="ti ti-receipt"></i><span data-i18n="sec_add_income_event">Add income to this event</span></p>
-          <div class="grid3">
-            <div>
-              <label data-i18n="lbl_source">Source</label>
-              <select id="ev-inc-src">
-                <option value="Cash gift" data-hi="नकद उपहार">Cash gift</option>
-                <option value="Contribution" data-hi="योगदान">Contribution</option>
-              </select>
-            </div>
-            <div>
-              <label data-i18n="lbl_amount">Amount (₹)</label>
-              <input type="number" id="ev-inc-amt" placeholder="500" min="0.01" step="0.01"/>
-            </div>
-            <div>
-              <label data-i18n="lbl_date">Date</label>
-              <input type="date" id="ev-inc-date"/>
-            </div>
-          </div>
-          <label data-i18n="lbl_note">Note (optional)</label>
-          <input type="text" id="ev-inc-note" placeholder="e.g. From Grandma" maxlength="60"/>
-          <div class="btn-row">
-            <button class="btn primary" onclick="addEventIncome()"><i class="ti ti-plus"></i> <span>Add income</span></button>
-          </div>
-        </div>
-
-        <div class="card">
-          <p class="sec-title"><i class="ti ti-receipt"></i><span data-i18n="sec_add_expense_event">Add expense to this event</span></p>
-          <div class="grid3">
-            <div>
-              <label data-i18n="lbl_category">Category</label>
-              <select id="ev-exp-cat">
-                <option value="food" data-hi="खाना और खानपान">Food & catering</option>
-                <option value="travel">Travel</option>
-                <option value="friends" data-hi="सजावट/दोस्त">Decor / friends</option>
-                <option value="home" data-hi="स्थान/घर">Venue / home</option>
-              </select>
-            </div>
-            <div>
-              <label data-i18n="lbl_amount">Amount (₹)</label>
-              <input type="number" id="ev-exp-amt" placeholder="500" min="0.01" step="0.01"/>
-            </div>
-            <div>
-              <label data-i18n="lbl_date">Date</label>
-              <input type="date" id="ev-exp-date"/>
-            </div>
-          </div>
-          <label data-i18n="lbl_desc">Description (optional)</label>
-          <input type="text" id="ev-exp-desc" placeholder="e.g. Cake order..." maxlength="60"/>
-          <div class="btn-row">
-            <button class="btn primary" onclick="addEventExpense()"><i class="ti ti-plus"></i> <span>Add expense</span></button>
-          </div>
-        </div>
-
-        <div class="card">
-          <p class="sec-title"><i class="ti ti-list"></i><span data-i18n="sec_entries_event">Entries for this event</span></p>
-          <div id="event-entries-list"></div>
-        </div>
-
-        <div class="btn-row">
-          <button class="btn" onclick="editCurrentEventFromDetail()">✏️ <span data-i18n="btn_edit_event">Edit event</span></button>
-          <button class="btn danger" onclick="deleteCurrentEvent()">🗑️ <span data-i18n="btn_delete_event">Delete this event</span></button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- TAB: REWARDS (also accessible from Hub) -->
-  <div id="tab-rewards" style="display:none">
-    <div class="card" style="background:linear-gradient(135deg,rgba(255,184,77,0.16),rgba(155,107,255,0.10));border-color:rgba(255,184,77,0.35);text-align:center;padding:24px 16px">
-      <p style="font-size:12px;color:var(--text-dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px" data-i18n="rewards_your_points">Your points</p>
-      <p style="font-size:38px;font-weight:800;margin:0;color:#ffb84d" id="rewards-points-total">0</p>
-      <p style="font-size:12.5px;color:var(--text-dim);margin-top:4px" id="rewards-streak-sub"></p>
-    </div>
-
-    <div class="card">
-      <p class="sec-title"><i class="ti ti-target-arrow"></i><span data-i18n="rewards_next_milestone">Next milestone</span></p>
-      <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--text-dim);margin-bottom:6px">
-        <span id="rewards-progress-label"></span>
-        <span id="rewards-progress-pct"></span>
-      </div>
-      <div class="bar-track"><div class="bar-fill" id="rewards-progress-bar" style="width:0%;background:#ffb84d"></div></div>
-    </div>
-
-    <div class="card">
-      <p class="sec-title"><i class="ti ti-award"></i><span data-i18n="rewards_badges">Your badges</span></p>
-      <div id="rewards-badges-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px"></div>
-    </div>
-  </div>
-
-  <!-- TAB: UPI SMART LOGGER -->
-  <div id="tab-upi" style="display:none">
-    <div class="card sl-hero">
-      <div class="sl-head">
-        <p class="sec-title" style="margin:0"><i class="ti ti-clipboard"></i> <span data-i18n="sec_smart_logger">Smart Logger</span></p>
-        <span class="exp-badge" style="background:var(--green-soft);color:var(--green);border-color:rgba(74,222,128,0.3)">⚡ New</span>
-      </div>
-      <p class="sl-desc"><span data-i18n="smart_logger_desc">Copy any UPI payment notification and paste it here. PocketTrack auto-detects the amount, merchant, and type!</span></p>
-    </div>
-    <div class="card">
-      <p class="sec-title"><i class="ti ti-clipboard"></i><span data-i18n="smart_logger_paste"> Paste UPI notification</span></p>
-      <textarea id="smart-log-input" class="smart-log-paste-area" oninput="onSmartLogInput()"></textarea>
-      <div class="btn-row" style="margin-top:10px">
-        <button class="btn" onclick="pasteFromClipboard()"><i class="ti ti-clipboard"></i> <span data-i18n="btn_paste">Paste from clipboard</span></button>
-        <button class="btn primary" id="smart-log-parse-btn" onclick="parseSmartLog()" style="display:none"><i class="ti ti-wand"></i> <span data-i18n="btn_parse">Auto-detect &amp; log</span></button>
-      </div>
-    </div>
-    <div id="smart-log-parsed" style="display:none;margin-bottom:12px">
-      <div class="card parsed-card">
-        <div class="parsed-head">
-          <span id="smart-log-direction-badge" class="smart-log-badge sent">📤 Sent</span>
-          <span id="smart-log-app-badge" class="parsed-app"></span>
-        </div>
-        <div class="grid3">
-          <div><label data-i18n="lbl_amount">Amount (₹)</label><input type="number" id="smart-log-amt" min="0.01" step="0.01"/></div>
-          <div><label data-i18n="lbl_category">Category</label><select id="smart-log-cat"></select></div>
-          <div><label data-i18n="lbl_date">Date</label><input type="date" id="smart-log-date"/></div>
-        </div>
-        <label data-i18n="lbl_desc">Description</label>
-        <input type="text" id="smart-log-desc" placeholder="Merchant or note" maxlength="60"/>
-        <div class="btn-row" style="margin-top:12px">
-          <button class="btn primary" onclick="confirmSmartLog()"><i class="ti ti-check"></i> <span data-i18n="btn_confirm_log">Confirm &amp; save</span></button>
-          <button class="btn" onclick="dismissSmartLog()"><i class="ti ti-x"></i> <span data-i18n="btn_dismiss">Dismiss</span></button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- TAB: LANGUAGE -->
-  <div id="tab-language" style="display:none">
-    <div class="card">
-      <p class="sec-title"><i class="ti ti-language"></i><span data-i18n="sec_language">Language</span></p>
-      <p style="font-size:12.5px;color:var(--text-dim);margin:2px 0 14px" data-i18n="lang_desc">Choose the language you'd like to use throughout the app.</p>
-      <div style="display:flex;flex-direction:column;gap:10px">
-        <button class="lang-option-btn" id="lang-opt-en" onclick="setLanguage('en')"><span>🇬🇧 English</span><span class="lang-check">✓</span></button>
-        <button class="lang-option-btn" id="lang-opt-hi" onclick="setLanguage('hi')"><span>🇮🇳 हिंदी (Hindi)</span><span class="lang-check">✓</span></button>
-        <button class="lang-option-btn" id="lang-opt-hinglish" onclick="setLanguage('hinglish')"><span>🇮🇳 हिंग्लिश (Hinglish)</span><span class="lang-check">✓</span></button>
-        <button class="lang-option-btn" id="lang-opt-mr" onclick="setLanguage('mr')"><span>🇮🇳 मराठी (Marathi)</span><span class="lang-check">✓</span></button>
-        <button class="lang-option-btn" id="lang-opt-ta" onclick="setLanguage('ta')"><span>🇮🇳 தமிழ் (Tamil)</span><span class="lang-check">✓</span></button>
-        <button class="lang-option-btn" id="lang-opt-te" onclick="setLanguage('te')"><span>🇮🇳 తెలుగు (Telugu)</span><span class="lang-check">✓</span></button>
-        <button class="lang-option-btn" id="lang-opt-gu" onclick="setLanguage('gu')"><span>🇮🇳 ગુજરાતી (Gujarati)</span><span class="lang-check">✓</span></button>
-        <button class="lang-option-btn" id="lang-opt-bn" onclick="setLanguage('bn')"><span>🇮🇳 বাংলা (Bengali)</span><span class="lang-check">✓</span></button>
-      </div>
-    </div>
-  </div>
-
-  <!-- TAB: PRO & THEMES -->
-  <div id="tab-pro" style="display:none">
-    <h2 class="sec-title pro-tab-head"><i class="ti ti-crown"></i> <span data-i18n="pro_themes">Pro & Themes</span></h2>
-    <div id="pro-content"></div>
-  </div>
-
-  <!-- TAB: HUB (Settings & Financial Hub) -->
-  <div id="tab-hub" style="display:none" class="tab-content">
-    <div class="tab-head" style="margin-bottom:12px;">
-      <h2 class="sec-title"><i class="ti ti-layout-grid"></i> <span data-i18n="nav_hub">Settings &amp; Tools</span></h2>
-    </div>
-
-    <!-- 1. Wallets & Accounts Management -->
-    <div class="card" id="hub-wallets-section" style="margin-bottom:12px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-        <div style="display:flex;align-items:center;gap:7px;">
-          <span style="font-size:18px;">💳</span>
-          <strong style="font-size:14px;color:#fff;" data-i18n="lbl_account_filter">Wallets &amp; Accounts</strong>
+    <!-- Appearance / Theme -->
+    <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <h3 style="font-size:15px;font-weight:700;margin:0;">App Theme</h3>
+          <p style="font-size:11.5px;color:var(--text-dim);margin:2px 0 0;">Toggle between clean Light and dark mode</p>
         </div>
         <div style="display:flex;gap:6px;">
-          <button class="btn btn-sm" onclick="openWalletTransferModal()"><i class="ti ti-arrows-left-right"></i> Transfer</button>
-          <button class="btn btn-sm primary" onclick="openWalletManagerModal()"><i class="ti ti-plus"></i> Manage</button>
+          <button class="btn btn-sm" onclick="setAppTheme('light')" style="padding:6px 12px;font-weight:700;">☀️ Light</button>
+          <button class="btn btn-sm" onclick="setAppTheme('dark')" style="padding:6px 12px;font-weight:700;">🌙 Dark</button>
         </div>
       </div>
-      <div class="wallet-switcher-bar" id="wallet-switcher-bar" style="margin:0;">
-        <div id="wallet-pills-list" style="display:inline-flex;gap:8px;"></div>
-      </div>
     </div>
 
-    <!-- 2. Hub Primary Tools Grid -->
-    <div class="card" style="margin-bottom:12px;">
-      <p class="sec-title" style="margin-bottom:10px;"><i class="ti ti-tool"></i> Quick Tools &amp; Settings</p>
-      <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:10px;">
-        <button class="shortcut-btn-v2" onclick="toggleRecurringSheet()" style="background:rgba(255,255,255,0.04);border:1px solid rgba(139,92,246,0.3);border-radius:16px;padding:14px 10px;color:#fff;cursor:pointer;display:flex;align-items:center;gap:10px;text-align:left;">
-          <span style="font-size:24px;">🔁</span>
-          <div>
-            <strong style="font-size:12.5px;display:block;">Recurring Bills</strong>
-            <span style="font-size:10.5px;color:var(--text-dim);">Rent &amp; subscriptions</span>
-          </div>
-        </button>
-        <button class="shortcut-btn-v2" onclick="setTab('upi')" style="background:rgba(255,255,255,0.04);border:1px solid rgba(52,211,153,0.3);border-radius:16px;padding:14px 10px;color:#fff;cursor:pointer;display:flex;align-items:center;gap:10px;text-align:left;">
-          <span style="font-size:24px;">⚡</span>
-          <div>
-            <strong style="font-size:12.5px;display:block;">Smart UPI Logger</strong>
-            <span style="font-size:10.5px;color:var(--text-dim);">Paste notifications</span>
-          </div>
-        </button>
-        <button class="shortcut-btn-v2" onclick="setTab('language')" style="background:rgba(255,255,255,0.04);border:1px solid rgba(59,130,246,0.3);border-radius:16px;padding:14px 10px;color:#fff;cursor:pointer;display:flex;align-items:center;gap:10px;text-align:left;">
-          <span style="font-size:24px;">🌐</span>
-          <div>
-            <strong style="font-size:12.5px;display:block;">App Language</strong>
-            <span style="font-size:10.5px;color:var(--text-dim);">English, हिंदी, etc.</span>
-          </div>
-        </button>
-        <button class="shortcut-btn-v2" onclick="toggleAppMode()" style="background:rgba(255,255,255,0.04);border:1px solid rgba(251,191,36,0.3);border-radius:16px;padding:14px 10px;color:#fff;cursor:pointer;display:flex;align-items:center;gap:10px;text-align:left;">
-          <span style="font-size:24px;">👴</span>
-          <div>
-            <strong style="font-size:12.5px;display:block;">Simple / Power</strong>
-            <span style="font-size:10.5px;color:var(--text-dim);">Switch age mode</span>
-          </div>
-        </button>
-      </div>
-    </div>
-
-    <!-- 3. PocketTrack Labs (Isolated Experimental Features) -->
-    <div class="card" style="margin-bottom:12px;background:linear-gradient(135deg,rgba(139,92,246,0.12),rgba(236,72,153,0.08));border:1px solid rgba(139,92,246,0.35);">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:20px;">🧪</span>
-          <strong style="font-size:13.5px;color:#fff;">PocketTrack Labs</strong>
-        </div>
-        <span class="exp-badge" style="background:rgba(139,92,246,0.25);color:var(--accent-bright,#c4b5fd);border:1px solid rgba(139,92,246,0.4);font-size:10px;padding:2px 8px;border-radius:99px;">Experimental</span>
-      </div>
-      <p style="font-size:11.5px;color:var(--text-dim,#94a3b8);margin:0 0 12px;line-height:1.4;">
-        Explore advanced experimental financial simulators, gamified round-ups, personality archetypes, and annual wrapped stories.
-      </p>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:8px;">
-        <button class="btn btn-sm" onclick="openFinancialDNALab()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14);border-radius:10px;padding:8px;font-size:11.5px;text-align:left;display:flex;align-items:center;gap:6px;">
-          <span>🧬</span> <span>Financial DNA</span>
-        </button>
-        <button class="btn btn-sm" onclick="openMoneySimulatorLab()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14);border-radius:10px;padding:8px;font-size:11.5px;text-align:left;display:flex;align-items:center;gap:6px;">
-          <span>🔮</span> <span>Money Simulator</span>
-        </button>
-        <button class="btn btn-sm" onclick="openDigitalVaultLab()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14);border-radius:10px;padding:8px;font-size:11.5px;text-align:left;display:flex;align-items:center;gap:6px;">
-          <span>🪙</span> <span>Chillar Vault</span>
-        </button>
-        <button class="btn btn-sm" onclick="openWrappedStoryLab()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14);border-radius:10px;padding:8px;font-size:11.5px;text-align:left;display:flex;align-items:center;gap:6px;">
-          <span>🎁</span> <span>Money Wrapped</span>
-        </button>
-        <button class="btn btn-sm" onclick="openAuraSenseLab()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14);border-radius:10px;padding:8px;font-size:11.5px;text-align:left;display:flex;align-items:center;gap:6px;">
-          <span>🌀</span> <span>AuraSense Mood</span>
-        </button>
-        <button class="btn btn-sm" onclick="openGoalSIPLab()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14);border-radius:10px;padding:8px;font-size:11.5px;text-align:left;display:flex;align-items:center;gap:6px;">
-          <span>📈</span> <span>SIP Planner</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- Account Sign Out -->
-    <div style="text-align:center;margin-top:16px;">
-      <button class="btn danger" onclick="logOut()" style="font-size:12px;padding:8px 18px;"><i class="ti ti-logout"></i> Sign Out</button>
-    </div>
-  </div>
-
-  <div id="voice-fab" class="voice-fab" onclick="startVoiceRecognition()" title="Voice Expense Log">
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path>
-      <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-      <line x1="12" y1="19" x2="12" y2="22"></line>
-    </svg>
-  </div>
-
-  <!-- PART 2: Neon Emoji Transaction Composer -->
-  <div id="transaction-composer-backdrop" class="transaction-composer-backdrop" style="display:none">
-    <div class="transaction-composer" role="dialog" aria-modal="true" aria-labelledby="composer-title">
-      <button class="composer-close" onclick="closeTransactionComposer()" aria-label="Close">×</button>
-      <div class="composer-head">
+    <!-- Account & Cloud Sync -->
+    <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <p class="composer-kicker">POCKETTRACK</p>
-          <h2 id="composer-title">What did you do? 💜</h2>
-          <p id="composer-subtitle">Add it in a few taps.</p>
+          <h3 style="font-size:15px;font-weight:700;margin:0;" id="settings-user-email">Guest User</h3>
+          <p style="font-size:11.5px;color:var(--text-dim);margin:2px 0 0;">Your data is saved safely in the cloud</p>
         </div>
-        <div class="composer-orb">✨</div>
-      </div>
-
-      <div class="composer-toggle" role="tablist">
-        <button id="composer-expense-tab" class="composer-toggle-btn active" onclick="setComposerMode('expense')">💸 Expense</button>
-        <button id="composer-income-tab" class="composer-toggle-btn" onclick="setComposerMode('income')">💰 Income</button>
-      </div>
-
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;">
-        <button type="button" class="rec-manage-btn" onclick="toggleRecurringSheet()" style="margin:0;flex:1;">
-          <span class="rec-manage-main">🔁 Recurring</span>
-          <span class="rec-manage-sub">Rent, bills, subs</span>
+        <button class="btn btn-sm" onclick="handleSignOut()" style="color:var(--red);border-color:rgba(239,68,68,0.3);">
+          <i class="ti ti-logout"></i> Sign out
         </button>
-        <button type="button" class="btn btn-sm" onclick="pasteFromClipboardAndLog()" style="padding:10px 12px;background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.35);color:var(--accent-bright,#c4b5fd);border-radius:14px;font-size:11.5px;font-weight:700;display:flex;align-items:center;gap:5px;cursor:pointer;">
-          <i class="ti ti-clipboard-text"></i> Paste UPI
-        </button>
-      </div>
-
-      <div class="composer-amount-wrap">
-        <span>₹</span><input id="composer-amount" inputmode="decimal" type="number" min="0.01" step="0.01" placeholder="0" autocomplete="off"/>
-      </div>
-
-      <div id="composer-expense-fields">
-        <p class="composer-label">What was it for?</p>
-        <div class="composer-chips">
-          <button class="composer-chip active" data-cat="food" onclick="selectComposerChip(this,'food')">🍔 Food &amp; Mess</button>
-          <button class="composer-chip" data-cat="travel" onclick="selectComposerChip(this,'travel')">🚕 Travel &amp; Fuel</button>
-          <button class="composer-chip" data-cat="shopping" onclick="selectComposerChip(this,'shopping')">🛍️ Shopping</button>
-          <button class="composer-chip" data-cat="home" onclick="selectComposerChip(this,'home')">🏠 Home &amp; Rent</button>
-          <button class="composer-chip" data-cat="bills" onclick="selectComposerChip(this,'bills')">💡 Bills &amp; EMI</button>
-          <button class="composer-chip" data-cat="health" onclick="selectComposerChip(this,'health')">🩺 Health &amp; Meds</button>
-          <button class="composer-chip" data-cat="education" onclick="selectComposerChip(this,'education')">📚 Education &amp; Fees</button>
-          <button class="composer-chip" data-cat="friends" onclick="selectComposerChip(this,'friends')">👯 Friends &amp; Outings</button>
-          <button class="composer-chip" data-cat="work" onclick="selectComposerChip(this,'work')">💻 Work &amp; Freelance</button>
-          <button class="composer-chip" data-cat="other" onclick="selectComposerChip(this,'other')">📦 Other</button>
-          <button type="button" class="composer-chip custom-tag-btn" onclick="promptAddCustomTag()" style="border-style:dashed;">🏷️ + Tag</button>
-        </div>
-      </div>
-
-      <div id="composer-income-fields" style="display:none">
-        <p class="composer-label">Where did it come from?</p>
-        <div class="composer-chips">
-          <button class="composer-chip active" data-source="Salary" onclick="selectComposerChip(this,'Salary')">💼 Salary</button>
-          <button class="composer-chip" data-source="Freelance" onclick="selectComposerChip(this,'Freelance')">💻 Client / Freelance</button>
-          <button class="composer-chip" data-source="Allowance" onclick="selectComposerChip(this,'Allowance')">🎁 Allowance</button>
-          <button class="composer-chip" data-source="Rent received" onclick="selectComposerChip(this,'Rent received')">🏠 Rent</button>
-          <button class="composer-chip" data-source="Other" onclick="selectComposerChip(this,'Other')">✨ Other</button>
-          <button type="button" class="composer-chip custom-tag-btn" onclick="promptAddCustomTag()" style="border-style:dashed;">🏷️ + Source</button>
-        </div>
-      </div>
-
-      <div style="margin-bottom:12px;">
-        <p class="composer-label" style="margin-bottom:6px;">Paid via / Account</p>
-        <div class="composer-chips" id="composer-wallet-chips">
-          <button type="button" class="composer-chip active" data-wallet="cash" onclick="selectComposerWallet(this,'cash')">💵 Cash</button>
-          <button type="button" class="composer-chip" data-wallet="bank" onclick="selectComposerWallet(this,'bank')">📱 Bank / UPI</button>
-          <button type="button" class="composer-chip" data-wallet="card" onclick="selectComposerWallet(this,'card')">💳 Credit Card</button>
-        </div>
-      </div>
-
-      <div class="composer-row">
-        <label class="composer-field"><span>📅 Date</span><input id="composer-date" type="date"/></label>
-        <label class="composer-field composer-note"><span>📝 Note</span><input id="composer-note" type="text" maxlength="60" placeholder="e.g. Swiggy, Milk, Petrol"/></label>
-      </div>
-
-      <div style="margin-top:6px;margin-bottom:12px;">
-        <label class="composer-field" style="width:100%;">
-          <span>🏷️ Client / Project / #Tag</span>
-          <input id="composer-tag" type="text" maxlength="30" placeholder="e.g. #ClientAcme, #GoaTrip, #TaxDeductible" style="width:100%;box-sizing:border-box;"/>
-        </label>
-      </div>
-
-      <div class="composer-actions">
-        <button id="composer-save" class="composer-save" onclick="submitTransactionComposer()" style="width:100%">Save expense <span>→</span></button>
       </div>
     </div>
   </div>
+</div>
 
-  <div id="voice-modal-backdrop" class="voice-modal-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:900;align-items:center;justify-content:center;padding:20px">
-    <div class="card modal-card">
-      <button class="icon-btn modal-close" onclick="closeVoiceModal()"><i class="ti ti-x"></i></button>
-      <h3 class="sec-title" id="voice-modal-title" data-i18n="voice_entry_title">Voice Money Log</h3>
-      <div id="voice-parsed-content" class="voice-parsed-content"></div>
-      <div class="btn-row" style="justify-content:flex-end;margin-top:20px">
-        <button class="btn" onclick="closeVoiceModal()" data-i18n="btn_cancel">Cancel</button>
-        <button class="btn primary" onclick="confirmVoiceEntry()" data-i18n="btn_confirm_log">Save</button>
+<!-- ==========================================
+     BOTTOM NAVIGATION DOCK (3 Tabs)
+     ========================================== -->
+<nav class="bottom-tab-bar" id="bottom-nav">
+  <button class="bottom-tab active" id="btn-tab-home" onclick="setTab('home')">
+    <div class="bottom-tab-icon-wrap"><i class="ti ti-smart-home"></i></div>
+    <span>Home</span>
+  </button>
+  <button class="bottom-tab" id="btn-tab-activity" onclick="setTab('activity')">
+    <div class="bottom-tab-icon-wrap"><i class="ti ti-receipt"></i></div>
+    <span>Activity</span>
+  </button>
+  <button class="bottom-tab" id="btn-tab-settings" onclick="setTab('settings')">
+    <div class="bottom-tab-icon-wrap"><i class="ti ti-settings"></i></div>
+    <span>Settings</span>
+  </button>
+</nav>
+
+<!-- ==========================================
+     MODALS
+     ========================================== -->
+
+<!-- 1. Quick Composer Modal (Unified Expense & Income) -->
+<div class="modal-overlay" id="modal-composer" style="display:none;" onclick="if(event.target===this)closeQuickComposer()">
+  <div class="modal-sheet">
+    <div class="modal-sheet-handle"></div>
+    
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <div class="composer-type-toggle" style="display:flex;gap:6px;background:rgba(0,0,0,0.06);padding:3px;border-radius:14px;">
+        <button class="composer-type-btn active expense" id="comp-type-expense" onclick="setComposerType('expense')">💸 Expense</button>
+        <button class="composer-type-btn income" id="comp-type-income" onclick="setComposerType('income')">💵 Income</button>
       </div>
+      <button class="icon-btn" onclick="closeQuickComposer()" style="font-size:18px;"><i class="ti ti-x"></i></button>
+    </div>
+
+    <!-- Big Amount Input -->
+    <div class="composer-amt-wrap" style="position:relative;margin-bottom:14px;">
+      <span class="composer-currency">₹</span>
+      <input type="number" id="comp-amt" placeholder="0" inputmode="decimal" style="padding-left:36px;font-size:32px;font-weight:800;font-family:'Space Grotesk',sans-serif;height:60px;"/>
+    </div>
+
+    <!-- Category Chips -->
+    <label style="font-size:11.5px;font-weight:700;color:var(--text-dim);display:block;margin-bottom:6px;text-transform:uppercase;">Category</label>
+    <div class="composer-cat-grid" id="comp-categories">
+      <!-- Injected dynamically -->
+    </div>
+
+    <!-- Note & Merchant Input with Voice -->
+    <div style="position:relative;margin:12px 0;">
+      <input type="text" id="comp-note" placeholder="Merchant or Note (e.g. Samosa, Uber, Salary)..." style="padding-right:42px;"/>
+      <button class="icon-btn" onclick="startVoiceForComposer()" title="Speak in Hinglish / Hindi" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:18px;color:var(--accent);">
+        <i class="ti ti-microphone"></i>
+      </button>
+    </div>
+
+    <!-- Wallet & Date Row -->
+    <div style="display:flex;gap:8px;margin-bottom:16px;">
+      <select id="comp-wallet" style="flex:1;">
+        <option value="cash">💵 Cash</option>
+        <option value="bank">🏦 Bank / UPI</option>
+        <option value="card">💳 Credit Card</option>
+      </select>
+      <input type="date" id="comp-date" style="flex:1;"/>
+    </div>
+
+    <div class="btn-row" style="display:flex;gap:10px;">
+      <button class="btn" id="comp-delete-btn" onclick="deleteCurrentComposerEntry()" style="display:none;color:var(--red);border-color:rgba(239,68,68,0.3);flex:0.6;"><i class="ti ti-trash"></i> Delete</button>
+      <button class="btn btn-primary" id="comp-save-btn" onclick="saveComposerEntry()" style="flex:1;padding:14px;font-size:15px;font-weight:800;">Save Entry</button>
     </div>
   </div>
-
-  <footer>PocketTrack · synced to the cloud · your data, your account</footer>
 </div>
 
-<!-- Bottom Tab Bar — 5 tabs: Home, Entries, Ledger, Insights, Hub -->
-<div class="bottom-tab-bar" id="bottom-tab-bar">
-  <button class="bottom-tab active" data-tab="log" onclick="setTab('log')" aria-label="Home">
-    <i class="ti ti-home"></i>
-    <span data-i18n="nav_home">Home</span>
-  </button>
-  <button class="bottom-tab" data-tab="entries" onclick="setTab('entries')" aria-label="Activity">
-    <i class="ti ti-list"></i>
-    <span data-i18n="nav_activity">Entries</span>
-  </button>
-  <button class="bottom-tab" data-tab="ledger" onclick="setTab('ledger')" aria-label="Ledger">
-    <i class="ti ti-notebook"></i>
-    <span data-i18n="nav_ledger">Ledger</span>
-  </button>
-  <button class="bottom-tab" data-tab="report" onclick="setTab('report')" aria-label="Insights">
-    <i class="ti ti-chart-donut"></i>
-    <span data-i18n="nav_insights">Insights</span>
-  </button>
-  <button class="bottom-tab" data-tab="hub" onclick="setTab('hub')" aria-label="Command Hub">
-    <i class="ti ti-layout-grid"></i>
-    <span data-i18n="nav_hub">Hub</span>
-  </button>
+<!-- 2. Wallet Transfer Modal -->
+<div class="modal-overlay" id="wallet-transfer-modal" style="display:none;" onclick="if(event.target===this)closeTransferModal()">
+  <div class="modal-sheet">
+    <div class="modal-sheet-handle"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <h3 style="font-size:18px;font-weight:800;margin:0;">⇄ Wallet Transfer</h3>
+      <button class="icon-btn" onclick="closeTransferModal()"><i class="ti ti-x"></i></button>
+    </div>
+    
+    <label style="font-size:11.5px;font-weight:700;color:var(--text-dim);display:block;margin-bottom:4px;">From Wallet</label>
+    <select id="transfer-from-wallet" style="margin-bottom:12px;"></select>
+
+    <label style="font-size:11.5px;font-weight:700;color:var(--text-dim);display:block;margin-bottom:4px;">To Wallet</label>
+    <select id="transfer-to-wallet" style="margin-bottom:12px;"></select>
+
+    <label style="font-size:11.5px;font-weight:700;color:var(--text-dim);display:block;margin-bottom:4px;">Transfer Amount (₹)</label>
+    <input type="number" id="transfer-amt" placeholder="0" style="margin-bottom:12px;font-size:18px;font-weight:700;"/>
+
+    <label style="font-size:11.5px;font-weight:700;color:var(--text-dim);display:block;margin-bottom:4px;">Note (Optional)</label>
+    <input type="text" id="transfer-note" placeholder="e.g. ATM cash withdrawal..." style="margin-bottom:18px;"/>
+
+    <button class="btn btn-primary" onclick="submitWalletTransfer()" style="width:100%;padding:14px;font-size:15px;font-weight:800;">Complete Transfer</button>
+  </div>
 </div>
 
-<script src="app.js?v=1.1.9"></script>
-<script src="reports.js?v=1.1.9"></script>
-<script src="animations.js?v=1.1.9"></script>
-<script src="smart_engine.js?v=1.1.9"></script>
-<script src="transactions.js?v=1.1.9"></script>
-<script src="auth.js?v=1.1.9"></script>
-<script src="onboarding.js?v=1.1.9"></script>
-<script src="voice.js?v=1.1.9"></script>
-<script src="ledger.js?v=1.1.9"></script>
-<script src="recurring.js?v=1.1.9"></script>
-<script src="monetization.js?v=1.1.9"></script>
-<script src="aurasense.js?v=1.1.9"></script>
-<script src="financial_dna.js?v=1.1.9"></script>
-<script src="wrapped.js?v=1.1.9"></script>
-<script src="shared_portfolios.js?v=1.1.9"></script>
-<script src="wallets.js?v=1.1.9"></script>
-<script src="daily_burn_meter.js?v=1.1.9"></script>
-<script src="digital_vault.js?v=1.1.9"></script>
-<script src="upi_qr_generator.js?v=1.1.9"></script>
-<script src="goal_sip_planner.js?v=1.1.9"></script>
+<!-- 3. Add Custom Wallet Modal -->
+<div class="modal-overlay" id="wallet-modal" style="display:none;" onclick="if(event.target===this)closeNewWalletModal()">
+  <div class="modal-sheet">
+    <div class="modal-sheet-handle"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <h3 style="font-size:18px;font-weight:800;margin:0;">+ Add New Wallet</h3>
+      <button class="icon-btn" onclick="closeNewWalletModal()"><i class="ti ti-x"></i></button>
+    </div>
+    
+    <label style="font-size:11.5px;font-weight:700;color:var(--text-dim);display:block;margin-bottom:4px;">Wallet Name</label>
+    <input type="text" id="new-wallet-name" placeholder="e.g. Paytm, Crypto, Petty Cash" style="margin-bottom:12px;"/>
+
+    <label style="font-size:11.5px;font-weight:700;color:var(--text-dim);display:block;margin-bottom:4px;">Icon Emoji</label>
+    <input type="text" id="new-wallet-icon" placeholder="💰" maxlength="2" style="margin-bottom:12px;width:60px;text-align:center;font-size:20px;"/>
+
+    <button class="btn btn-primary" onclick="saveNewWallet()" style="width:100%;padding:14px;font-size:15px;font-weight:800;">Create Wallet</button>
+  </div>
+</div>
+
+<!-- Core Modular Scripts -->
+<script src="app.js"></script>
+<script src="wallets.js"></script>
+<script src="transactions.js"></script>
+<script src="auth.js"></script>
 </body>
 </html>
-
-
