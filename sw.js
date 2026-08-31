@@ -1,4 +1,4 @@
-const CACHE = 'pockettrack-v25-pure-force-clear';
+const CACHE = 'pockettrack-v26-pure-icons';
 const SHELL = [
   './',
   './index.html',
