@@ -3,461 +3,474 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
-<title>PocketTrack — Know Where Your Money Goes</title>
-<meta name="description" content="The simplest way to track your money. Free, offline, works on any phone. Stop wondering where your salary went."/>
+<title>PocketTrack — Clean Personal Finance</title>
+<meta name="description" content="Track your daily income, expenses, and wallet balances effortlessly with zero clutter."/>
 <link rel="manifest" href="manifest.json"/>
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"/>
 <link rel="apple-touch-icon" href="icon-192.png"/>
-<meta name="theme-color" content="#070414"/>
+<meta name="theme-color" content="#f8fafc"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="PocketTrack"/>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="icons.css">
-<link rel="stylesheet" href="website/style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase.js"></script>
+<script src="offline.js"></script>
 <script>
-function launchPocketTrackApp(e) {
-  if (e && e.preventDefault) e.preventDefault();
-  try { localStorage.setItem('pockettrack_landing_seen', 'true'); } catch (err) {}
-  window.location.assign('app.html');
-  return false;
-}
+  window.currentAppTheme = localStorage.getItem('pocketTrackTheme') || 'light';
+  function applyAppTheme(theme) {
+    var isLight = (theme === 'light');
+    if (document.documentElement) {
+      if (isLight) {
+        document.documentElement.setAttribute('data-theme', 'light');
+        document.documentElement.classList.add('light-theme');
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+        document.documentElement.classList.remove('light-theme');
+      }
+    }
+    if (document.body) {
+      document.body.classList.toggle('light-theme', isLight);
+      if (isLight) document.body.setAttribute('data-theme', 'light');
+      else document.body.removeAttribute('data-theme');
+    }
+    var icon = document.getElementById('theme-icon');
+    if (icon) icon.textContent = isLight ? '🌙' : '☀️';
+    var metaTheme = document.querySelector('meta[name="theme-color"]');
+    if (metaTheme) metaTheme.setAttribute('content', isLight ? '#f8fafc' : '#070414');
+  }
 
-function launchPocketTrackSandbox(e) {
-  if (e && e.preventDefault) e.preventDefault();
-  try {
-    localStorage.setItem('pockettrack_landing_seen', 'true');
-    localStorage.setItem('pockettrack_sandbox_mode', 'true');
-  } catch (err) {}
-  window.location.assign('app.html?guest=true');
-  return false;
-}
+  function setAppTheme(theme, save) {
+    if (save === undefined) save = true;
+    window.currentAppTheme = theme;
+    applyAppTheme(theme);
+    if (save) {
+      localStorage.setItem('pocketTrackTheme', theme);
+      if (typeof toast === 'function') toast(theme === 'light' ? 'Light Theme activated ☀️' : 'Dark Theme activated 🌙', 'info');
+    }
+  }
+  window.setAppTheme = setAppTheme;
+
+  function toggleTheme() {
+    var isLight = (document.documentElement && document.documentElement.getAttribute('data-theme') === 'light') || 
+                  (document.body && document.body.classList.contains('light-theme')) || 
+                  (window.currentAppTheme === 'light');
+    var next = isLight ? 'dark' : 'light';
+    setAppTheme(next, true);
+  }
+  window.toggleTheme = toggleTheme;
+
+  if (window.currentAppTheme === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+    document.documentElement.classList.add('light-theme');
+  }
 </script>
 </head>
 <body>
 
-<div class="top-bar-live">
-  <span>⚡ 100% Free Forever</span>
-  <span>·</span>
-  <span>🟢 Works 100% Offline</span>
-  <span>·</span>
-  <span>🔒 On-Device Privacy</span>
+<div id="toast" class="toast"></div>
+
+<!-- AUTH OVERLAY -->
+<div id="auth-screen" style="position:fixed;inset:0;background:radial-gradient(900px 500px at 12% -8%, rgba(79,70,229,0.25), transparent 60%),linear-gradient(170deg,var(--bg1),var(--bg2) 52%,var(--bg3) 100%);z-index:999999;display:flex;align-items:center;justify-content:center;padding:20px;">
+  <div id="auth-main-view" class="card" style="width:100%;max-width:380px;padding:28px;border-radius:24px;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
+      <div class="brand-icon brand-logo-wrap"><img class="brand-logo-img" src="icon-192.png" alt="PocketTrack" width="44" height="44"></div>
+      <div>
+        <h1 style="font-family:'Space Grotesk',sans-serif;font-size:22px;margin:0;letter-spacing:-0.5px;">PocketTrack</h1>
+        <p style="font-size:11.5px;color:var(--text-dim);margin:2px 0 0;">Sign in to sync your data across devices</p>
+      </div>
+    </div>
+    
+    <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px;">Email</label>
+    <input type="email" id="auth-email" placeholder="you@example.com" style="margin-bottom:12px;"/>
+    
+    <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px;">Password</label>
+    <input type="password" id="auth-pass" placeholder="At least 6 characters" style="margin-bottom:8px;"/>
+    
+    <p id="auth-error" style="color:var(--red);font-size:12px;display:none;margin:4px 0 8px;"></p>
+    
+    <div class="btn-row" style="display:flex;gap:10px;margin-top:10px;">
+      <button class="btn btn-primary" id="auth-login-btn" onclick="authAction('login')" style="flex:1;"><i class="ti ti-login"></i> Log in</button>
+      <button class="btn" id="auth-signup-btn" onclick="authAction('signup')" style="flex:1;"><i class="ti ti-user-plus"></i> Sign up</button>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:10px;margin:16px 0;">
+      <div style="flex:1;height:1px;background:var(--border)"></div>
+      <span style="font-size:11.5px;color:var(--text-faint)">or</span>
+      <div style="flex:1;height:1px;background:var(--border)"></div>
+    </div>
+
+    <button class="btn auth-google-btn" id="auth-google-btn" onclick="signInWithGoogle()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg>
+      <span>Continue with Google</span>
+    </button>
+
+    <div style="margin-top:12px;text-align:center;">
+      <button class="btn auth-guest-btn" onclick="startGuestSandboxMode()" style="width:100%;border-radius:14px;padding:11px 14px;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;gap:8px;">
+        <span>🎮</span>
+        <span>Explore as Guest (Instant Demo)</span>
+      </button>
+    </div>
+  </div>
 </div>
 
-<div class="aurora-bg">
-  <div class="aurora-orb orb-1"></div>
-  <div class="aurora-orb orb-2"></div>
-  <div class="aurora-orb orb-3"></div>
-</div>
+<div class="shell">
+  <!-- GUEST BANNER -->
+  <div class="card" id="guest-mode-banner" style="display:none;padding:10px 14px;margin-bottom:0.75rem;border-radius:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+      <p style="font-size:12px;margin:0;color:var(--text-dim);"><i class="ti ti-sparkles" style="color:var(--accent);"></i> <strong>Guest Demo Mode</strong> · Testing locally.</p>
+      <button class="btn btn-sm" onclick="showAuthScreen()" style="font-size:11.5px;padding:4px 10px;border-radius:10px;">Sign in</button>
+    </div>
+  </div>
 
-<div class="container">
-  <header class="navbar">
-    <a href="index.html" class="nav-brand">
-      <img src="icon-192.png" alt="PocketTrack" class="nav-logo">
-      <span class="nav-title">PocketTrack</span>
-    </a>
-    <ul class="nav-links">
-      <li class="nav-item-link"><a href="index.html" class="nav-link active">Home</a></li>
-      <li class="nav-item-link"><a href="website/features.html" class="nav-link">Features</a></li>
-      <li class="nav-item-link"><a href="website/pricing.html" class="nav-link">Pricing</a></li>
-      <li class="nav-item-link"><a href="website/privacy.html" class="nav-link">Privacy</a></li>
-      <li class="nav-item-sandbox"><a href="#" onclick="launchPocketTrackSandbox(event);return false;" class="btn btn-sandbox-nav" style="padding:9px 15px;font-size:13px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:12px;">🎮 Sandbox</a></li>
-      <li class="nav-item-launch"><a href="#" onclick="launchPocketTrackApp(event);return false;" class="btn btn-primary btn-launch-nav" style="padding:9px 18px;font-size:13.5px;border-radius:12px;">Launch App →</a></li>
-    </ul>
+  <!-- MAIN HEADER -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon brand-logo-wrap"><img class="brand-logo-img" src="icon-192.png" alt="PocketTrack" width="34" height="34"></div>
+      <div>
+        <h1>PocketTrack</h1>
+      </div>
+    </div>
+    <div class="brand-actions">
+      <button class="pill theme-toggle-pill" id="theme-toggle-pill" onclick="toggleTheme()" title="Toggle Light / Dark Mode" aria-label="Toggle Theme">
+        <span id="theme-icon">☀️</span>
+      </button>
+      <button class="pill sync-pill-btn" id="sync-pill-btn" onclick="triggerManualSync()" title="Cloud Sync Status">
+        <span class="dot"></span><span id="sync-status">Synced</span>
+      </button>
+    </div>
   </header>
 
-  <main>
-    <!-- 1. Hero Section -->
-    <section class="hero">
-      <div class="pill-badge">✨ India's 3-in-1 Expense Engine: UPI Paste + Safe-to-Spend + WhatsApp Ledger</div>
-      <h1 class="hero-title">Stop wondering where your salary disappeared.</h1>
-      <p class="hero-desc"><strong>1-Tap UPI notification auto-paste</strong> from any Indian bank. <strong>Live Daily Safe-to-Spend limit</strong> so you never overspend. <strong>Smart Roomie Ledger</strong> with 1-tap WhatsApp settlements. 100% private, zero ads, and works offline.</p>
-      
-      <div class="hero-cta-group" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-        <a href="#" onclick="launchPocketTrackApp(event);return false;" class="btn btn-primary" style="padding:18px 36px;font-size:16.5px;"><i class="ti ti-rocket"></i> Start Tracking Free</a>
-        <a href="#" onclick="launchPocketTrackSandbox(event);return false;" class="btn btn-glass" style="padding:18px 30px;font-size:16.5px;"><i class="ti ti-device-gamepad-2"></i> Try Sandbox Demo (No Sign-Up)</a>
+  <!-- ==========================================
+       TAB 1: HOME
+       ========================================== -->
+  <div id="tab-home" class="tab-content active">
+    <div class="home-greeting">
+      <div>
+        <p class="eyebrow" style="letter-spacing:1.5px;font-size:9.5px;font-weight:800;color:var(--accent);margin:0 0 2px;">OVERVIEW</p>
+        <h2 style="font-size:22px;font-weight:800;margin:0;">Your money, at a glance.</h2>
       </div>
-
-      <div class="social-proof">
-        <span class="stars">★★★★★</span>
-        <span>Trusted by students, working professionals &amp; families across India</span>
-      </div>
-
-      <!-- Interactive Phone Mockup Showcase -->
-      <div class="hero-phone-container hero-stagger-4">
-        <div class="phone-mockup-frame">
-          <div class="phone-notch"></div>
-          <div class="phone-screen">
-            <!-- Mini Live Header -->
-            <div class="mock-header">
-              <div class="mock-brand">
-                <img src="icon-192.png" alt="PT" width="22" height="22" style="border-radius:6px;">
-                <span>PocketTrack</span>
-              </div>
-              <span class="mock-pill">⚡ Power</span>
-            </div>
-
-            <!-- Mini Hero Card -->
-            <div class="mock-hero-card">
-              <div style="display:flex;justify-content:space-between;align-items:center;">
-                <span class="mock-label">TOTAL BALANCE</span>
-                <span class="mock-chip">₹</span>
-              </div>
-              <div class="mock-balance">₹42,450</div>
-              
-              <!-- Mini Safe to Spend Indicator -->
-              <div style="background:rgba(52,211,153,0.14);border:1px solid rgba(52,211,153,0.3);border-radius:12px;padding:6px 10px;margin-bottom:8px;display:flex;align-items:center;gap:8px;">
-                <span style="font-size:14px;">🎯</span>
-                <div style="text-align:left;">
-                  <strong style="font-size:11.5px;color:#34d399;display:block;">₹1,415/day</strong>
-                  <span style="font-size:9px;color:rgba(255,255,255,0.6);">On track (3d left)</span>
-                </div>
-              </div>
-
-              <div class="mock-flow-strip">
-                <span style="color:#34d399;">🟢 +₹45,000</span>
-                <span style="color:rgba(255,255,255,0.2);">|</span>
-                <span style="color:#f87171;">🔴 -₹2,550</span>
-                <span style="color:rgba(255,255,255,0.2);">|</span>
-                <span style="color:#c084fc;">🟣 4 entries</span>
-              </div>
-              
-              <!-- 4 Sleek Circular Pills -->
-              <div class="mock-pills-row">
-                <div class="mock-pill-item">
-                  <div class="mock-circle exp"><i class="ti ti-arrow-up-right"></i></div>
-                  <span>Expense</span>
-                </div>
-                <div class="mock-pill-item">
-                  <div class="mock-circle inc"><i class="ti ti-arrow-down-left"></i></div>
-                  <span>Income</span>
-                </div>
-                <div class="mock-pill-item">
-                  <div class="mock-circle transfer" style="background:rgba(59,130,246,0.18);color:#93c5fd;"><i class="ti ti-arrows-left-right"></i></div>
-                  <span>Transfer</span>
-                </div>
-                <div class="mock-pill-item">
-                  <div class="mock-circle paste" style="background:rgba(139,92,246,0.2);color:#c4b5fd;"><i class="ti ti-clipboard-text"></i></div>
-                  <span>UPI Paste</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Mini Activity Feed -->
-            <div class="mock-feed">
-              <div class="mock-feed-title">RECENT ACTIVITY</div>
-              <div class="mock-feed-row">
-                <div style="display:flex;align-items:center;gap:8px;">
-                  <span class="mock-row-icon">🍔</span>
-                  <div style="text-align:left;">
-                    <strong style="display:block;font-size:11px;color:#fff;">Weekend Dinner</strong>
-                    <span style="font-size:9.5px;color:rgba(255,255,255,0.5);">Food · GPay UPI</span>
-                  </div>
-                </div>
-                <strong style="font-size:11.5px;color:#f87171;">-₹850</strong>
-              </div>
-              <div class="mock-feed-row">
-                <div style="display:flex;align-items:center;gap:8px;">
-                  <span class="mock-row-icon">💼</span>
-                  <div style="text-align:left;">
-                    <strong style="display:block;font-size:11px;color:#fff;">Monthly Salary</strong>
-                    <span style="font-size:9.5px;color:rgba(255,255,255,0.5);">Income · HDFC Bank</span>
-                  </div>
-                </div>
-                <strong style="font-size:11.5px;color:#34d399;">+₹45,000</strong>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 2. Reality Check / Money Leak Calculator -->
-    <section class="reality-section">
-      <div class="section-head">
-        <div class="pill-badge" style="background:rgba(248,113,113,0.15);color:#f87171;border-color:rgba(248,113,113,0.35);">💀 The Uncomfortable Truth</div>
-        <h2 class="section-title">Slide the bar to your monthly income. See what you're silently losing.</h2>
-        <p class="section-subtitle">The average Indian loses 14% of their income to expenses they can't even remember. Forgotten subscriptions. Impulse UPI payments. Friend loans that never came back. It adds up.</p>
-      </div>
-
-      <div class="calculator-box">
-        <div style="text-align:center;">
-          <p style="font-size:13px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;">Your Approximate Monthly Income</p>
-          <h3 id="leak-income-val" style="font-size:48px;font-family:'Space Grotesk',sans-serif;color:#fff;margin:6px 0;">₹45,000/mo</h3>
-          <input type="range" id="leak-income-slider" class="slider-styled" min="10000" max="250000" step="5000" value="45000" oninput="updateLeakCalc()"/>
-        </div>
-
-        <div class="leak-metrics-grid">
-          <div class="leak-metric-card">
-            <span style="font-size:12px;color:var(--text-muted);">1-Year Unmonitored Leak</span>
-            <h4 id="leak-loss-1yr" style="font-size:28px;color:#f87171;margin:6px 0;">₹75,600</h4>
-            <p style="font-size:12px;color:var(--text-dim);">Equivalent to a brand new iPhone</p>
-          </div>
-          <div class="leak-metric-card">
-            <span style="font-size:12px;color:var(--text-muted);">3-Year Compounded Drain</span>
-            <h4 id="leak-loss-3yr" style="font-size:28px;color:#fb7185;margin:6px 0;">₹2,26,800</h4>
-            <p style="font-size:12px;color:var(--text-dim);">Equivalent to a major international vacation</p>
-          </div>
-          <div class="leak-metric-card">
-            <span style="font-size:12px;color:var(--text-muted);">5-Year Lost Wealth</span>
-            <h4 id="leak-loss-5yr" style="font-size:28px;color:var(--accent-amber);margin:6px 0;">₹3,78,000</h4>
-            <p style="font-size:12px;color:var(--text-dim);">Could have been a solid index fund investment</p>
-          </div>
-        </div>
-
-        <div style="text-align:center;margin-top:28px;">
-          <a href="index.html" class="btn btn-primary"><i class="ti ti-shield-check"></i> Stop the Leak with PocketTrack</a>
-        </div>
-      </div>
-    </section>
-
-    <!-- 3. Interactive Test Drive Simulator Stage -->
-    <section class="stage-section" id="test-drive">
-      <div class="section-head">
-        <div class="pill-badge">🎮 Try It Right Now</div>
-        <h2 class="section-title">Try PocketTrack without signing up</h2>
-        <p class="section-subtitle">Add a few sample transactions below. Watch your balance update. See how simple it is.</p>
-      </div>
-
-      <div class="device-mockup-wrap">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:14px;">
-          <div style="display:flex;gap:8px;align-items:center;">
-            <span style="width:12px;height:12px;border-radius:50%;background:#ef4444;"></span>
-            <span style="width:12px;height:12px;border-radius:50%;background:#eab308;"></span>
-            <span style="width:12px;height:12px;border-radius:50%;background:#22c55e;"></span>
-            <span style="font-size:13px;color:var(--text-muted);margin-left:10px;">PocketTrack Live Simulator</span>
-          </div>
-          <span style="font-size:12px;color:var(--accent-green);font-weight:700;">● Active Device Sync</span>
-        </div>
-
-        <div style="background:rgba(18,12,43,0.88);border-radius:22px;padding:28px;border:1px solid rgba(255,255,255,0.08);">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
-            <div>
-              <p style="font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;">Available Balance</p>
-              <h3 id="stage-sim-balance" style="font-size:42px;font-family:'Space Grotesk',sans-serif;color:#fff;margin:4px 0;">₹42,850</h3>
-            </div>
-            <div style="display:flex;gap:10px;">
-              <span id="stage-sim-income" style="background:rgba(52,211,153,0.15);color:var(--accent-green);padding:8px 16px;border-radius:14px;font-weight:700;font-size:13.5px;">+₹28,000 Income</span>
-              <span id="stage-sim-spent" style="background:rgba(248,113,113,0.15);color:#f87171;padding:8px 16px;border-radius:14px;font-weight:700;font-size:13.5px;">-₹12,400 Spent</span>
-            </div>
-          </div>
-
-          <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
-            <button class="btn btn-primary" onclick="simTestAddExpense()" style="flex:1;"><i class="ti ti-coffee"></i> Simulate: Spend ₹350 on Coffee</button>
-            <button class="btn btn-glass" onclick="simTestAddIncome()" style="flex:1;"><i class="ti ti-wallet"></i> Simulate: Receive ₹5,000 Freelance</button>
-          </div>
-
-          <div id="stage-sim-feed" style="max-height:160px;overflow-y:auto;font-size:13px;">
-            <div style="background:rgba(255,255,255,0.04);padding:10px 14px;border-radius:12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;border:1px solid rgba(255,255,255,0.06);">
-              <div><b>🍔 Zomato Dinner Order</b> · <i>Food Category</i></div>
-              <div style="font-weight:700;color:#f87171">-₹620</div>
-            </div>
-            <div style="background:rgba(255,255,255,0.04);padding:10px 14px;border-radius:12px;display:flex;justify-content:space-between;align-items:center;border:1px solid rgba(255,255,255,0.06);">
-              <div><b>💼 Monthly Salary Deposit</b> · <i>Salary Source</i></div>
-              <div style="font-weight:700;color:var(--accent-green)">+₹28,000</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 4. Four Core Pillars -->
-    <section class="superpowers-section" style="padding:40px 0;">
-      <div class="section-head">
-        <div class="pill-badge">⚡ Core Superpowers</div>
-        <h2 class="section-title">Built for how Indians actually manage money</h2>
-        <p class="section-subtitle">No feature bloat. No complex setup. Just lightning-fast tracking, trustworthy numbers, and effortless splitting.</p>
-      </div>
-
-      <div class="grid-features" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;">
-        <div class="card-glass" style="border-color:rgba(139,92,246,0.35);background:rgba(139,92,246,0.06);">
-          <div class="card-icon-wrap" style="background:rgba(139,92,246,0.25);">📋</div>
-          <h3 class="card-title">1-Tap Clipboard UPI Paste</h3>
-          <p class="card-text">Copy any payment alert or bank SMS from GPay, PhonePe, Paytm, CRED, SBI, HDFC, ICICI, or Axis. PocketTrack extracts amount, merchant, and category in &lt;10ms with zero typing.</p>
-        </div>
-
-        <div class="card-glass" style="border-color:rgba(52,211,153,0.35);background:rgba(52,211,153,0.06);">
-          <div class="card-icon-wrap" style="background:rgba(52,211,153,0.25);">🎯</div>
-          <h3 class="card-title">Daily Safe-to-Spend Engine</h3>
-          <p class="card-text">Transparent daily limit calculated live: <i>(Remaining Budget − Spent) ÷ Days Left</i>. Tap to see the exact breakdown so you never face month-end cash shortages.</p>
-        </div>
-
-        <div class="card-glass" style="border-color:rgba(96,165,250,0.35);background:rgba(96,165,250,0.06);">
-          <div class="card-icon-wrap" style="background:rgba(96,165,250,0.25);">👥</div>
-          <h3 class="card-title">Splitwise-Grade P2P Ledger</h3>
-          <p class="card-text">Track hostel roomie debts, Goa trips, and group dinners. Greedy algorithm minimizes circular transactions to zero debt. 1-tap WhatsApp settlement slips with UPI deep-links.</p>
-        </div>
-
-        <div class="card-glass" style="border-color:rgba(251,191,36,0.35);background:rgba(251,191,36,0.06);">
-          <div class="card-icon-wrap" style="background:rgba(251,191,36,0.25);">👵</div>
-          <h3 class="card-title">55+ Senior Hindi Bahi-Khata</h3>
-          <p class="card-text">Pure natural Hindi, extra-large touch targets, and a traditional passbook showing running bank balance after every transaction. 1-tap voice entry with zero confusing jargon.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- 5. Old Way vs PocketTrack Way Comparison -->
-    <section class="comparison-section">
-      <div class="section-head">
-        <div class="pill-badge">📊 The Upgrade</div>
-        <h2 class="section-title">The Old Spreadsheet Way vs. PocketTrack</h2>
-        <p class="section-subtitle">See why thousands of users abandoned traditional budgeting tools.</p>
-      </div>
-
-      <div class="comparison-table-wrap">
-        <div class="comp-row comp-head">
-          <div>Capability</div>
-          <div>Old Budgeting Apps</div>
-          <div>PocketTrack Way</div>
-        </div>
-        <div class="comp-row">
-          <div><b>Adding an Entry</b></div>
-          <div class="comp-bad">7+ clicks &amp; dropdown menus</div>
-          <div class="comp-good">1 voice sentence or 1-tap composer</div>
-        </div>
-        <div class="comp-row">
-          <div><b>Splitting with Friends</b></div>
-          <div class="comp-bad">Need separate Splitwise app</div>
-          <div class="comp-good">Built-in P2P Ledger &amp; Spaces</div>
-        </div>
-        <div class="comp-row">
-          <div><b>Offline Reliability</b></div>
-          <div class="comp-bad">Infinite loading spinners</div>
-          <div class="comp-good">100% offline IndexedDB cache</div>
-        </div>
-        <div class="comp-row">
-          <div><b>Data Privacy</b></div>
-          <div class="comp-bad">Sell spending data to banks</div>
-          <div class="comp-good">Zero ad trackers · Encrypted Firebase</div>
-        </div>
-        <div class="comp-row">
-          <div><b>Subscription Radar</b></div>
-          <div class="comp-bad">Ignore hidden leaks</div>
-          <div class="comp-good">Auto-detects unused recurring leaks</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 6. Infinite Testimonials Marquee -->
-    <section class="superpowers-section" style="padding:40px 0;">
-      <div class="section-head">
-        <div class="pill-badge">❤️ Community Love</div>
-        <h2 class="section-title">Loved by thousands of everyday Indians</h2>
-        <p class="section-subtitle">From college students splitting hostel rent to families tracking household budgets.</p>
-      </div>
-
-      <div class="testimonials-marquee-wrap">
-        <div class="testimonials-track">
-          <!-- Card 1 -->
-          <div class="testimonial-card">
-            <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
-            <div class="testimonial-text">"Finally an expense tracker that understands Indian students. The voice entry is magic — I just say what I spent and it logs it instantly!"</div>
-            <div class="testimonial-author">
-              <div class="testimonial-avatar">P</div>
-              <div><div class="testimonial-name">Priya Sharma</div><div class="testimonial-location">Delhi University</div></div>
-            </div>
-          </div>
-          <!-- Card 2 -->
-          <div class="testimonial-card">
-            <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
-            <div class="testimonial-text">"I track hostel expenses with my roommates using the Ledger. No more awkward 'tune kitna diya tha' conversations at month end."</div>
-            <div class="testimonial-author">
-              <div class="testimonial-avatar">R</div>
-              <div><div class="testimonial-name">Rahul Verma</div><div class="testimonial-location">Mumbai IIT</div></div>
-            </div>
-          </div>
-          <!-- Card 3 -->
-          <div class="testimonial-card">
-            <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
-            <div class="testimonial-text">"The Smart Logger is insane — I just paste my Google Pay notifications and everything is logged automatically. Zero typing."</div>
-            <div class="testimonial-author">
-              <div class="testimonial-avatar">A</div>
-              <div><div class="testimonial-name">Ananya Reddy</div><div class="testimonial-location">Bangalore</div></div>
-            </div>
-          </div>
-          <!-- Card 4 -->
-          <div class="testimonial-card">
-            <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
-            <div class="testimonial-text">"I've kept a 45-day streak going. The rewards and AuraSense horizon actually make me want to track money every single day."</div>
-            <div class="testimonial-author">
-              <div class="testimonial-avatar">K</div>
-              <div><div class="testimonial-name">Karthik Nair</div><div class="testimonial-location">Chennai</div></div>
-            </div>
-          </div>
-          <!-- Duplicate for infinite rolling loop -->
-          <div class="testimonial-card">
-            <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
-            <div class="testimonial-text">"Finally an expense tracker that understands Indian students. The voice entry is magic — I just say what I spent and it logs it instantly!"</div>
-            <div class="testimonial-author">
-              <div class="testimonial-avatar">P</div>
-              <div><div class="testimonial-name">Priya Sharma</div><div class="testimonial-location">Delhi University</div></div>
-            </div>
-          </div>
-          <div class="testimonial-card">
-            <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
-            <div class="testimonial-text">"I track hostel expenses with my roommates using the Ledger. No more awkward 'tune kitna diya tha' conversations at month end."</div>
-            <div class="testimonial-author">
-              <div class="testimonial-avatar">R</div>
-              <div><div class="testimonial-name">Rahul Verma</div><div class="testimonial-location">Mumbai IIT</div></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 7. FAQ Section -->
-    <section class="faq-section" id="faq">
-      <div class="section-head">
-        <div class="pill-badge">❓ Questions &amp; Answers</div>
-        <h2 class="section-title">Frequently Asked Questions</h2>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-q"><span>Is PocketTrack really free to use?</span><span>+</span></div>
-        <div class="faq-a">Yes! The Free Forever tier gives you unlimited income and expense logging, 100 voice speech entries, 5 ledger contacts, and 2 shared Splitwise spaces. For heavy power users, our Starter plan begins at just ₹50/month, and Pro Plus at ₹100/month or a one-time lifetime unlock!</div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-q"><span>How does the Smart Context Engine know who I paid?</span><span>+</span></div>
-        <div class="faq-a">When you type or speak a phrase like "Paid 500 to Rahul", our local NLP parser searches your active Ledger and Spaces contacts, calculates whether it's a debt or reimbursement, and prompts a 1-tap connection.</div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-q"><span>Can I install PocketTrack on my phone?</span><span>+</span></div>
-        <div class="faq-a">Yes! PocketTrack is a Progressive Web App (PWA). On Android, open in Chrome and tap "Install App". On iPhone, open in Safari, tap Share, and choose "Add to Home Screen".</div>
-      </div>
-    </section>
-
-    <!-- 7. Call To Action Banner -->
-    <section class="cta-banner">
-      <h2 style="font-size:clamp(32px, 4.5vw, 48px);font-family:'Space Grotesk',sans-serif;margin-bottom:16px;">Take command of your wealth today.</h2>
-      <p style="font-size:18px;color:var(--text-muted);max-width:600px;margin:0 auto 32px;">No credit card required. Start tracking and building your streak in under 30 seconds.</p>
-      <a href="#" onclick="launchPocketTrackApp(event);return false;" class="btn btn-primary" style="padding:18px 44px;font-size:17px;"><i class="ti ti-rocket"></i> Launch Free Web App Now</a>
-    </section>
-  </main>
-
-  <!-- 8. Footer -->
-  <footer class="footer-site">
-    <div class="footer-links">
-      <a href="index.html">Home</a>
-      <a href="website/features.html">Features</a>
-      <a href="website/pricing.html">Pricing &amp; Simulator</a>
-      <a href="website/privacy.html">Privacy Policy</a>
-      <a href="#" onclick="launchPocketTrackApp(event);return false;">Launch App</a>
     </div>
-    <p>© 2026 PocketTrack. Built for financial freedom. Synced securely to Google Cloud.</p>
-  </footer>
+
+    <!-- The Sleek Modern Hero Balance Card (Matching Photo media_1788000297640.png) -->
+    <div class="hero-card hero-card-modern" id="hero-balance-card">
+      <div class="hero-top">
+        <div>
+          <span class="hero-label">BALANCE</span>
+          <p class="hero-caption">Available across your tracked money</p>
+        </div>
+        <div class="hero-chip-green-rupee">
+          <span>₹</span>
+        </div>
+      </div>
+      
+      <p class="hero-balance" id="hdr-balance">₹0</p>
+      
+      <!-- Highlighted Metrics Capsule Inside Card -->
+      <div class="hero-metrics-pill">
+        <div class="hero-metric-item">
+          <span class="hero-metric-dot green"></span>
+          <span class="hero-metric-label">Income</span>
+          <strong class="green" id="hero-income">₹0</strong>
+        </div>
+        <div class="hero-metric-item">
+          <span class="hero-metric-dot red"></span>
+          <span class="hero-metric-label">Spent</span>
+          <strong class="red" id="hero-spent">₹0</strong>
+        </div>
+        <div class="hero-metric-item">
+          <span class="hero-metric-dot purple"></span>
+          <span class="hero-metric-label">Entries</span>
+          <strong id="hero-count">0</strong>
+        </div>
+      </div>
+
+      <!-- 4 Circular Action Buttons -->
+      <div class="hero-actions-grid-4">
+        <button class="hero-action-btn-item" onclick="openQuickComposer('expense')">
+          <div class="hero-action-btn-circle expense">
+            <i class="ti ti-arrow-up-right"></i>
+          </div>
+          <span class="hero-action-btn-label">Expense</span>
+        </button>
+        <button class="hero-action-btn-item" onclick="openQuickComposer('income')">
+          <div class="hero-action-btn-circle income">
+            <i class="ti ti-arrow-down-left"></i>
+          </div>
+          <span class="hero-action-btn-label">Income</span>
+        </button>
+        <button class="hero-action-btn-item" onclick="openTransferModal()">
+          <div class="hero-action-btn-circle transfer">
+            <i class="ti ti-arrows-left-right"></i>
+          </div>
+          <span class="hero-action-btn-label">Transfer</span>
+        </button>
+        <button class="hero-action-btn-item" onclick="pasteFromClipboardAndLog()">
+          <div class="hero-action-btn-circle upi">
+            <i class="ti ti-clipboard-text"></i>
+          </div>
+          <span class="hero-action-btn-label">UPI Paste</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 🎯 DAILY SAFE-TO-SPEND CARD (Matching Photo media_1788000297640.png) -->
+    <div class="card safe-to-spend-card" style="padding:14px 16px;margin-bottom:14px;border-radius:22px;display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow-md);">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="width:42px;height:42px;border-radius:14px;background:rgba(236,72,153,0.12);display:grid;place-items:center;font-size:20px;">🎯</div>
+        <div>
+          <span style="font-size:10.5px;font-weight:800;letter-spacing:1px;color:var(--green);text-transform:uppercase;">DAILY SAFE-TO-SPEND</span>
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800;color:var(--text);margin-top:2px;" id="safe-to-spend-val">₹0/day</div>
+          <span style="font-size:11px;color:var(--text-dim);" id="safe-to-spend-sub">Calculated for the remaining days</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activity Section -->
+    <div class="home-section-head" style="display:flex;justify-content:space-between;align-items:center;margin:18px 2px 10px;">
+      <div>
+        <p class="section-kicker" style="font-size:10px;font-weight:800;color:var(--text-dim);letter-spacing:1px;margin:0 0 2px;">RECENT ACTIVITY</p>
+        <h3 style="font-size:16px;font-weight:700;margin:0;">Latest Transactions</h3>
+      </div>
+      <button class="text-action" onclick="setTab('activity')" style="background:none;border:none;color:var(--accent);font-weight:700;font-size:12.5px;cursor:pointer;display:flex;align-items:center;gap:4px;">
+        <span>View all</span> <i class="ti ti-arrow-right"></i>
+      </button>
+    </div>
+
+    <div class="recent-card card" id="home-recent-activity" style="padding:4px 14px;border-radius:20px;">
+      <div class="empty-mini" style="padding:24px 0;text-align:center;color:var(--text-dim);font-size:13px;">No entries logged yet. Tap <strong>Expense</strong> or <strong>Income</strong> above!</div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       TAB 2: ACTIVITY / PASSBOOK
+       ========================================== -->
+  <div id="tab-activity" class="tab-content" style="display:none;">
+    <div class="activity-header" style="margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <h2 style="font-size:20px;font-weight:800;margin:0;">Passbook & History</h2>
+        <button class="btn btn-sm" onclick="exportTransactionsCSV()" style="font-size:11.5px;padding:6px 12px;border-radius:12px;">
+          <i class="ti ti-download"></i> Export CSV
+        </button>
+      </div>
+      
+      <!-- Search Bar -->
+      <div class="search-wrap" style="position:relative;margin-bottom:10px;">
+        <i class="ti ti-search" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-dim);font-size:16px;"></i>
+        <input type="text" id="activity-search-input" placeholder="Search notes, merchants, amounts..." oninput="onActivitySearch(this.value)" style="padding-left:38px;border-radius:16px;"/>
+      </div>
+
+      <!-- Filter Category Chips -->
+      <div class="filter-chips-bar" id="activity-filter-chips" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;">
+        <button class="filter-chip active" onclick="setActivityFilter('all', this)">All</button>
+        <button class="filter-chip" onclick="setActivityFilter('expense', this)">💸 Expenses</button>
+        <button class="filter-chip" onclick="setActivityFilter('income', this)">💵 Income</button>
+        <button class="filter-chip" onclick="setActivityFilter('transfer', this)">⇄ Transfers</button>
+      </div>
+    </div>
+
+    <div class="card" id="entries-list" style="padding:4px 14px;border-radius:20px;">
+      <!-- Populated via transactions.js -->
+      <div class="empty-mini" style="padding:32px 0;text-align:center;color:var(--text-dim);font-size:13px;">No transactions found.</div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       TAB 3: SETTINGS & WALLETS
+       ========================================== -->
+  <div id="tab-settings" class="tab-content" style="display:none;">
+    <h2 style="font-size:20px;font-weight:800;margin:0 0 14px;">Settings & Wallets</h2>
+
+    <!-- Wallets Card -->
+    <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:20px;">👛</span>
+          <h3 style="font-size:16px;font-weight:700;margin:0;">Wallets & Accounts</h3>
+        </div>
+        <button class="btn btn-sm" onclick="openNewWalletModal()" style="font-size:11.5px;padding:4px 10px;border-radius:10px;">
+          <i class="ti ti-plus"></i> Add
+        </button>
+      </div>
+      <div id="settings-wallets-list" style="display:flex;flex-direction:column;gap:8px;">
+        <!-- Populated via wallets.js -->
+      </div>
+    </div>
+
+    <!-- Monthly Budget Card -->
+    <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <span style="font-size:20px;">🎯</span>
+        <h3 style="font-size:16px;font-weight:700;margin:0;">Monthly Budget Limit</h3>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <input type="number" id="budget-input" placeholder="e.g. 15000" style="flex:1;font-size:15px;font-weight:700;"/>
+        <button class="btn btn-primary" onclick="saveMonthlyBudget()" style="padding:0 16px;">Save</button>
+      </div>
+      <p style="font-size:11px;color:var(--text-dim);margin:6px 0 0;">Sets your monthly expenditure target.</p>
+    </div>
+
+    <!-- Appearance / Theme -->
+    <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <h3 style="font-size:15px;font-weight:700;margin:0;">App Theme</h3>
+          <p style="font-size:11.5px;color:var(--text-dim);margin:2px 0 0;">Toggle between clean Light and dark mode</p>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-sm" onclick="setAppTheme('light')" style="padding:6px 12px;font-weight:700;">☀️ Light</button>
+          <button class="btn btn-sm" onclick="setAppTheme('dark')" style="padding:6px 12px;font-weight:700;">🌙 Dark</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Account & Cloud Sync -->
+    <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <h3 style="font-size:15px;font-weight:700;margin:0;" id="settings-user-email">Guest User</h3>
+          <p style="font-size:11.5px;color:var(--text-dim);margin:2px 0 0;">Your data is saved safely in the cloud</p>
+        </div>
+        <button class="btn btn-sm" onclick="handleSignOut()" style="color:var(--red);border-color:rgba(239,68,68,0.3);">
+          <i class="ti ti-logout"></i> Sign out
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
 
-<script src="website/main.js"></script>
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function() {
-    navigator.serviceWorker.register('./sw.js').catch(function() {});
-  });
-}
-</script>
+<!-- ==========================================
+     BOTTOM NAVIGATION DOCK (3 Tabs)
+     ========================================== -->
+<nav class="bottom-tab-bar" id="bottom-nav">
+  <button class="bottom-tab active" id="btn-tab-home" onclick="setTab('home')">
+    <div class="bottom-tab-icon-wrap"><i class="ti ti-smart-home"></i></div>
+    <span>Home</span>
+  </button>
+  <button class="bottom-tab" id="btn-tab-activity" onclick="setTab('activity')">
+    <div class="bottom-tab-icon-wrap"><i class="ti ti-receipt"></i></div>
+    <span>Activity</span>
+  </button>
+  <button class="bottom-tab" id="btn-tab-settings" onclick="setTab('settings')">
+    <div class="bottom-tab-icon-wrap"><i class="ti ti-settings"></i></div>
+    <span>Settings</span>
+  </button>
+</nav>
+
+<!-- ==========================================
+     MODALS
+     ========================================== -->
+
+<!-- 1. Quick Composer Modal (Unified Expense & Income) -->
+<div class="modal-overlay" id="modal-composer" style="display:none;" onclick="if(event.target===this)closeQuickComposer()">
+  <div class="modal-sheet">
+    <div class="modal-sheet-handle"></div>
+    
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <div class="composer-type-toggle" style="display:flex;gap:6px;background:rgba(0,0,0,0.06);padding:3px;border-radius:14px;">
+        <button class="composer-type-btn active expense" id="comp-type-expense" onclick="setComposerType('expense')">💸 Expense</button>
+        <button class="composer-type-btn income" id="comp-type-income" onclick="setComposerType('income')">💵 Income</button>
+      </div>
+      <button class="icon-btn" onclick="closeQuickComposer()" style="font-size:18px;"><i class="ti ti-x"></i></button>
+    </div>
+
+    <!-- Big Amount Input -->
+    <div class="composer-amt-wrap" style="position:relative;margin-bottom:14px;">
+      <span class="composer-currency">₹</span>
+      <input type="number" id="comp-amt" placeholder="0" inputmode="decimal" style="padding-left:36px;font-size:32px;font-weight:800;font-family:'Space Grotesk',sans-serif;height:60px;"/>
+    </div>
+
+    <!-- Category Chips -->
+    <label style="font-size:11.5px;font-weight:700;color:var(--text-dim);display:block;margin-bottom:6px;text-transform:uppercase;">Category</label>
+    <div class="composer-cat-grid" id="comp-categories">
+      <!-- Injected dynamically -->
+    </div>
+
+    <!-- Note & Merchant Input with Voice -->
+    <div style="position:relative;margin:12px 0;">
+      <input type="text" id="comp-note" placeholder="Merchant or Note (e.g. Samosa, Uber, Salary)..." style="padding-right:42px;"/>
+      <button class="icon-btn" onclick="startVoiceForComposer()" title="Speak in Hinglish / Hindi" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:18px;color:var(--accent);">
+        <i class="ti ti-microphone"></i>
+      </button>
+    </div>
+
+    <!-- Wallet & Date Row -->
+    <div style="display:flex;gap:8px;margin-bottom:16px;">
+      <select id="comp-wallet" style="flex:1;">
+        <option value="cash">💵 Cash</option>
+        <option value="bank">🏦 Bank / UPI</option>
+        <option value="card">💳 Credit Card</option>
+      </select>
+      <input type="date" id="comp-date" style="flex:1;"/>
+    </div>
+
+    <div class="btn-row" style="display:flex;gap:10px;">
+      <button class="btn" id="comp-delete-btn" onclick="deleteCurrentComposerEntry()" style="display:none;color:var(--red);border-color:rgba(239,68,68,0.3);flex:0.6;"><i class="ti ti-trash"></i> Delete</button>
+      <button class="btn btn-primary" id="comp-save-btn" onclick="saveComposerEntry()" style="flex:1;padding:14px;font-size:15px;font-weight:800;">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Wallet Transfer Modal -->
+<div class="modal-overlay" id="wallet-transfer-modal" style="display:none;" onclick="if(event.target===this)closeTransferModal()">
+  <div class="modal-sheet">
+    <div class="modal-sheet-handle"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <h3 style="font-size:18px;font-weight:800;margin:0;">⇄ Wallet Transfer</h3>
+      <button class="icon-btn" onclick="closeTransferModal()"><i class="ti ti-x"></i></button>
+    </div>
+    
+    <label style="font-size:11.5px;font-weight:700;color:var(--text-dim);display:block;margin-bottom:4px;">From Wallet</label>
+    <select id="transfer-from-wallet" style="margin-bottom:12px;"></select>
+
+    <label style="font-size:11.5px;font-weight:700;color:var(--text-dim);display:block;margin-bottom:4px;">To Wallet</label>
+    <select id="transfer-to-wallet" style="margin-bottom:12px;"></select>
+
+    <label style="font-size:11.5px;font-weight:700;color:var(--text-dim);display:block;margin-bottom:4px;">Transfer Amount (₹)</label>
+    <input type="number" id="transfer-amt" placeholder="0" style="margin-bottom:12px;font-size:18px;font-weight:700;"/>
+
+    <label style="font-size:11.5px;font-weight:700;color:var(--text-dim);display:block;margin-bottom:4px;">Note (Optional)</label>
+    <input type="text" id="transfer-note" placeholder="e.g. ATM cash withdrawal..." style="margin-bottom:18px;"/>
+
+    <button class="btn btn-primary" onclick="submitWalletTransfer()" style="width:100%;padding:14px;font-size:15px;font-weight:800;">Complete Transfer</button>
+  </div>
+</div>
+
+<!-- 3. Add Custom Wallet Modal -->
+<div class="modal-overlay" id="wallet-modal" style="display:none;" onclick="if(event.target===this)closeNewWalletModal()">
+  <div class="modal-sheet">
+    <div class="modal-sheet-handle"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <h3 style="font-size:18px;font-weight:800;margin:0;">+ Add New Wallet</h3>
+      <button class="icon-btn" onclick="closeNewWalletModal()"><i class="ti ti-x"></i></button>
+    </div>
+    
+    <label style="font-size:11.5px;font-weight:700;color:var(--text-dim);display:block;margin-bottom:4px;">Wallet Name</label>
+    <input type="text" id="new-wallet-name" placeholder="e.g. Paytm, Crypto, Petty Cash" style="margin-bottom:12px;"/>
+
+    <label style="font-size:11.5px;font-weight:700;color:var(--text-dim);display:block;margin-bottom:4px;">Icon Emoji</label>
+    <input type="text" id="new-wallet-icon" placeholder="💰" maxlength="2" style="margin-bottom:12px;width:60px;text-align:center;font-size:20px;"/>
+
+    <button class="btn btn-primary" onclick="saveNewWallet()" style="width:100%;padding:14px;font-size:15px;font-weight:800;">Create Wallet</button>
+  </div>
+</div>
+
+<!-- Floating Voice Mic FAB (Matching Photo media_1788000297640.png) -->
+<button class="floating-voice-fab" onclick="startVoiceForComposer()" title="Voice Add (Hinglish/Hindi)" aria-label="Voice Add">
+  <i class="ti ti-microphone"></i>
+</button>
+
+<!-- Core Modular Scripts -->
+<script src="app.js"></script>
+<script src="wallets.js"></script>
+<script src="transactions.js"></script>
+<script src="auth.js"></script>
 </body>
 </html>

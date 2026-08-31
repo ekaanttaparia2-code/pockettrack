@@ -1,38 +1,19 @@
-const CACHE = 'pockettrack-v19-perf-mobile';
+const CACHE = 'pockettrack-v25-pure-force-clear';
 const SHELL = [
   './',
   './index.html',
   './app.html',
-  './landing.html',
   './styles.css',
   './icons.css',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
-  './icon-maskable-192.png',
-  './icon-maskable-512.png',
   './firebase.js',
   './offline.js',
-  './animations.js',
-  './aurasense.js',
-  './smart_engine.js',
   './app.js',
+  './wallets.js',
   './transactions.js',
-  './auth.js',
-  './onboarding.js',
-  './voice.js',
-  './ledger.js',
-  './recurring.js',
-  './reports.js',
-  './monetization.js',
-  './financial_dna.js',
-  './wrapped.js',
-  './shared_portfolios.js',
-  './daily_burn_meter.js',
-  './digital_vault.js',
-  './upi_qr_generator.js',
-  './goal_sip_planner.js',
-  './NotoSansDevanagari-Regular.ttf'
+  './auth.js'
 ];
 
 self.addEventListener('install', (e) => {
@@ -52,16 +33,18 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
-  // Never intercept or cache cross-origin traffic (Firebase Auth/Firestore long-polls, CDNs)
+  // Never intercept or cache cross-origin traffic
   try { if (new URL(req.url).origin !== self.location.origin) return; } catch (err) { return; }
-  // Network-first, then cache fallback (so pushes of updated files show online, cached offline)
+  // Network-first, then cache fallback
   e.respondWith(
     fetch(req)
       .then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
+        if (res && res.status === 200) {
+          const clone = res.clone();
+          caches.open(CACHE).then((c) => c.put(req, clone));
+        }
         return res;
       })
-      .catch(() => caches.match(req).then((hit) => hit || caches.match('./')))
+      .catch(() => caches.match(req).then((cached) => cached || caches.match('./app.html')))
   );
 });

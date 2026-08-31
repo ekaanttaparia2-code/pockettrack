@@ -53,6 +53,17 @@ function updateHeaderStats() {
     animateNumber('hero-count', list.length, '', '');
   }
 
+  // Calculate Daily Safe-to-Spend
+  const today = new Date();
+  const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+  const daysLeft = Math.max(1, daysInMonth - today.getDate() + 1);
+  const safePerDay = balance > 0 ? Math.floor(balance / daysLeft) : 0;
+
+  const safeEl = document.getElementById('safe-to-spend-val');
+  const safeSub = document.getElementById('safe-to-spend-sub');
+  if (safeEl) safeEl.textContent = '₹' + safePerDay.toLocaleString('en-IN') + '/day';
+  if (safeSub) safeSub.textContent = `₹${safePerDay.toLocaleString('en-IN')} left today (${daysLeft}d left)`;
+
   renderHomeRecent();
   if (window.currentTab === 'activity') renderActivityList();
   if (typeof renderSettingsWallets === 'function') renderSettingsWallets();

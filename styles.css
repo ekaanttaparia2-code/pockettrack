@@ -677,3 +677,30 @@ input:focus, select:focus, textarea:focus {
   transform: translateX(-50%) translateY(0);
   opacity: 1;
 }
+
+/* Floating Voice Mic FAB (Matching Photo media_1788000297640.png) */
+.floating-voice-fab {
+  position: fixed;
+  bottom: 86px;
+  right: 18px;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  box-shadow: 0 10px 25px rgba(236, 72, 153, 0.45);
+  cursor: pointer;
+  z-index: 99;
+  transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.floating-voice-fab:hover {
+  transform: scale(1.08);
+}
+.floating-voice-fab:active {
+  transform: scale(0.92);
+}
