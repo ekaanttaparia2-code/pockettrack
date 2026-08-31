@@ -2,14 +2,70 @@
 // POCKETTRACK PURE — CORE APP CONTROLLER
 // =====================================================================
 
+function normalizeEntry(e) {
+  if (!e) return null;
+  return {
+    id: e.id || e._id || ('pt_' + Math.random().toString(36).substr(2, 9)),
+    amt: parseFloat(e.amt || e.amount || 0),
+    type: e.type || 'expense',
+    cat: e.cat || e.category || 'other',
+    desc: e.desc || e.label || e.note || e.title || 'Transaction',
+    note: e.note || e.desc || e.label || '',
+    date: e.date || new Date().toISOString().split('T')[0],
+    wallet: e.wallet || e.walletId || 'cash',
+    transferGroupId: e.transferGroupId || null,
+    createdAt: e.createdAt || Date.now()
+  };
+}
+window.normalizeEntry = normalizeEntry;
+
+function loadLocalEntries() {
+  try {
+    const keys = ['pockettrack_entries', 'pockettrack_entries_cache', 'pocketTrackEntries'];
+    for (const k of keys) {
+      const raw = localStorage.getItem(k);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map(normalizeEntry).filter(Boolean);
+        }
+      }
+    }
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('pockettrack_entries_cache_')) {
+        const raw = localStorage.getItem(key);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed.map(normalizeEntry).filter(Boolean);
+          }
+        }
+      }
+    }
+  } catch (err) {}
+  return [];
+}
+
+function loadLocalWallets() {
+  try {
+    const raw = localStorage.getItem('pockettrack_wallets') || localStorage.getItem('pocketTrackWallets');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (err) {}
+  return [
+    { id: 'cash', name: 'Cash', icon: '💵', balance: 0 },
+    { id: 'bank', name: 'Bank / UPI', icon: '🏦', balance: 0 },
+    { id: 'card', name: 'Credit Card', icon: '💳', balance: 0 }
+  ];
+}
+
 window.currentTab = 'home';
-window.entries = JSON.parse(localStorage.getItem('pocketTrackEntries') || '[]');
-window.wallets = JSON.parse(localStorage.getItem('pocketTrackWallets') || 'null') || [
-  { id: 'cash', name: 'Cash', icon: '💵', balance: 0 },
-  { id: 'bank', name: 'Bank / UPI', icon: '🏦', balance: 0 },
-  { id: 'card', name: 'Credit Card', icon: '💳', balance: 0 }
-];
-window.monthlyBudget = parseFloat(localStorage.getItem('pocketTrackBudget')) || 0;
+window.entries = loadLocalEntries();
+window.wallets = loadLocalWallets();
+window.monthlyBudget = parseFloat(localStorage.getItem('pocketTrackBudget') || localStorage.getItem('pockettrack_budgets')) || 0;
 
 // ── TAB SWITCHING ──
 function setTab(tabName) {

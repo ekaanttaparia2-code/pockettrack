@@ -134,31 +134,62 @@ window.startGuestSandboxMode = startGuestSandboxMode;
 function syncEntriesToCloud() {
   if (!currentUser || currentUser.isGuest || typeof db === 'undefined') return;
   const list = window.entries || [];
+  
+  // Save parent snapshot
   db.collection('users').doc(currentUser.uid).set({
     entries: list,
     wallets: window.wallets || [],
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-  }, { merge: true }).catch(err => console.warn('Cloud sync write error:', err));
+  }, { merge: true }).catch(err => console.warn('Cloud sync parent error:', err));
+
+  // Also sync individual documents to entries subcollection for legacy compatibility
+  list.forEach(e => {
+    if (e.id) {
+      db.collection('users').doc(currentUser.uid).collection('entries').doc(e.id).set(e, { merge: true })
+        .catch(err => console.warn('Cloud entry write error:', err));
+    }
+  });
 }
 window.syncEntriesToCloud = syncEntriesToCloud;
 window.syncWalletsToCloud = syncEntriesToCloud;
 
 function listenToCloudEntries() {
   if (!currentUser || currentUser.isGuest || typeof db === 'undefined') return;
-  db.collection('users').doc(currentUser.uid).onSnapshot(doc => {
-    if (doc.exists) {
-      const data = doc.data();
-      if (data.entries) {
-        window.entries = data.entries;
-        localStorage.setItem('pocketTrackEntries', JSON.stringify(window.entries));
-      }
-      if (data.wallets) {
-        window.wallets = data.wallets;
-        localStorage.setItem('pocketTrackWallets', JSON.stringify(window.wallets));
-      }
+  
+  // 1. Listen to subcollection entries (where all legacy records are stored)
+  db.collection('users').doc(currentUser.uid).collection('entries').onSnapshot(snap => {
+    if (snap && snap.docs && snap.docs.length > 0) {
+      const cloudEntries = snap.docs.map(doc => {
+        const d = doc.data();
+        return typeof normalizeEntry === 'function' ? normalizeEntry({ ...d, id: doc.id }) : { ...d, id: doc.id };
+      }).sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+
+      window.entries = cloudEntries;
+      localStorage.setItem('pocketTrackEntries', JSON.stringify(window.entries));
+      localStorage.setItem('pockettrack_entries', JSON.stringify(window.entries));
+      localStorage.setItem('pockettrack_entries_cache_' + currentUser.uid, JSON.stringify(window.entries));
       if (typeof updateHeaderStats === 'function') updateHeaderStats();
+    } else {
+      // 2. Check parent document fallback
+      db.collection('users').doc(currentUser.uid).get().then(doc => {
+        if (doc.exists) {
+          const data = doc.data();
+          if (data.entries && Array.isArray(data.entries) && data.entries.length > 0) {
+            window.entries = data.entries.map(normalizeEntry);
+            localStorage.setItem('pocketTrackEntries', JSON.stringify(window.entries));
+            localStorage.setItem('pockettrack_entries', JSON.stringify(window.entries));
+            if (typeof updateHeaderStats === 'function') updateHeaderStats();
+          }
+          if (data.wallets && Array.isArray(data.wallets)) {
+            window.wallets = data.wallets;
+            localStorage.setItem('pocketTrackWallets', JSON.stringify(window.wallets));
+            localStorage.setItem('pockettrack_wallets', JSON.stringify(window.wallets));
+            if (typeof renderSettingsWallets === 'function') renderSettingsWallets();
+          }
+        }
+      }).catch(err => console.warn('Cloud parent read error:', err));
     }
-  }, err => console.warn('Cloud listen error:', err));
+  }, err => console.warn('Cloud subcollection listen error:', err));
 }
 
 function triggerManualSync() {
