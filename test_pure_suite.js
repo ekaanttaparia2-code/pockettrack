@@ -219,6 +219,26 @@ it('8.1 Filters activity entries by category and search keyword', () => {
   assert.strictEqual(window.currentSearchQuery, 'Burger');
 });
 
+// ── TEST 9: Voice NLP Parser ──
+it('9.1 Extracts amount, category, type, and wallet from natural speech', () => {
+  const p1 = parseVoiceTranscript('₹350 pizza via UPI');
+  assert.strictEqual(p1.amt, 350);
+  assert.strictEqual(p1.type, 'expense');
+  assert.strictEqual(p1.cat, 'food');
+  assert.strictEqual(p1.wallet, 'bank');
+
+  const p2 = parseVoiceTranscript('Got 45000 salary');
+  assert.strictEqual(p2.amt, 45000);
+  assert.strictEqual(p2.type, 'income');
+  assert.strictEqual(p2.cat, 'salary');
+
+  const p3 = parseVoiceTranscript('1200 groceries via card');
+  assert.strictEqual(p3.amt, 1200);
+  assert.strictEqual(p3.type, 'expense');
+  assert.strictEqual(p3.cat, 'grocery');
+  assert.strictEqual(p3.wallet, 'card');
+});
+
 console.log('\n═══════════════════════════════════════════════');
 console.log(`TOTAL: ${passed + failed} | PASSED: ${passed} | FAILED: ${failed}`);
 console.log('═══════════════════════════════════════════════');

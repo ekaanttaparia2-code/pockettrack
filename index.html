@@ -471,8 +471,24 @@
   </div>
 </div>
 
+<!-- 4. Voice Listening Overlay Modal -->
+<div class="modal-overlay" id="voice-listening-modal" style="display:none;" onclick="if(event.target===this)stopVoiceRecording()">
+  <div class="modal-sheet" style="text-align:center;padding:28px 20px 32px;">
+    <div class="modal-sheet-handle"></div>
+    <div class="voice-pulse-ring" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#ec4899);display:grid;place-items:center;margin:0 auto 16px;box-shadow:0 0 30px rgba(236,72,153,0.5);font-size:32px;color:#fff;">
+      <i class="ti ti-microphone"></i>
+    </div>
+    <h3 style="font-size:18px;font-weight:800;margin:0 0 6px;">Listening to you...</h3>
+    <p style="font-size:12px;color:var(--text-dim);margin:0 0 16px;">Speak naturally (e.g. <em>"₹350 pizza via UPI"</em> or <em>"Salary 40000"</em>)</p>
+    <div id="voice-live-transcript" style="min-height:44px;padding:12px 16px;background:var(--border);border-radius:14px;font-size:14px;font-weight:700;color:var(--text);margin-bottom:18px;display:flex;align-items:center;justify-content:center;">
+      <span>Waiting for speech...</span>
+    </div>
+    <button class="btn" onclick="stopVoiceRecording()" style="width:100%;border-radius:14px;padding:12px;font-weight:700;">Cancel</button>
+  </div>
+</div>
+
 <!-- Floating Voice Mic FAB (Matching Photo media_1788000297640.png) -->
-<button class="floating-voice-fab" onclick="startVoiceForComposer()" title="Voice Add (Hinglish/Hindi)" aria-label="Voice Add">
+<button class="floating-voice-fab" onclick="startVoiceForComposer()" title="Voice Add (English/Hindi/Hinglish)" aria-label="Voice Add">
   <i class="ti ti-microphone"></i>
 </button>
 

@@ -1,4 +1,4 @@
-const CACHE = 'pockettrack-v27-layout-boxes';
+const CACHE = 'pockettrack-v28-smart-voice';
 const SHELL = [
   './',
   './index.html',

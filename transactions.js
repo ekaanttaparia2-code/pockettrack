@@ -403,40 +403,152 @@ window.pasteFromClipboardAndLog = async function() {
   }
 };
 
-// ── SPEECH RECOGNITION ──
+// ── SMART VOICE COMPOSER ENGINE ──
+let activeSpeechRecognizer = null;
+
+function parseVoiceTranscript(text) {
+  if (!text) return null;
+  const lower = text.toLowerCase();
+
+  // 1. Detect Amount (e.g. 250, 1500, 25k, ₹500, 450.50)
+  let amt = 0;
+  const kMatch = lower.match(/(\d+(?:\.\d+)?)\s*k\b/);
+  if (kMatch) {
+    amt = parseFloat(kMatch[1]) * 1000;
+  } else {
+    const numMatch = lower.match(/(?:rs\.?|inr|₹)?\s*([\d,]+(?:\.\d{1,2})?)/);
+    if (numMatch && numMatch[1]) {
+      amt = parseFloat(numMatch[1].replace(/,/g, ''));
+    }
+  }
+
+  // 2. Detect Type (Income vs Expense)
+  const isIncome = /salary|income|credited|received|earned|bonus|interest|freelance|kamaya|mile|aaye|aaya|pension/i.test(lower);
+  const type = isIncome ? 'income' : 'expense';
+
+  // 3. Detect Category
+  let cat = isIncome ? 'salary' : 'other';
+  if (/pizza|burger|chai|tea|coffee|lunch|dinner|breakfast|samosa|food|swiggy|zomato|restaurant|cafe|khana|biryani|hotel/i.test(lower)) {
+    cat = 'food';
+  } else if (/uber|ola|auto|cab|metro|petrol|diesel|fuel|flight|train|bus|travel|transport|rapido|rickshaw/i.test(lower)) {
+    cat = 'transport';
+  } else if (/grocery|groceries|milk|vegetables|sabzi|blinkit|zepto|instamart|supermarket|rashan|dukaan/i.test(lower)) {
+    cat = 'grocery';
+  } else if (/recharge|wifi|electricity|bijli|water|bill|rent|kiraya|maintenance|gas/i.test(lower)) {
+    cat = 'bills';
+  } else if (/movie|cinema|netflix|spotify|game|party|gaming|fun/i.test(lower)) {
+    cat = 'entertainment';
+  } else if (/medicine|doctor|hospital|pharmacy|meds|clinic|test/i.test(lower)) {
+    cat = 'health';
+  } else if (/amazon|flipkart|clothes|shopping|shoes|shirt|dress/i.test(lower)) {
+    cat = 'shopping';
+  } else if (/salary|allowance|pocket money|freelance|bonus/i.test(lower)) {
+    cat = isIncome ? 'salary' : 'other';
+  }
+
+  // 4. Detect Wallet
+  let wallet = 'cash';
+  if (/card|credit card|debit card/i.test(lower)) {
+    wallet = 'card';
+  } else if (/upi|gpay|paytm|phonepe|bank|online|transfer/i.test(lower)) {
+    wallet = 'bank';
+  } else if (/cash|rokda|nagad/i.test(lower)) {
+    wallet = 'cash';
+  }
+
+  // 5. Clean Note
+  let cleanDesc = text
+    .replace(/(?:rs\.?|inr|₹)\s*[\d,]+/gi, '')
+    .replace(/\b\d+\s*k\b/gi, '')
+    .replace(/\b\d+\b/g, '')
+    .replace(/\b(?:rupees|rupaye|spent|on|via|paid|for|ko|se|via cash|via card|via upi|via bank|kharch kiya|mile)\b/gi, '')
+    .trim();
+
+  if (!cleanDesc || cleanDesc.length < 2) {
+    cleanDesc = cat.charAt(0).toUpperCase() + cat.slice(1);
+  }
+
+  return { amt, type, cat, wallet, desc: cleanDesc, raw: text };
+}
+window.parseVoiceTranscript = parseVoiceTranscript;
+
 function startVoiceForComposer() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) {
-    toast('Voice recognition not supported on this browser', 'error');
+    toast('Voice recognition is not supported on this browser', 'error');
+    openQuickComposer('expense');
     return;
   }
-  const rec = new SpeechRecognition();
-  rec.lang = 'hi-IN';
-  rec.interimResults = false;
-  
-  toast('🎙️ Listening... speak now (e.g. 200 samosa)', 'info');
-  
-  rec.onresult = function(e) {
-    const transcript = e.results[0][0].transcript;
-    const noteInput = document.getElementById('comp-note');
-    const amtInput = document.getElementById('comp-amt');
-    
-    // Extract numbers from voice transcript
-    const numMatch = transcript.match(/\d+/);
-    if (numMatch && amtInput) {
-      amtInput.value = numMatch[0];
-    }
-    if (noteInput) {
-      noteInput.value = transcript;
-    }
-    toast(`Heard: "${transcript}"`, 'success');
-  };
-  rec.onerror = function() {
-    toast('Could not hear clearly. Try again.', 'error');
-  };
-  rec.start();
+
+  const voiceModal = document.getElementById('voice-listening-modal');
+  const transcriptEl = document.getElementById('voice-live-transcript');
+  if (voiceModal) voiceModal.style.display = 'flex';
+  if (transcriptEl) transcriptEl.innerHTML = '<span>🎙️ Listening... speak now</span>';
+
+  try {
+    const rec = new SpeechRecognition();
+    activeSpeechRecognizer = rec;
+    rec.lang = 'en-IN';
+    rec.interimResults = true;
+    rec.maxAlternatives = 1;
+
+    rec.onresult = function(e) {
+      const transcript = Array.from(e.results).map(r => r[0].transcript).join('');
+      if (transcriptEl) transcriptEl.textContent = `"${transcript}"`;
+
+      if (e.results[0].isFinal) {
+        const parsed = parseVoiceTranscript(transcript);
+        stopVoiceRecording();
+
+        if (parsed) {
+          openQuickComposer(parsed.type);
+          const amtInput = document.getElementById('comp-amt');
+          const noteInput = document.getElementById('comp-note');
+          const wSel = document.getElementById('comp-wallet');
+
+          if (amtInput && parsed.amt > 0) amtInput.value = parsed.amt;
+          if (noteInput) noteInput.value = parsed.desc;
+          if (wSel && parsed.wallet) wSel.value = parsed.wallet;
+          if (parsed.cat) selectComposerCategory(parsed.cat);
+
+          toast(`🎙️ Recorded: ₹${parsed.amt || 0} (${parsed.cat})!`, 'success');
+        } else {
+          openQuickComposer('expense', { desc: transcript });
+        }
+      }
+    };
+
+    rec.onerror = function(err) {
+      console.warn('Speech recognition error:', err);
+      stopVoiceRecording();
+      toast('Could not hear clearly. Opened composer.', 'info');
+      openQuickComposer('expense');
+    };
+
+    rec.onend = function() {
+      if (voiceModal && voiceModal.style.display !== 'none') {
+        stopVoiceRecording();
+      }
+    };
+
+    rec.start();
+  } catch (err) {
+    console.error('Failed to start speech recognition:', err);
+    stopVoiceRecording();
+    openQuickComposer('expense');
+  }
 }
 window.startVoiceForComposer = startVoiceForComposer;
+
+function stopVoiceRecording() {
+  if (activeSpeechRecognizer) {
+    try { activeSpeechRecognizer.stop(); } catch (e) {}
+    activeSpeechRecognizer = null;
+  }
+  const voiceModal = document.getElementById('voice-listening-modal');
+  if (voiceModal) voiceModal.style.display = 'none';
+}
+window.stopVoiceRecording = stopVoiceRecording;
 
 // ── CSV EXPORT ──
 function exportTransactionsCSV() {
