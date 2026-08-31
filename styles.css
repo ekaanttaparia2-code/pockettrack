@@ -196,6 +196,28 @@ header {
 }
 
 /* =====================================================================
+   STAT BOXES (Income, Spent, Entries Above Balance)
+   ===================================================================== */
+.stats-boxes-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.stat-box {
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.stat-box:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* =====================================================================
    HERO BALANCE CARD (The Sleek Modern Design)
    ===================================================================== */
 .hero-card-modern {
@@ -204,8 +226,8 @@ header {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 18px 18px 16px;
-  margin-bottom: 14px;
+  padding: 20px 18px 18px;
+  margin-bottom: 16px;
   box-shadow: var(--shadow-md);
 }
 .hero-top {

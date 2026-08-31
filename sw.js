@@ -1,4 +1,4 @@
-const CACHE = 'pockettrack-v26-pure-icons';
+const CACHE = 'pockettrack-v27-layout-boxes';
 const SHELL = [
   './',
   './index.html',
