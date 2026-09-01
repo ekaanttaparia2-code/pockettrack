@@ -30,6 +30,27 @@ window.currentSearchQuery = '';
 let currentActivityFilter = 'all';
 let currentSearchQuery = '';
 
+// ── PRIVACY MODE (HIDE BALANCE BY DEFAULT) ──
+let isPrivacyMode = localStorage.getItem('pocketTrackPrivacyMode') === 'true';
+
+function toggleBalancePrivacy() {
+  isPrivacyMode = !isPrivacyMode;
+  localStorage.setItem('pocketTrackPrivacyMode', isPrivacyMode ? 'true' : 'false');
+  updateHeaderStats();
+  const privacySettingToggle = document.getElementById('setting-privacy-toggle');
+  if (privacySettingToggle) privacySettingToggle.checked = isPrivacyMode;
+  toast(isPrivacyMode ? 'Balance masked (Privacy Mode active 🔒)' : 'Balance revealed 👁️', 'info');
+}
+window.toggleBalancePrivacy = toggleBalancePrivacy;
+
+function setPrivacyModeFromSettings(enabled) {
+  isPrivacyMode = !!enabled;
+  localStorage.setItem('pocketTrackPrivacyMode', isPrivacyMode ? 'true' : 'false');
+  updateHeaderStats();
+  toast(isPrivacyMode ? 'Privacy Mode turned ON (Balance hidden)' : 'Privacy Mode turned OFF', 'info');
+}
+window.setPrivacyModeFromSettings = setPrivacyModeFromSettings;
+
 // ── BALANCE & STATS SYNC ──
 function updateHeaderStats() {
   const list = window.entries || [];
@@ -41,10 +62,22 @@ function updateHeaderStats() {
   const inc = document.getElementById('hero-income');
   const exp = document.getElementById('hero-spent');
   const cnt = document.getElementById('hero-count');
+  const eyeIcon = document.getElementById('privacy-eye-icon');
 
-  if (b) b.textContent = (balance < 0 ? '-₹' : '₹') + Math.abs(balance).toLocaleString('en-IN');
-  if (inc) inc.textContent = '₹' + income.toLocaleString('en-IN');
-  if (exp) exp.textContent = '₹' + spent.toLocaleString('en-IN');
+  if (eyeIcon) {
+    eyeIcon.className = isPrivacyMode ? 'ti ti-eye-off' : 'ti ti-eye';
+    eyeIcon.title = isPrivacyMode ? 'Click to show balance' : 'Click to hide balance';
+  }
+
+  if (isPrivacyMode) {
+    if (b) { b.textContent = '₹••••••'; b.classList.add('privacy-masked'); }
+    if (inc) { inc.textContent = '₹••••'; inc.classList.add('privacy-masked'); }
+    if (exp) { exp.textContent = '₹••••'; exp.classList.add('privacy-masked'); }
+  } else {
+    if (b) { b.textContent = (balance < 0 ? '-₹' : '₹') + Math.abs(balance).toLocaleString('en-IN'); b.classList.remove('privacy-masked'); }
+    if (inc) { inc.textContent = '₹' + income.toLocaleString('en-IN'); inc.classList.remove('privacy-masked'); }
+    if (exp) { exp.textContent = '₹' + spent.toLocaleString('en-IN'); exp.classList.remove('privacy-masked'); }
+  }
   if (cnt) cnt.textContent = String(list.length);
 
   // Calculate Daily Safe-to-Spend with Monthly Savings Target
@@ -60,18 +93,27 @@ function updateHeaderStats() {
   const safeEl = document.getElementById('safe-to-spend-val');
   const safeSub = document.getElementById('safe-to-spend-sub');
 
-  if (safeEl) safeEl.textContent = '₹' + safePerDay.toLocaleString('en-IN') + '/day';
+  if (safeEl) {
+    if (isPrivacyMode) {
+      safeEl.textContent = '₹••••/day';
+      safeEl.classList.add('privacy-masked');
+    } else {
+      safeEl.textContent = '₹' + safePerDay.toLocaleString('en-IN') + '/day';
+      safeEl.classList.remove('privacy-masked');
+    }
+  }
+
   if (safeSub) {
     if (savingsTarget > 0) {
-      safeSub.textContent = `🎯 Saving ₹${savingsTarget.toLocaleString('en-IN')} · ₹${safePerDay.toLocaleString('en-IN')} safe today (${daysLeft}d left)`;
+      safeSub.textContent = `🎯 Saving ₹${savingsTarget.toLocaleString('en-IN')} · ${isPrivacyMode ? '₹••••' : '₹' + safePerDay.toLocaleString('en-IN')} safe today (${daysLeft}d left)`;
     } else {
       safeSub.textContent = balance > 0 
-        ? `₹${safePerDay.toLocaleString('en-IN')} left today (${daysLeft}d left in month)`
+        ? `${isPrivacyMode ? '₹••••' : '₹' + safePerDay.toLocaleString('en-IN')} left today (${daysLeft}d left in month)`
         : `₹0 left today (${daysLeft}d left in month)`;
     }
   }
 
-  if (typeof animateNumber === 'function') {
+  if (!isPrivacyMode && typeof animateNumber === 'function') {
     animateNumber('hdr-balance', balance);
     animateNumber('hero-income', income);
     animateNumber('hero-spent', spent);
@@ -80,7 +122,9 @@ function updateHeaderStats() {
   }
 
   renderHomeRecent();
+  renderQuickPresets();
   if (window.currentTab === 'activity') renderActivityList();
+  if (window.currentTab === 'insights' && typeof renderInsightsTab === 'function') renderInsightsTab();
   if (typeof renderSettingsWallets === 'function') renderSettingsWallets();
 }
 window.updateHeaderStats = updateHeaderStats;
@@ -867,27 +911,303 @@ function stopVoiceRecording() {
 }
 window.stopVoiceRecording = stopVoiceRecording;
 
-// ── CSV EXPORT ──
+// ── QUICK SPEND PRESETS ("SPEED DIAL") ──
+function getQuickPresets() {
+  try {
+    const raw = localStorage.getItem('pocketTrackQuickPresets');
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return [
+    { id: 'p_chai', name: 'Chai', amt: 20, icon: '☕', cat: 'food', wallet: 'cash' },
+    { id: 'p_metro', name: 'Metro / Auto', amt: 40, icon: '🚇', cat: 'transport', wallet: 'bank' },
+    { id: 'p_snacks', name: 'Snacks', amt: 50, icon: '🥪', cat: 'food', wallet: 'cash' },
+    { id: 'p_fuel', name: 'Fuel', amt: 200, icon: '⛽', cat: 'transport', wallet: 'card' }
+  ];
+}
+window.getQuickPresets = getQuickPresets;
+
+function saveQuickPresets(list) {
+  localStorage.setItem('pocketTrackQuickPresets', JSON.stringify(list));
+  renderQuickPresets();
+}
+window.saveQuickPresets = saveQuickPresets;
+
+function renderQuickPresets() {
+  const container = document.getElementById('quick-presets-bar');
+  if (!container) return;
+  const presets = getQuickPresets();
+  let html = presets.map(p => `
+    <button type="button" class="quick-preset-chip" onclick="logQuickPreset('${p.id}')" title="1-Tap Log: ${p.name} ₹${p.amt}">
+      <span>${p.icon || '⚡'}</span>
+      <span>${escapeHtml(p.name)}</span>
+      <span style="color:var(--accent);">₹${p.amt}</span>
+    </button>
+  `).join('');
+  html += `
+    <button type="button" class="quick-preset-chip add-chip" onclick="openAddPresetModal()" title="Add Custom Quick Preset">
+      <i class="ti ti-plus"></i>
+      <span>Add Preset</span>
+    </button>
+  `;
+  container.innerHTML = html;
+}
+window.renderQuickPresets = renderQuickPresets;
+
+function logQuickPreset(presetId) {
+  const preset = getQuickPresets().find(p => p.id === presetId);
+  if (!preset) return;
+  const newEntry = {
+    id: 'pt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+    amt: parseFloat(preset.amt),
+    type: 'expense',
+    cat: preset.cat || 'other',
+    desc: preset.name,
+    date: new Date().toISOString().split('T')[0],
+    wallet: preset.wallet || 'cash',
+    createdAt: Date.now()
+  };
+  window.entries.unshift(newEntry);
+  localStorage.setItem('pocketTrackEntries', JSON.stringify(window.entries));
+  updateHeaderStats();
+  if (typeof syncEntriesToCloud === 'function') syncEntriesToCloud();
+  const wName = (typeof getWallets === 'function' ? (getWallets().find(w => w.id === preset.wallet) || {}).name : '') || preset.wallet;
+  toast(`⚡ Logged ${preset.name} (-₹${preset.amt} via ${wName})! ${preset.icon}`, 'success');
+}
+window.logQuickPreset = logQuickPreset;
+
+function openAddPresetModal() {
+  const m = document.getElementById('preset-modal');
+  if (m) {
+    const wSel = document.getElementById('new-preset-wallet');
+    if (wSel && typeof getWallets === 'function') {
+      wSel.innerHTML = getWallets().map(w => `<option value="${w.id}">${w.icon} ${w.name}</option>`).join('');
+    }
+    m.style.display = 'flex';
+    if (typeof document !== 'undefined' && document.body && document.body.style) document.body.style.overflow = 'hidden';
+  }
+}
+window.openAddPresetModal = openAddPresetModal;
+
+function closeAddPresetModal() {
+  const m = document.getElementById('preset-modal');
+  if (m) {
+    m.style.display = 'none';
+    if (typeof document !== 'undefined' && document.body && document.body.style) document.body.style.overflow = '';
+  }
+}
+window.closeAddPresetModal = closeAddPresetModal;
+
+function saveCustomQuickPreset() {
+  const nameInput = document.getElementById('new-preset-name');
+  const amtInput = document.getElementById('new-preset-amt');
+  const iconInput = document.getElementById('new-preset-icon');
+  const catInput = document.getElementById('new-preset-cat');
+  const walletInput = document.getElementById('new-preset-wallet');
+
+  if (!nameInput || !nameInput.value.trim()) {
+    toast('Please enter a preset name', 'error');
+    return;
+  }
+  const amt = parseFloat(amtInput ? amtInput.value : 0);
+  if (!amt || amt <= 0) {
+    toast('Please enter a valid amount', 'error');
+    return;
+  }
+
+  const newPreset = {
+    id: 'p_' + Date.now(),
+    name: nameInput.value.trim(),
+    amt,
+    icon: (iconInput && iconInput.value.trim()) ? iconInput.value.trim() : '⚡',
+    cat: catInput ? catInput.value : 'food',
+    wallet: walletInput ? walletInput.value : 'cash'
+  };
+
+  const list = getQuickPresets();
+  list.push(newPreset);
+  saveQuickPresets(list);
+  toast(`Quick preset "${newPreset.name}" added! ⚡`, 'success');
+  nameInput.value = '';
+  if (amtInput) amtInput.value = '';
+  closeAddPresetModal();
+}
+window.saveCustomQuickPreset = saveCustomQuickPreset;
+
+// ── ENHANCED CSV / EXCEL PASSBOOK EXPORT ──
 function exportTransactionsCSV() {
   const list = window.entries || [];
   if (!list.length) {
-    toast('No entries to export', 'info');
+    toast('No entries to export yet', 'info');
     return;
   }
-  let csv = 'Date,Type,Amount (INR),Category,Description,Wallet\n';
+  
+  let csv = '=====================================================\r\n';
+  csv += 'POCKETTRACK FINANCIAL PASSBOOK REPORT\r\n';
+  csv += `Generated: ${new Date().toLocaleString('en-IN')}\r\n`;
+  csv += `Total Entries: ${list.length}\r\n`;
+  csv += '=====================================================\r\n\r\n';
+  
+  csv += '"Transaction ID","Date","Type","Category","Account/Wallet","Description","Amount (INR)","Transfer Group ID"\r\n';
+  
   list.forEach(e => {
-    csv += `"${e.date || ''}","${e.type || ''}","${e.amt || 0}","${e.cat || ''}","${(e.desc||e.note||'').replace(/"/g, '""')}","${e.wallet || 'cash'}"\n`;
+    const id = e.id || '';
+    const date = e.date || '';
+    const type = (e.type || '').toUpperCase();
+    const cat = (e.cat || '').toUpperCase();
+    const wallet = (e.wallet || 'cash').toUpperCase();
+    const desc = (e.desc || e.note || '').replace(/"/g, '""');
+    const amt = parseFloat(e.amt) || 0;
+    const transferId = e.transferGroupId || '';
+    csv += `"${id}","${date}","${type}","${cat}","${wallet}","${desc}","${amt}","${transferId}"\r\n`;
   });
+
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `PocketTrack_Statement_${new Date().toISOString().split('T')[0]}.csv`;
-  a.click();
+  a.download = `PocketTrack_Passbook_${new Date().toISOString().split('T')[0]}.csv`;
+  if (typeof document !== 'undefined' && document.body) {
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
   URL.revokeObjectURL(url);
-  toast('Statement CSV exported!', 'success');
+  toast('Passbook CSV exported successfully! 📊', 'success');
 }
 window.exportTransactionsCSV = exportTransactionsCSV;
+
+// ── CLEAN 1-PAGE PDF FINANCIAL STATEMENT ──
+function downloadMonthlyPDFStatement(monthStr) {
+  if (typeof window.jspdf === 'undefined' && typeof jsPDF === 'undefined') {
+    toast('PDF library loading, please try again in a moment', 'info');
+    return;
+  }
+  const PDFClass = (typeof window.jspdf !== 'undefined') ? window.jspdf.jsPDF : jsPDF;
+  const doc = new PDFClass({ unit: 'pt', format: 'a4' });
+
+  const targetMonth = monthStr || currentInsightsMonth || new Date().toISOString().slice(0, 7);
+  const data = typeof getInsightsData === 'function' ? getInsightsData(targetMonth) : null;
+  const allEntries = (window.entries || []).filter(e => e.date && e.date.startsWith(targetMonth));
+
+  // 1. Header Banner
+  doc.setFillColor(79, 70, 229);
+  doc.rect(0, 0, 595, 75, 'F');
+
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(22);
+  doc.setFont('helvetica', 'bold');
+  doc.text('PocketTrack', 40, 42);
+
+  doc.setFontSize(10.5);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Monthly Financial Statement', 40, 58);
+
+  const monthName = typeof formatMonthLabel === 'function' ? formatMonthLabel(targetMonth) : targetMonth;
+  doc.setFontSize(13);
+  doc.setFont('helvetica', 'bold');
+  doc.text(monthName, 555, 42, { align: 'right' });
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Generated on ${new Date().toLocaleDateString('en-IN')}`, 555, 58, { align: 'right' });
+
+  // 2. Summary Boxes
+  let y = 95;
+  const inc = data ? data.totalIncome : 0;
+  const exp = data ? data.totalExpense : 0;
+  const sav = inc - exp;
+
+  // Box 1: Total Income
+  doc.setFillColor(240, 253, 244);
+  doc.setDrawColor(34, 197, 94);
+  doc.roundedRect(40, y, 160, 46, 6, 6, 'FD');
+  doc.setTextColor(22, 101, 52);
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'bold');
+  doc.text('TOTAL INCOME', 50, y + 16);
+  doc.setFontSize(13);
+  doc.text(`Rs. ${inc.toLocaleString('en-IN')}`, 50, y + 34);
+
+  // Box 2: Total Spent
+  doc.setFillColor(254, 242, 242);
+  doc.setDrawColor(239, 68, 68);
+  doc.roundedRect(217, y, 160, 46, 6, 6, 'FD');
+  doc.setTextColor(153, 27, 27);
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'bold');
+  doc.text('TOTAL SPENT', 227, y + 16);
+  doc.setFontSize(13);
+  doc.text(`Rs. ${exp.toLocaleString('en-IN')}`, 227, y + 34);
+
+  // Box 3: Net Savings
+  doc.setFillColor(245, 243, 255);
+  doc.setDrawColor(124, 58, 237);
+  doc.roundedRect(395, y, 160, 46, 6, 6, 'FD');
+  doc.setTextColor(91, 33, 182);
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'bold');
+  doc.text('NET SAVINGS', 405, y + 16);
+  doc.setFontSize(13);
+  doc.text(`Rs. ${sav.toLocaleString('en-IN')}`, 405, y + 34);
+
+  // 3. Transactions Table Header
+  y = 160;
+  doc.setTextColor(51, 65, 85);
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Transaction Details', 40, y);
+
+  y += 12;
+  doc.setFillColor(241, 245, 249);
+  doc.rect(40, y, 515, 20, 'F');
+  doc.setTextColor(71, 85, 105);
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'bold');
+  doc.text('DATE', 50, y + 13);
+  doc.text('CATEGORY', 120, y + 13);
+  doc.text('WALLET', 205, y + 13);
+  doc.text('DESCRIPTION / NOTE', 285, y + 13);
+  doc.text('AMOUNT', 540, y + 13, { align: 'right' });
+
+  y += 22;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+
+  if (!allEntries.length) {
+    doc.setTextColor(148, 163, 184);
+    doc.text('No transaction records found for this month.', 40, y + 18);
+  } else {
+    allEntries.slice(0, 24).forEach((e, idx) => {
+      if (idx % 2 === 1) {
+        doc.setFillColor(248, 250, 252);
+        doc.rect(40, y - 2, 515, 16, 'F');
+      }
+      doc.setTextColor(51, 65, 85);
+      doc.text(e.date || '-', 50, y + 10);
+      doc.text((e.cat || 'other').toUpperCase(), 120, y + 10);
+      doc.text((e.wallet || 'cash').toUpperCase(), 205, y + 10);
+      const desc = (e.desc || '-').substring(0, 30);
+      doc.text(desc, 285, y + 10);
+
+      if (e.type === 'income') {
+        doc.setTextColor(22, 163, 74);
+        doc.text(`+Rs. ${parseFloat(e.amt).toLocaleString('en-IN')}`, 540, y + 10, { align: 'right' });
+      } else {
+        doc.setTextColor(220, 38, 38);
+        doc.text(`-Rs. ${parseFloat(e.amt).toLocaleString('en-IN')}`, 540, y + 10, { align: 'right' });
+      }
+      y += 16;
+    });
+  }
+
+  // Footer
+  doc.setTextColor(148, 163, 184);
+  doc.setFontSize(8);
+  doc.text('PocketTrack · Clean Personal Finance · https://pockettrack-bay.vercel.app', 297, 810, { align: 'center' });
+
+  doc.save(`PocketTrack_Statement_${targetMonth}.pdf`);
+  toast('Statement PDF downloaded! 📄', 'success');
+}
+window.downloadMonthlyPDFStatement = downloadMonthlyPDFStatement;
 
 // ── UTILITIES ──
 function getCategoryIcon(catId, type) {
@@ -896,6 +1216,7 @@ function getCategoryIcon(catId, type) {
   const found = cats.find(c => c.id === catId);
   return found ? found.icon : (type === 'income' ? '💵' : '💸');
 }
+window.getCategoryIcon = getCategoryIcon;
 
 function formatDate(dateStr) {
   if (!dateStr) return 'Today';
@@ -905,6 +1226,7 @@ function formatDate(dateStr) {
   if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0].slice(2)}`;
   return dateStr;
 }
+window.formatDate = formatDate;
 
 function escapeHtml(str) {
   if (!str) return '';
@@ -912,3 +1234,5 @@ function escapeHtml(str) {
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   }[m]));
 }
+window.escapeHtml = escapeHtml;
+

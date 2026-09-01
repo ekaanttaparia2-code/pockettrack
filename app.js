@@ -67,15 +67,18 @@ window.entries = loadLocalEntries();
 window.wallets = loadLocalWallets();
 window.monthlyBudget = parseFloat(localStorage.getItem('pocketTrackBudget') || localStorage.getItem('pockettrack_budgets')) || 0;
 
-// ── TAB SWITCHING ──
+// ── TAB SWITCHING (4 Clean Tabs: Home, Insights, Activity, Settings) ──
 function setTab(tabName) {
   window.currentTab = tabName;
-  ['home', 'activity', 'settings'].forEach(t => {
+  ['home', 'insights', 'activity', 'settings'].forEach(t => {
     const el = document.getElementById('tab-' + t);
     const btn = document.getElementById('btn-tab-' + t);
     if (el) el.style.display = (t === tabName) ? 'block' : 'none';
     if (btn) btn.classList.toggle('active', t === tabName);
   });
+  if (tabName === 'insights' && typeof renderInsightsTab === 'function') {
+    renderInsightsTab();
+  }
   if (tabName === 'activity' && typeof renderActivityList === 'function') {
     renderActivityList();
   }
@@ -200,6 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof initAuth === 'function') initAuth();
   if (typeof checkAndProcessRecurring === 'function') checkAndProcessRecurring();
   if (typeof updateHeaderStats === 'function') updateHeaderStats();
+  if (typeof renderQuickPresets === 'function') renderQuickPresets();
   if (typeof renderSettingsWallets === 'function') renderSettingsWallets();
   if (typeof renderRecurringList === 'function') renderRecurringList();
 
@@ -208,4 +212,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const sInput = document.getElementById('settings-savings-input');
   const currSav = localStorage.getItem('pocketTrackSavingsTarget') || '';
   if (sInput && currSav) sInput.value = currSav;
+
+  const privacySettingToggle = document.getElementById('setting-privacy-toggle');
+  if (privacySettingToggle) {
+    privacySettingToggle.checked = (localStorage.getItem('pocketTrackPrivacyMode') === 'true');
+  }
 });

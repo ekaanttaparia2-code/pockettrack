@@ -66,6 +66,7 @@ global.document = {
 // Load Scripts
 require('./wallets.js');
 require('./transactions.js');
+require('./insights.js');
 require('./app.js');
 require('./auth.js');
 
@@ -318,6 +319,77 @@ it('13.1 Saves and retrieves distinct savings targets and budgets per wallet', (
   assert.strictEqual(targets.bank, 8000);
   assert.strictEqual(targets.cash, 2000);
   assert.strictEqual(budgets.card, 12000);
+});
+
+// ── TEST 14: Privacy Mode (Masks Balance Numbers) ──
+it('14.1 Toggles privacy mode and masks balance numbers', () => {
+  window.entries = [
+    { id: '1', type: 'income', amt: 50000, cat: 'salary', date: '2026-09-01' }
+  ];
+  localStorage.setItem('pocketTrackPrivacyMode', 'false');
+  updateHeaderStats();
+  assert.strictEqual(document.getElementById('hdr-balance').textContent, '₹50,000');
+
+  toggleBalancePrivacy();
+  assert.strictEqual(document.getElementById('hdr-balance').textContent, '₹••••••');
+  assert.strictEqual(document.getElementById('hero-income').textContent, '₹••••');
+
+  toggleBalancePrivacy();
+  assert.strictEqual(document.getElementById('hdr-balance').textContent, '₹50,000');
+});
+
+// ── TEST 15: ⚡ 1-Tap Quick Spend Presets ──
+it('15.1 Retrieves quick presets and 1-tap logs an expense instantly', () => {
+  const presets = getQuickPresets();
+  assert.ok(presets.length >= 4, 'Must have default quick presets');
+  const chai = presets.find(p => p.id === 'p_chai');
+  assert.ok(chai, 'Chai preset must exist');
+
+  const beforeCount = window.entries.length;
+  logQuickPreset('p_chai');
+
+  assert.strictEqual(window.entries.length, beforeCount + 1, 'New transaction must be added');
+  assert.strictEqual(window.entries[0].amt, 20);
+  assert.strictEqual(window.entries[0].desc, 'Chai');
+});
+
+it('15.2 Adds custom quick preset to speed dial bar', () => {
+  document.getElementById('new-preset-name').value = 'Filter Coffee';
+  document.getElementById('new-preset-amt').value = '35';
+  document.getElementById('new-preset-icon').value = '☕';
+  document.getElementById('new-preset-cat').value = 'food';
+  document.getElementById('new-preset-wallet').value = 'bank';
+
+  saveCustomQuickPreset();
+
+  const customP = getQuickPresets().find(p => p.name === 'Filter Coffee');
+  assert.ok(customP, 'Custom preset must be created');
+  assert.strictEqual(customP.amt, 35);
+  assert.strictEqual(customP.wallet, 'bank');
+});
+
+// ── TEST 16: 📊 Insights & Analytics Engine ──
+it('16.1 Aggregates monthly expenses, computes top category and percentages', () => {
+  window.entries = [
+    { id: '1', type: 'income', amt: 60000, cat: 'salary', date: '2026-09-01' },
+    { id: '2', type: 'expense', amt: 4000, cat: 'food', date: '2026-09-02' },
+    { id: '3', type: 'expense', amt: 2000, cat: 'transport', date: '2026-09-03' },
+    { id: '4', type: 'expense', amt: 4000, cat: 'food', date: '2026-09-04' }
+  ];
+
+  const data = getInsightsData('2026-09');
+  assert.strictEqual(data.totalIncome, 60000);
+  assert.strictEqual(data.totalExpense, 10000);
+  assert.strictEqual(data.netSavings, 50000);
+  assert.strictEqual(data.topCategory.id, 'food');
+  assert.strictEqual(data.topCategory.total, 8000);
+  assert.strictEqual(data.topCategory.pct, 80);
+});
+
+// ── TEST 17: Structured Export & PDF Helper ──
+it('17.1 Exports and download statement functions are correctly initialized', () => {
+  assert.strictEqual(typeof exportTransactionsCSV, 'function');
+  assert.strictEqual(typeof downloadMonthlyPDFStatement, 'function');
 });
 
 console.log('\n═══════════════════════════════════════════════');

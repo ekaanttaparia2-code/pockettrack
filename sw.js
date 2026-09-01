@@ -1,4 +1,4 @@
-const CACHE = 'pockettrack-v31-recurring-per-wallet-emoji-grid';
+const CACHE = 'pockettrack-v32-insights-pdf-privacy';
 const SHELL = [
   './',
   './index.html',
@@ -13,6 +13,7 @@ const SHELL = [
   './app.js',
   './wallets.js',
   './transactions.js',
+  './insights.js',
   './auth.js'
 ];
 

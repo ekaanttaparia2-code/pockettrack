@@ -187,15 +187,20 @@
       </div>
     </div>
 
-    <!-- 2. The Sleek Modern Balance Card -->
+    <!-- 2. The Sleek Modern Balance Card (With Privacy Eye Toggle) -->
     <div class="hero-card hero-card-modern" id="hero-balance-card" style="margin-bottom:16px;padding:20px 18px 18px;">
       <div class="hero-top" style="margin-bottom:6px;">
         <div>
           <span class="hero-label">BALANCE</span>
           <p class="hero-caption">Available across your tracked money</p>
         </div>
-        <div class="hero-chip-green-rupee">
-          <span>₹</span>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <button class="privacy-eye-btn" onclick="toggleBalancePrivacy()" id="privacy-eye-btn" title="Toggle Hide Balance">
+            <i class="ti ti-eye" id="privacy-eye-icon"></i>
+          </button>
+          <div class="hero-chip-green-rupee">
+            <span>₹</span>
+          </div>
         </div>
       </div>
       
@@ -231,7 +236,7 @@
     </div>
 
     <!-- 3. 🎯 DAILY SAFE-TO-SPEND CARD (With 1-Tap Savings Goal Trigger) -->
-    <div class="card safe-to-spend-card" onclick="openSavingsTargetModal()" style="padding:16px 18px;margin-bottom:20px;border-radius:22px;display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow-md);cursor:pointer;" title="Tap to set or change your monthly savings target">
+    <div class="card safe-to-spend-card" onclick="openSavingsTargetModal()" style="padding:16px 18px;margin-bottom:14px;border-radius:22px;display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow-md);cursor:pointer;" title="Tap to set or change your monthly savings target">
       <div style="display:flex;align-items:center;gap:12px;">
         <div style="width:44px;height:44px;border-radius:14px;background:rgba(236,72,153,0.12);display:grid;place-items:center;font-size:22px;">🎯</div>
         <div>
@@ -243,6 +248,14 @@
       <button class="pill" onclick="event.stopPropagation();openSavingsTargetModal();" style="font-size:11px;font-weight:700;padding:6px 10px;border-radius:12px;cursor:pointer;flex-shrink:0;">
         <span>🎯 Goal</span>
       </button>
+    </div>
+
+    <!-- 4. ⚡ 1-TAP QUICK SPEND SPEED DIAL BAR -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin:0 2px 6px;">
+      <p class="section-kicker" style="font-size:10px;font-weight:800;color:var(--text-dim);letter-spacing:1px;margin:0;">⚡ 1-TAP QUICK LOG</p>
+    </div>
+    <div class="quick-presets-bar" id="quick-presets-bar">
+      <!-- Injected dynamically via transactions.js -->
     </div>
 
     <!-- Recent Activity Section -->
@@ -262,15 +275,27 @@
   </div>
 
   <!-- ==========================================
-       TAB 2: ACTIVITY / PASSBOOK
+       TAB 2: INSIGHTS & VISUALS
+       ========================================== -->
+  <div id="tab-insights" class="tab-content" style="display:none;">
+    <!-- Injected dynamically via insights.js -->
+  </div>
+
+  <!-- ==========================================
+       TAB 3: ACTIVITY / PASSBOOK
        ========================================== -->
   <div id="tab-activity" class="tab-content" style="display:none;">
     <div class="activity-header" style="margin-bottom:14px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
         <h2 style="font-size:20px;font-weight:800;margin:0;">Passbook & History</h2>
-        <button class="btn btn-sm" onclick="exportTransactionsCSV()" style="font-size:11.5px;padding:6px 12px;border-radius:12px;">
-          <i class="ti ti-download"></i> Export CSV
-        </button>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-sm" onclick="downloadMonthlyPDFStatement()" style="font-size:11.5px;padding:6px 10px;border-radius:12px;color:var(--accent);border-color:rgba(124,58,237,0.3);" title="Download Clean 1-Page PDF Statement">
+            <i class="ti ti-file-text"></i> PDF Statement
+          </button>
+          <button class="btn btn-sm" onclick="exportTransactionsCSV()" style="font-size:11.5px;padding:6px 10px;border-radius:12px;" title="Export Structured CSV / Excel">
+            <i class="ti ti-download"></i> CSV
+          </button>
+        </div>
       </div>
       
       <!-- Search Bar -->
@@ -295,7 +320,7 @@
   </div>
 
   <!-- ==========================================
-       TAB 3: SETTINGS & WALLETS
+       TAB 4: SETTINGS & WALLETS
        ========================================== -->
   <div id="tab-settings" class="tab-content" style="display:none;">
     <h2 style="font-size:20px;font-weight:800;margin:0 0 14px;">Settings & Wallets</h2>
@@ -377,6 +402,22 @@
       </div>
     </div>
 
+    <!-- 🔒 Privacy Mode (Hide Balance by Default) -->
+    <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:20px;">🔒</span>
+          <div>
+            <h3 style="font-size:15px;font-weight:700;margin:0;">Privacy Mode</h3>
+            <p style="font-size:11.5px;color:var(--text-dim);margin:2px 0 0;">Hide balance numbers by default (₹••••)</p>
+          </div>
+        </div>
+        <label style="display:flex;align-items:center;cursor:pointer;">
+          <input type="checkbox" id="setting-privacy-toggle" onchange="setPrivacyModeFromSettings(this.checked)" style="width:20px;height:20px;accent-color:var(--accent);cursor:pointer;"/>
+        </label>
+      </div>
+    </div>
+
     <!-- Appearance / Theme -->
     <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;">
       <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -407,12 +448,16 @@
 </div>
 
 <!-- ==========================================
-     BOTTOM NAVIGATION DOCK (3 Tabs)
+     BOTTOM NAVIGATION DOCK (4 Tabs: Home, Insights, Activity, Settings)
      ========================================== -->
 <nav class="bottom-tab-bar" id="bottom-nav">
   <button class="bottom-tab active" id="btn-tab-home" onclick="setTab('home')">
     <div class="bottom-tab-icon-wrap"><i class="ti ti-smart-home"></i></div>
     <span>Home</span>
+  </button>
+  <button class="bottom-tab" id="btn-tab-insights" onclick="setTab('insights')">
+    <div class="bottom-tab-icon-wrap"><i class="ti ti-chart-pie"></i></div>
+    <span>Insights</span>
   </button>
   <button class="bottom-tab" id="btn-tab-activity" onclick="setTab('activity')">
     <div class="bottom-tab-icon-wrap"><i class="ti ti-receipt"></i></div>
@@ -619,6 +664,54 @@
   </div>
 </div>
 
+<!-- 7. Custom Quick Spend Preset Modal -->
+<div class="modal-overlay" id="preset-modal" style="display:none;" onclick="if(event.target===this)closeAddPresetModal()">
+  <div class="modal-sheet">
+    <div class="modal-sheet-handle"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:22px;">⚡</span>
+        <h3 style="font-size:18px;font-weight:800;margin:0;">Add Quick Spend Preset</h3>
+      </div>
+      <button class="icon-btn" onclick="closeAddPresetModal()"><i class="ti ti-x"></i></button>
+    </div>
+    
+    <label style="font-size:11.5px;font-weight:700;color:var(--text-dim);display:block;margin-bottom:4px;">Preset Name</label>
+    <input type="text" id="new-preset-name" placeholder="e.g. Chai, Coffee, Bus Fare" style="margin-bottom:12px;"/>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+      <div>
+        <label style="font-size:11.5px;font-weight:700;color:var(--text-dim);display:block;margin-bottom:4px;">Amount (₹)</label>
+        <input type="number" id="new-preset-amt" placeholder="20" style="font-size:16px;font-weight:700;"/>
+      </div>
+      <div>
+        <label style="font-size:11.5px;font-weight:700;color:var(--text-dim);display:block;margin-bottom:4px;">Icon Emoji</label>
+        <input type="text" id="new-preset-icon" placeholder="☕" maxlength="2" style="font-size:18px;text-align:center;"/>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;">
+      <div>
+        <label style="font-size:11.5px;font-weight:700;color:var(--text-dim);display:block;margin-bottom:4px;">Category</label>
+        <select id="new-preset-cat">
+          <option value="food">🍔 Food</option>
+          <option value="transport">🚕 Transport</option>
+          <option value="shopping">🛍️ Shopping</option>
+          <option value="bills">⚡ Bills</option>
+          <option value="grocery">🥦 Grocery</option>
+          <option value="other">📌 Other</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:11.5px;font-weight:700;color:var(--text-dim);display:block;margin-bottom:4px;">Wallet / Account</label>
+        <select id="new-preset-wallet"></select>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="saveCustomQuickPreset()" style="width:100%;padding:14px;font-size:15px;font-weight:800;border-radius:16px;">Save Preset ⚡</button>
+  </div>
+</div>
+
 <!-- Floating Voice Mic FAB (Theme-Adaptive Glowing Design) -->
 <button class="floating-voice-fab" onclick="startVoiceForComposer()" title="Voice Add (English/Hindi/Hinglish)" aria-label="Voice Add">
   <i class="ti ti-microphone"></i>
@@ -628,6 +721,7 @@
 <script src="app.js"></script>
 <script src="wallets.js"></script>
 <script src="transactions.js"></script>
+<script src="insights.js"></script>
 <script src="auth.js"></script>
 </body>
 </html>
