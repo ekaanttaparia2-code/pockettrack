@@ -321,36 +321,43 @@ it('13.1 Saves and retrieves distinct savings targets and budgets per wallet', (
   assert.strictEqual(budgets.card, 12000);
 });
 
-// ── TEST 14: Privacy Mode (Masks Balance Numbers) ──
-it('14.1 Toggles privacy mode and masks balance numbers', () => {
+// ── TEST 14: Privacy Mode & 4-Digit PIN Lock ──
+it('14.1 Sets 4-Digit Privacy PIN and masks balance numbers', () => {
   window.entries = [
     { id: '1', type: 'income', amt: 50000, cat: 'salary', date: '2026-09-01' }
   ];
-  localStorage.setItem('pocketTrackPrivacyMode', 'false');
-  updateHeaderStats();
-  assert.strictEqual(document.getElementById('hdr-balance').textContent, '₹50,000');
+  document.getElementById('set-pin-input').value = '4321';
+  document.getElementById('set-pin-confirm').value = '4321';
+  saveNewPrivacyPin();
 
-  toggleBalancePrivacy();
+  assert.strictEqual(localStorage.getItem('pocketTrackPrivacyPin'), '4321');
+  assert.strictEqual(localStorage.getItem('pocketTrackPrivacyMode'), 'true');
+  assert.strictEqual(isPrivacyActive(), true);
   assert.strictEqual(document.getElementById('hdr-balance').textContent, '₹••••••');
   assert.strictEqual(document.getElementById('hero-income').textContent, '₹••••');
-
-  toggleBalancePrivacy();
-  assert.strictEqual(document.getElementById('hdr-balance').textContent, '₹50,000');
 });
 
-// ── TEST 15: ⚡ 1-Tap Quick Spend Presets ──
-it('15.1 Retrieves quick presets and 1-tap logs an expense instantly', () => {
+it('14.2 Unlocks session with correct PIN and unmasks balances', () => {
+  document.getElementById('unlock-pin-input').value = '4321';
+  submitUnlockPin();
+
+  assert.strictEqual(window.isPrivacyUnlockedSession, true);
+  assert.strictEqual(isPrivacyActive(), false);
+  assert.strictEqual(document.getElementById('hdr-balance').textContent, '₹50,000');
+  assert.strictEqual(document.getElementById('hero-income').textContent, '₹50,000');
+});
+
+// ── TEST 15: ⚡ 2-Tap Quick Spend Presets ──
+it('15.1 Opens composer prefilled with preset values for quick adjustment (2-Tap)', () => {
   const presets = getQuickPresets();
   assert.ok(presets.length >= 4, 'Must have default quick presets');
   const chai = presets.find(p => p.id === 'p_chai');
   assert.ok(chai, 'Chai preset must exist');
 
-  const beforeCount = window.entries.length;
   logQuickPreset('p_chai');
 
-  assert.strictEqual(window.entries.length, beforeCount + 1, 'New transaction must be added');
-  assert.strictEqual(window.entries[0].amt, 20);
-  assert.strictEqual(window.entries[0].desc, 'Chai');
+  assert.strictEqual(Number(document.getElementById('comp-amt').value), 20);
+  assert.strictEqual(document.getElementById('comp-note').value, 'Chai');
 });
 
 it('15.2 Adds custom quick preset to speed dial bar', () => {
@@ -368,7 +375,7 @@ it('15.2 Adds custom quick preset to speed dial bar', () => {
   assert.strictEqual(customP.wallet, 'bank');
 });
 
-// ── TEST 16: 📊 Insights & Analytics Engine ──
+// ── TEST 16: 📊 Insights & Analytics Engine (Expense & Income) ──
 it('16.1 Aggregates monthly expenses, computes top category and percentages', () => {
   window.entries = [
     { id: '1', type: 'income', amt: 60000, cat: 'salary', date: '2026-09-01' },
@@ -377,13 +384,26 @@ it('16.1 Aggregates monthly expenses, computes top category and percentages', ()
     { id: '4', type: 'expense', amt: 4000, cat: 'food', date: '2026-09-04' }
   ];
 
-  const data = getInsightsData('2026-09');
+  const data = getInsightsData('2026-09', 'expense');
   assert.strictEqual(data.totalIncome, 60000);
   assert.strictEqual(data.totalExpense, 10000);
   assert.strictEqual(data.netSavings, 50000);
   assert.strictEqual(data.topCategory.id, 'food');
   assert.strictEqual(data.topCategory.total, 8000);
   assert.strictEqual(data.topCategory.pct, 80);
+});
+
+it('16.2 Aggregates monthly income sources and distribution', () => {
+  window.entries = [
+    { id: '1', type: 'income', amt: 50000, cat: 'salary', date: '2026-09-01' },
+    { id: '2', type: 'income', amt: 15000, cat: 'freelance', date: '2026-09-05' }
+  ];
+
+  const data = getInsightsData('2026-09', 'income');
+  assert.strictEqual(data.activeTotal, 65000);
+  assert.strictEqual(data.topCategory.id, 'salary');
+  assert.strictEqual(data.topCategory.total, 50000);
+  assert.strictEqual(data.categories.length, 2);
 });
 
 // ── TEST 17: Structured Export & PDF Helper ──

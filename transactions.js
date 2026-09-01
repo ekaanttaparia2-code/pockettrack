@@ -30,26 +30,180 @@ window.currentSearchQuery = '';
 let currentActivityFilter = 'all';
 let currentSearchQuery = '';
 
-// ── PRIVACY MODE (HIDE BALANCE BY DEFAULT) ──
-let isPrivacyMode = localStorage.getItem('pocketTrackPrivacyMode') === 'true';
+// ── PRIVACY MODE & PIN LOCK (PROTECT BALANCE, GOALS & ENTRIES) ──
+window.isPrivacyUnlockedSession = false;
+let pendingUnlockCallback = null;
 
-function toggleBalancePrivacy() {
-  isPrivacyMode = !isPrivacyMode;
-  localStorage.setItem('pocketTrackPrivacyMode', isPrivacyMode ? 'true' : 'false');
+function isPrivacyActive() {
+  const mode = localStorage.getItem('pocketTrackPrivacyMode') === 'true';
+  return mode && !window.isPrivacyUnlockedSession;
+}
+window.isPrivacyActive = isPrivacyActive;
+
+function openSetPinModal() {
+  const m = document.getElementById('privacy-set-pin-modal');
+  const pinInput = document.getElementById('set-pin-input');
+  const pinConfirm = document.getElementById('set-pin-confirm');
+  const errEl = document.getElementById('set-pin-error');
+  if (pinInput) pinInput.value = '';
+  if (pinConfirm) pinConfirm.value = '';
+  if (errEl) errEl.textContent = '';
+  if (m) {
+    m.style.display = 'flex';
+    if (typeof document !== 'undefined' && document.body && document.body.style) document.body.style.overflow = 'hidden';
+    if (pinInput) setTimeout(() => pinInput.focus(), 100);
+  }
+}
+window.openSetPinModal = openSetPinModal;
+
+function closeSetPinModal() {
+  const m = document.getElementById('privacy-set-pin-modal');
+  if (m) {
+    m.style.display = 'none';
+    if (typeof document !== 'undefined' && document.body && document.body.style) document.body.style.overflow = '';
+  }
+}
+window.closeSetPinModal = closeSetPinModal;
+
+function saveNewPrivacyPin() {
+  const pinInput = document.getElementById('set-pin-input');
+  const pinConfirm = document.getElementById('set-pin-confirm');
+  const errEl = document.getElementById('set-pin-error');
+
+  const p1 = pinInput ? pinInput.value.trim() : '';
+  const p2 = pinConfirm ? pinConfirm.value.trim() : '';
+
+  if (!p1 || p1.length < 4) {
+    if (errEl) errEl.textContent = 'PIN must be at least 4 digits';
+    return;
+  }
+  if (p1 !== p2) {
+    if (errEl) errEl.textContent = 'PINs do not match. Please re-enter.';
+    return;
+  }
+
+  localStorage.setItem('pocketTrackPrivacyPin', p1);
+  localStorage.setItem('pocketTrackPrivacyMode', 'true');
+  window.isPrivacyUnlockedSession = false;
+  closeSetPinModal();
   updateHeaderStats();
   const privacySettingToggle = document.getElementById('setting-privacy-toggle');
-  if (privacySettingToggle) privacySettingToggle.checked = isPrivacyMode;
-  toast(isPrivacyMode ? 'Balance masked (Privacy Mode active 🔒)' : 'Balance revealed 👁️', 'info');
+  if (privacySettingToggle) privacySettingToggle.checked = true;
+  toast('Privacy PIN set! Balance & transactions are locked 🔒', 'success');
+}
+window.saveNewPrivacyPin = saveNewPrivacyPin;
+
+function openUnlockPinModal(callback = null) {
+  pendingUnlockCallback = callback;
+  const pin = localStorage.getItem('pocketTrackPrivacyPin');
+  if (!pin) {
+    openSetPinModal();
+    return;
+  }
+  const m = document.getElementById('privacy-unlock-modal');
+  const pinInput = document.getElementById('unlock-pin-input');
+  const errEl = document.getElementById('unlock-pin-error');
+  if (pinInput) pinInput.value = '';
+  if (errEl) errEl.textContent = '';
+  if (m) {
+    m.style.display = 'flex';
+    if (typeof document !== 'undefined' && document.body && document.body.style) document.body.style.overflow = 'hidden';
+    if (pinInput) setTimeout(() => pinInput.focus(), 100);
+  }
+}
+window.openUnlockPinModal = openUnlockPinModal;
+
+function closeUnlockPinModal() {
+  pendingUnlockCallback = null;
+  const m = document.getElementById('privacy-unlock-modal');
+  if (m) {
+    m.style.display = 'none';
+    if (typeof document !== 'undefined' && document.body && document.body.style) document.body.style.overflow = '';
+  }
+}
+window.closeUnlockPinModal = closeUnlockPinModal;
+
+function submitUnlockPin() {
+  const pinInput = document.getElementById('unlock-pin-input');
+  const errEl = document.getElementById('unlock-pin-error');
+  const entered = pinInput ? pinInput.value.trim() : '';
+  const stored = localStorage.getItem('pocketTrackPrivacyPin') || '0000';
+
+  if (entered === stored) {
+    window.isPrivacyUnlockedSession = true;
+    closeUnlockPinModal();
+    updateHeaderStats();
+    toast('Unlocked for this session 🔓', 'success');
+    if (typeof pendingUnlockCallback === 'function') {
+      const cb = pendingUnlockCallback;
+      pendingUnlockCallback = null;
+      cb();
+    }
+  } else {
+    if (errEl) errEl.textContent = 'Incorrect PIN. Try again.';
+    if (pinInput) { pinInput.value = ''; pinInput.focus(); }
+  }
+}
+window.submitUnlockPin = submitUnlockPin;
+
+function toggleBalancePrivacy() {
+  if (isPrivacyActive()) {
+    openUnlockPinModal();
+  } else {
+    window.isPrivacyUnlockedSession = false;
+    localStorage.setItem('pocketTrackPrivacyMode', 'true');
+    updateHeaderStats();
+    toast('Privacy lock engaged 🔒', 'info');
+  }
 }
 window.toggleBalancePrivacy = toggleBalancePrivacy;
 
 function setPrivacyModeFromSettings(enabled) {
-  isPrivacyMode = !!enabled;
-  localStorage.setItem('pocketTrackPrivacyMode', isPrivacyMode ? 'true' : 'false');
-  updateHeaderStats();
-  toast(isPrivacyMode ? 'Privacy Mode turned ON (Balance hidden)' : 'Privacy Mode turned OFF', 'info');
+  if (enabled) {
+    const pin = localStorage.getItem('pocketTrackPrivacyPin');
+    if (!pin) {
+      openSetPinModal();
+    } else {
+      localStorage.setItem('pocketTrackPrivacyMode', 'true');
+      window.isPrivacyUnlockedSession = false;
+      updateHeaderStats();
+      toast('Privacy Mode enabled 🔒', 'info');
+    }
+  } else {
+    const pin = localStorage.getItem('pocketTrackPrivacyPin');
+    if (pin) {
+      openUnlockPinModal(() => {
+        localStorage.setItem('pocketTrackPrivacyMode', 'false');
+        window.isPrivacyUnlockedSession = true;
+        const toggle = document.getElementById('setting-privacy-toggle');
+        if (toggle) toggle.checked = false;
+        updateHeaderStats();
+        toast('Privacy Mode turned OFF 👁️', 'info');
+      });
+    } else {
+      localStorage.setItem('pocketTrackPrivacyMode', 'false');
+      window.isPrivacyUnlockedSession = true;
+      updateHeaderStats();
+    }
+  }
 }
 window.setPrivacyModeFromSettings = setPrivacyModeFromSettings;
+
+function onSafeToSpendCardClick() {
+  if (isPrivacyActive()) {
+    openUnlockPinModal(() => openSavingsTargetModal());
+  } else {
+    openSavingsTargetModal();
+  }
+}
+window.onSafeToSpendCardClick = onSafeToSpendCardClick;
+
+function onBalanceCardClick() {
+  if (isPrivacyActive()) {
+    openUnlockPinModal();
+  }
+}
+window.onBalanceCardClick = onBalanceCardClick;
 
 // ── BALANCE & STATS SYNC ──
 function updateHeaderStats() {
@@ -57,6 +211,7 @@ function updateHeaderStats() {
   const income = list.filter(e => e.type === 'income').reduce((s, e) => s + (parseFloat(e.amt) || 0), 0);
   const spent = list.filter(e => e.type === 'expense').reduce((s, e) => s + (parseFloat(e.amt) || 0), 0);
   const balance = income - spent;
+  const locked = isPrivacyActive();
 
   const b = document.getElementById('hdr-balance');
   const inc = document.getElementById('hero-income');
@@ -65,11 +220,11 @@ function updateHeaderStats() {
   const eyeIcon = document.getElementById('privacy-eye-icon');
 
   if (eyeIcon) {
-    eyeIcon.className = isPrivacyMode ? 'ti ti-eye-off' : 'ti ti-eye';
-    eyeIcon.title = isPrivacyMode ? 'Click to show balance' : 'Click to hide balance';
+    eyeIcon.className = locked ? 'ti ti-eye-off' : 'ti ti-eye';
+    eyeIcon.title = locked ? 'Click to enter PIN & unlock' : 'Click to hide balance';
   }
 
-  if (isPrivacyMode) {
+  if (locked) {
     if (b) { b.textContent = '₹••••••'; b.classList.add('privacy-masked'); }
     if (inc) { inc.textContent = '₹••••'; inc.classList.add('privacy-masked'); }
     if (exp) { exp.textContent = '₹••••'; exp.classList.add('privacy-masked'); }
@@ -94,7 +249,7 @@ function updateHeaderStats() {
   const safeSub = document.getElementById('safe-to-spend-sub');
 
   if (safeEl) {
-    if (isPrivacyMode) {
+    if (locked) {
       safeEl.textContent = '₹••••/day';
       safeEl.classList.add('privacy-masked');
     } else {
@@ -105,15 +260,15 @@ function updateHeaderStats() {
 
   if (safeSub) {
     if (savingsTarget > 0) {
-      safeSub.textContent = `🎯 Saving ₹${savingsTarget.toLocaleString('en-IN')} · ${isPrivacyMode ? '₹••••' : '₹' + safePerDay.toLocaleString('en-IN')} safe today (${daysLeft}d left)`;
+      safeSub.textContent = `🎯 Saving ₹${savingsTarget.toLocaleString('en-IN')} · ${locked ? '₹••••' : '₹' + safePerDay.toLocaleString('en-IN')} safe today (${daysLeft}d left)`;
     } else {
       safeSub.textContent = balance > 0 
-        ? `${isPrivacyMode ? '₹••••' : '₹' + safePerDay.toLocaleString('en-IN')} left today (${daysLeft}d left in month)`
+        ? `${locked ? '₹••••' : '₹' + safePerDay.toLocaleString('en-IN')} left today (${daysLeft}d left in month)`
         : `₹0 left today (${daysLeft}d left in month)`;
     }
   }
 
-  if (!isPrivacyMode && typeof animateNumber === 'function') {
+  if (!locked && typeof animateNumber === 'function') {
     animateNumber('hdr-balance', balance);
     animateNumber('hero-income', income);
     animateNumber('hero-spent', spent);
@@ -401,6 +556,7 @@ function renderHomeRecent() {
   const container = document.getElementById('home-recent-activity');
   if (!container) return;
   const list = window.entries || [];
+  const locked = isPrivacyActive();
 
   if (!list.length) {
     container.innerHTML = `<div class="empty-mini" style="padding:24px 0;text-align:center;color:var(--text-dim);font-size:13px;">No entries logged yet. Tap <strong>Expense</strong> or <strong>Income</strong> above!</div>`;
@@ -408,16 +564,17 @@ function renderHomeRecent() {
   }
 
   const top5 = list.slice(0, 5);
-  let html = '';
+  let rowsHtml = '';
   top5.forEach(e => {
     const isInc = e.type === 'income';
     const isTr = e.cat === 'transfer';
     const amtClass = isTr ? 'transfer' : (isInc ? 'income' : 'expense');
     const sign = isTr ? '' : (isInc ? '+₹' : '-₹');
     const catIcon = getCategoryIcon(e.cat, e.type);
+    const displayAmt = locked ? '₹••••' : `${sign}${parseFloat(e.amt || 0).toLocaleString('en-IN')}`;
 
-    html += `
-      <div class="entry-row" onclick="startEditEntry('${e.id}')">
+    rowsHtml += `
+      <div class="entry-row" onclick="${locked ? 'openUnlockPinModal()' : `startEditEntry('${e.id}')`}">
         <div class="entry-left">
           <div class="entry-icon">${catIcon}</div>
           <div class="entry-main">
@@ -428,11 +585,27 @@ function renderHomeRecent() {
             </div>
           </div>
         </div>
-        <div class="entry-amt ${amtClass}">${sign}${parseFloat(e.amt || 0).toLocaleString('en-IN')}</div>
+        <div class="entry-amt ${amtClass} ${locked ? 'privacy-masked' : ''}">${displayAmt}</div>
       </div>
     `;
   });
-  container.innerHTML = html;
+
+  if (locked) {
+    container.innerHTML = `
+      <div style="position:relative;">
+        <div class="privacy-barrier-overlay" onclick="openUnlockPinModal()">
+          <span style="font-size:22px;">🔒</span>
+          <span style="font-size:12.5px;font-weight:800;color:var(--text);">Transactions Hidden</span>
+          <span style="font-size:11px;color:var(--text-dim);">Tap to enter PIN & unlock</span>
+        </div>
+        <div class="privacy-blur">
+          ${rowsHtml}
+        </div>
+      </div>
+    `;
+  } else {
+    container.innerHTML = rowsHtml;
+  }
 }
 window.renderHomeRecent = renderHomeRecent;
 window.renderHomeSnapshot = renderHomeRecent;
@@ -442,6 +615,7 @@ function renderActivityList() {
   const container = document.getElementById('entries-list');
   if (!container) return;
   let list = window.entries || [];
+  const locked = isPrivacyActive();
 
   // Filter
   if (currentActivityFilter !== 'all') {
@@ -468,16 +642,17 @@ function renderActivityList() {
     return;
   }
 
-  let html = '';
+  let rowsHtml = '';
   list.forEach(e => {
     const isInc = e.type === 'income';
     const isTr = e.cat === 'transfer';
     const amtClass = isTr ? 'transfer' : (isInc ? 'income' : 'expense');
     const sign = isTr ? '' : (isInc ? '+₹' : '-₹');
     const catIcon = getCategoryIcon(e.cat, e.type);
+    const displayAmt = locked ? '₹••••' : `${sign}${parseFloat(e.amt || 0).toLocaleString('en-IN')}`;
 
-    html += `
-      <div class="entry-row" onclick="startEditEntry('${e.id}')">
+    rowsHtml += `
+      <div class="entry-row" onclick="${locked ? 'openUnlockPinModal()' : `startEditEntry('${e.id}')`}">
         <div class="entry-left">
           <div class="entry-icon">${catIcon}</div>
           <div class="entry-main">
@@ -488,11 +663,27 @@ function renderActivityList() {
             </div>
           </div>
         </div>
-        <div class="entry-amt ${amtClass}">${sign}${parseFloat(e.amt || 0).toLocaleString('en-IN')}</div>
+        <div class="entry-amt ${amtClass} ${locked ? 'privacy-masked' : ''}">${displayAmt}</div>
       </div>
     `;
   });
-  container.innerHTML = html;
+
+  if (locked) {
+    container.innerHTML = `
+      <div style="position:relative;">
+        <div class="privacy-barrier-overlay" onclick="openUnlockPinModal()">
+          <span style="font-size:24px;">🔒</span>
+          <span style="font-size:13.5px;font-weight:800;color:var(--text);">Passbook Locked</span>
+          <span style="font-size:11px;color:var(--text-dim);">Tap to enter PIN & view amounts</span>
+        </div>
+        <div class="privacy-blur">
+          ${rowsHtml}
+        </div>
+      </div>
+    `;
+  } else {
+    container.innerHTML = rowsHtml;
+  }
 }
 window.renderActivityList = renderActivityList;
 window.renderEntries = renderActivityList;
@@ -956,22 +1147,14 @@ window.renderQuickPresets = renderQuickPresets;
 function logQuickPreset(presetId) {
   const preset = getQuickPresets().find(p => p.id === presetId);
   if (!preset) return;
-  const newEntry = {
-    id: 'pt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
-    amt: parseFloat(preset.amt),
-    type: 'expense',
-    cat: preset.cat || 'other',
+  // Open composer pre-filled with preset values so user can adjust or confirm (2-Tap Quick Log)
+  openQuickComposer('expense', {
+    amt: preset.amt,
     desc: preset.name,
-    date: new Date().toISOString().split('T')[0],
-    wallet: preset.wallet || 'cash',
-    createdAt: Date.now()
-  };
-  window.entries.unshift(newEntry);
-  localStorage.setItem('pocketTrackEntries', JSON.stringify(window.entries));
-  updateHeaderStats();
-  if (typeof syncEntriesToCloud === 'function') syncEntriesToCloud();
-  const wName = (typeof getWallets === 'function' ? (getWallets().find(w => w.id === preset.wallet) || {}).name : '') || preset.wallet;
-  toast(`⚡ Logged ${preset.name} (-₹${preset.amt} via ${wName})! ${preset.icon}`, 'success');
+    cat: preset.cat,
+    wallet: preset.wallet
+  });
+  toast(`⚡ ${preset.icon || ''} ${preset.name} ready — adjust or tap Save!`, 'info');
 }
 window.logQuickPreset = logQuickPreset;
 

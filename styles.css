@@ -988,7 +988,7 @@ input:focus, select:focus, textarea:focus {
 }
 
 /* =====================================================================
-   🔒 PRIVACY MODE (HIDE BALANCE BY DEFAULT)
+   🔒 PRIVACY MODE (HIDE BALANCE BY DEFAULT & PIN LOCK)
    ===================================================================== */
 .privacy-eye-btn {
   background: none;
@@ -1012,6 +1012,46 @@ input:focus, select:focus, textarea:focus {
   font-weight: 900 !important;
   color: var(--text-dim) !important;
   user-select: none;
+}
+.privacy-blur {
+  filter: blur(5px);
+  user-select: none;
+  transition: filter 0.25s ease;
+}
+.privacy-barrier-card {
+  position: relative;
+  overflow: hidden;
+}
+.privacy-barrier-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(var(--bg1), 0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 20px;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s ease;
+}
+.privacy-barrier-overlay:hover {
+  background: rgba(var(--bg1), 0.85);
+}
+.pin-input-box {
+  width: 100%;
+  max-width: 220px;
+  height: 54px;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 12px;
+  text-align: center;
+  border-radius: 16px;
+  font-family: 'Space Grotesk', monospace;
+  margin: 0 auto;
 }
 
 /* =====================================================================
