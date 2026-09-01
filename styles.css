@@ -314,67 +314,86 @@ header {
 .hero-metric-item strong.green { color: var(--green); }
 .hero-metric-item strong.red { color: var(--red); }
 
-/* 4 Circular Action Buttons (Expense, Income, Transfer, UPI Paste) */
+/* 4 Modern Action Buttons (Expense, Income, Transfer, UPI Paste) */
 .hero-actions-grid-4 {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  gap: 10px;
   text-align: center;
 }
 .hero-action-btn-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   background: none;
   border: none;
   cursor: pointer;
   padding: 0;
+  outline: none;
 }
 .hero-action-btn-circle {
   width: 52px;
   height: 52px;
-  border-radius: 50%;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
-  transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.18s ease;
+  font-size: 21px;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease, filter 0.22s ease;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 .hero-action-btn-item:hover .hero-action-btn-circle {
-  transform: translateY(-2px) scale(1.05);
+  transform: translateY(-3px) scale(1.06);
 }
 .hero-action-btn-item:active .hero-action-btn-circle {
-  transform: scale(0.95);
+  transform: scale(0.92);
 }
 .hero-action-btn-circle.expense {
-  background: var(--red-soft);
-  border: 1.5px solid rgba(248, 113, 113, 0.35);
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(239, 68, 68, 0.22) 100%);
+  border: 1.5px solid rgba(239, 68, 68, 0.35);
   color: var(--red);
-  box-shadow: 0 4px 14px var(--red-soft);
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.18);
+}
+.hero-action-btn-item:hover .hero-action-btn-circle.expense {
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.32);
 }
 .hero-action-btn-circle.income {
-  background: var(--green-soft);
-  border: 1.5px solid rgba(52, 211, 153, 0.35);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(16, 185, 129, 0.22) 100%);
+  border: 1.5px solid rgba(16, 185, 129, 0.35);
   color: var(--green);
-  box-shadow: 0 4px 14px var(--green-soft);
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.18);
+}
+.hero-action-btn-item:hover .hero-action-btn-circle.income {
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.32);
 }
 .hero-action-btn-circle.transfer {
-  background: rgba(59, 130, 246, 0.14);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0.22) 100%);
   border: 1.5px solid rgba(59, 130, 246, 0.35);
   color: #3b82f6;
-  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.18);
+}
+.hero-action-btn-item:hover .hero-action-btn-circle.transfer {
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.32);
 }
 .hero-action-btn-circle.upi {
-  background: rgba(245, 158, 11, 0.14);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(245, 158, 11, 0.22) 100%);
   border: 1.5px solid rgba(245, 158, 11, 0.35);
-  color: var(--amber);
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.18);
+}
+.hero-action-btn-item:hover .hero-action-btn-circle.upi {
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.32);
 }
 .hero-action-btn-label {
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 700;
   color: var(--text-dim);
+  transition: color 0.15s ease;
+}
+.hero-action-btn-item:hover .hero-action-btn-label {
+  color: var(--text);
 }
 
 /* =====================================================================
@@ -452,23 +471,76 @@ header {
 .entry-amt.expense { color: var(--red); }
 .entry-amt.transfer { color: #3b82f6; }
 
-/* Filter Chips */
+/* Modern Segmented Tab Slider for Activity (All, Expenses, Income, Transfers) */
+.filter-chips-bar {
+  display: flex;
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--border);
+  padding: 4px;
+  border-radius: 16px;
+  gap: 4px;
+  margin-bottom: 12px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+[data-theme="dark"] .filter-chips-bar {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
 .filter-chip {
-  padding: 6px 12px;
+  flex: 1;
+  min-width: fit-content;
+  text-align: center;
+  padding: 8px 12px;
   border-radius: 12px;
   font-size: 12px;
   font-weight: 700;
-  background: var(--card);
-  border: 1px solid var(--border);
+  background: transparent;
+  border: 1px solid transparent;
   color: var(--text-dim);
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.filter-chip:hover {
+  color: var(--text);
+  background: rgba(0, 0, 0, 0.03);
+}
+[data-theme="dark"] .filter-chip:hover {
+  background: rgba(255, 255, 255, 0.04);
 }
 .filter-chip.active {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--card);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+  border-color: var(--border);
+  transform: scale(1.02);
+}
+[data-theme="dark"] .filter-chip.active {
+  background: #251c4a;
   color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+}
+
+/* Tab & Row Animations */
+.tab-content {
+  animation: tabFadeIn 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes tabFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.entry-row {
+  animation: rowSlideIn 0.22s ease-out;
+}
+@keyframes rowSlideIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* =====================================================================
@@ -718,10 +790,21 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 10px 25px rgba(236, 72, 153, 0.45);
   cursor: pointer;
   z-index: 99;
-  transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: fabGlowPulse 2.8s infinite ease-in-out;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes fabGlowPulse {
+  0%, 100% {
+    box-shadow: 0 10px 25px rgba(236, 72, 153, 0.45);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 10px 35px rgba(236, 72, 153, 0.75), 0 0 18px rgba(168, 85, 247, 0.6);
+    transform: scale(1.04);
+  }
 }
 .floating-voice-fab:hover {
-  transform: scale(1.08);
+  transform: scale(1.12);
 }
 .floating-voice-fab:active {
   transform: scale(0.92);

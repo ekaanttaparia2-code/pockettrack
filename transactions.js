@@ -41,17 +41,11 @@ function updateHeaderStats() {
   const inc = document.getElementById('hero-income');
   const exp = document.getElementById('hero-spent');
   const cnt = document.getElementById('hero-count');
-  if (b) b.textContent = '₹' + balance.toLocaleString('en-IN');
+
+  if (b) b.textContent = (balance < 0 ? '-₹' : '₹') + Math.abs(balance).toLocaleString('en-IN');
   if (inc) inc.textContent = '₹' + income.toLocaleString('en-IN');
   if (exp) exp.textContent = '₹' + spent.toLocaleString('en-IN');
   if (cnt) cnt.textContent = String(list.length);
-
-  if (typeof animateNumber === 'function') {
-    animateNumber('hdr-balance', balance);
-    animateNumber('hero-income', income);
-    animateNumber('hero-spent', spent);
-    animateNumber('hero-count', list.length, '', '');
-  }
 
   // Calculate Daily Safe-to-Spend
   const today = new Date();
@@ -61,8 +55,21 @@ function updateHeaderStats() {
 
   const safeEl = document.getElementById('safe-to-spend-val');
   const safeSub = document.getElementById('safe-to-spend-sub');
+
   if (safeEl) safeEl.textContent = '₹' + safePerDay.toLocaleString('en-IN') + '/day';
-  if (safeSub) safeSub.textContent = `₹${safePerDay.toLocaleString('en-IN')} left today (${daysLeft}d left)`;
+  if (safeSub) {
+    safeSub.textContent = balance > 0 
+      ? `₹${safePerDay.toLocaleString('en-IN')} left today (${daysLeft}d left)`
+      : `₹0 left today (${daysLeft}d left in month)`;
+  }
+
+  if (typeof animateNumber === 'function') {
+    animateNumber('hdr-balance', balance);
+    animateNumber('hero-income', income);
+    animateNumber('hero-spent', spent);
+    animateNumber('hero-count', list.length, '', '');
+    if (safeEl) animateNumber('safe-to-spend-val', safePerDay, '₹', '/day');
+  }
 
   renderHomeRecent();
   if (window.currentTab === 'activity') renderActivityList();
@@ -226,6 +233,7 @@ function openQuickComposer(type='expense', editEntry=null) {
   }
 
   m.style.display = 'flex';
+  if (typeof document !== 'undefined' && document.body && document.body.style) document.body.style.overflow = 'hidden';
   if (amtInput && !editEntry) amtInput.focus();
 }
 window.openQuickComposer = openQuickComposer;
@@ -233,6 +241,7 @@ window.openQuickComposer = openQuickComposer;
 function closeQuickComposer() {
   const m = document.getElementById('modal-composer');
   if (m) m.style.display = 'none';
+  if (typeof document !== 'undefined' && document.body && document.body.style) document.body.style.overflow = '';
   currentEditingId = null;
 }
 window.closeQuickComposer = closeQuickComposer;

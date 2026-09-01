@@ -276,8 +276,8 @@
         <input type="text" id="activity-search-input" placeholder="Search notes, merchants, amounts..." oninput="onActivitySearch(this.value)" style="padding-left:38px;border-radius:16px;"/>
       </div>
 
-      <!-- Filter Category Chips -->
-      <div class="filter-chips-bar" id="activity-filter-chips" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;">
+      <!-- Segmented Filter Tabs -->
+      <div class="filter-chips-bar" id="activity-filter-chips">
         <button class="filter-chip active" onclick="setActivityFilter('all', this)">All</button>
         <button class="filter-chip" onclick="setActivityFilter('expense', this)">💸 Expenses</button>
         <button class="filter-chip" onclick="setActivityFilter('income', this)">💵 Income</button>

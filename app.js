@@ -138,22 +138,37 @@ function toggleTheme() {
 window.toggleTheme = toggleTheme;
 
 // ── NUMBER ANIMATION ──
-function animateNumber(elementId, targetValue, prefix='₹', suffix='') {
-  const el = document.getElementById(elementId);
+function animateNumber(elementId, targetValue, prefix='₹', suffix='', duration=400) {
+  if (typeof document === 'undefined') return;
+  const el = typeof elementId === 'string' ? document.getElementById(elementId) : elementId;
   if (!el) return;
-  const startValue = parseFloat(el.textContent.replace(/[^0-9.-]+/g, '')) || 0;
-  const diff = targetValue - startValue;
-  const duration = 300;
-  const startTime = performance.now();
+  const target = parseFloat(targetValue) || 0;
+  const startValue = parseFloat((el.textContent || '').replace(/[^0-9.-]+/g, '')) || 0;
+  if (startValue === target) {
+    el.textContent = (target < 0 ? '-' + prefix + Math.abs(target).toLocaleString('en-IN') : prefix + target.toLocaleString('en-IN')) + suffix;
+    return;
+  }
+  
+  const startTime = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+  const diff = target - startValue;
 
   function update(now) {
     const elapsed = now - startTime;
     const progress = Math.min(elapsed / duration, 1);
-    const current = Math.round(startValue + diff * progress);
-    el.textContent = prefix + current.toLocaleString('en-IN') + suffix;
-    if (progress < 1) requestAnimationFrame(update);
+    const ease = 1 - Math.pow(1 - progress, 3);
+    const current = Math.round(startValue + diff * ease);
+    el.textContent = (current < 0 ? '-' + prefix + Math.abs(current).toLocaleString('en-IN') : prefix + current.toLocaleString('en-IN')) + suffix;
+    if (progress < 1) {
+      if (typeof requestAnimationFrame === 'function') requestAnimationFrame(update);
+    } else {
+      el.textContent = (target < 0 ? '-' + prefix + Math.abs(target).toLocaleString('en-IN') : prefix + target.toLocaleString('en-IN')) + suffix;
+    }
   }
-  requestAnimationFrame(update);
+  if (typeof requestAnimationFrame === 'function') {
+    requestAnimationFrame(update);
+  } else {
+    el.textContent = (target < 0 ? '-' + prefix + Math.abs(target).toLocaleString('en-IN') : prefix + target.toLocaleString('en-IN')) + suffix;
+  }
 }
 window.animateNumber = animateNumber;
 
