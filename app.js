@@ -79,8 +79,11 @@ function setTab(tabName) {
   if (tabName === 'activity' && typeof renderActivityList === 'function') {
     renderActivityList();
   }
-  if (tabName === 'settings' && typeof renderSettingsWallets === 'function') {
-    renderSettingsWallets();
+  if (tabName === 'settings') {
+    if (typeof renderSettingsWallets === 'function') renderSettingsWallets();
+    const sInput = document.getElementById('settings-savings-input');
+    const currSav = localStorage.getItem('pocketTrackSavingsTarget') || '';
+    if (sInput && currSav) sInput.value = currSav;
   }
   if (tabName === 'home' && typeof updateHeaderStats === 'function') {
     updateHeaderStats();
@@ -190,4 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof renderSettingsWallets === 'function') renderSettingsWallets();
   const bInput = document.getElementById('budget-input');
   if (bInput && window.monthlyBudget > 0) bInput.value = window.monthlyBudget;
+  const sInput = document.getElementById('settings-savings-input');
+  const currSav = localStorage.getItem('pocketTrackSavingsTarget') || '';
+  if (sInput && currSav) sInput.value = currSav;
 });

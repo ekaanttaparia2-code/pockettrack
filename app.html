@@ -160,30 +160,30 @@
       </div>
     </div>
 
-    <!-- 1. Dedicated Rectangular Stat Boxes ABOVE Balance (Income, Spent, Entries) -->
+    <!-- 1. Dedicated Rectangular Stat Boxes (Mom's Vibrant Color Palette) -->
     <div class="stats-boxes-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;">
-      <div class="card stat-box" style="padding:12px 14px;border-radius:18px;background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow-sm);">
+      <div class="card stat-box income-box">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
           <span style="width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);"></span>
-          <span style="font-size:10px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;color:var(--text-dim);">Income</span>
+          <span style="font-size:10px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;color:var(--green);">Income</span>
         </div>
-        <strong style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:800;color:var(--green);display:block;" id="hero-income">₹0</strong>
+        <strong style="font-family:'Space Grotesk',sans-serif;font-size:15.5px;font-weight:800;color:var(--green);display:block;" id="hero-income">₹0</strong>
       </div>
 
-      <div class="card stat-box" style="padding:12px 14px;border-radius:18px;background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow-sm);">
+      <div class="card stat-box spent-box">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
           <span style="width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:0 0 6px var(--red);"></span>
-          <span style="font-size:10px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;color:var(--text-dim);">Spent</span>
+          <span style="font-size:10px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;color:var(--red);">Spent</span>
         </div>
-        <strong style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:800;color:var(--red);display:block;" id="hero-spent">₹0</strong>
+        <strong style="font-family:'Space Grotesk',sans-serif;font-size:15.5px;font-weight:800;color:var(--red);display:block;" id="hero-spent">₹0</strong>
       </div>
 
-      <div class="card stat-box" style="padding:12px 14px;border-radius:18px;background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow-sm);">
+      <div class="card stat-box entries-box">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
           <span style="width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px var(--accent);"></span>
-          <span style="font-size:10px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;color:var(--text-dim);">Entries</span>
+          <span style="font-size:10px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;color:var(--accent);">Entries</span>
         </div>
-        <strong style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:800;color:var(--text);display:block;" id="hero-count">0</strong>
+        <strong style="font-family:'Space Grotesk',sans-serif;font-size:15.5px;font-weight:800;color:var(--accent);display:block;" id="hero-count">0</strong>
       </div>
     </div>
 
@@ -201,7 +201,7 @@
       
       <p class="hero-balance" id="hdr-balance" style="margin:4px 0 16px;">₹0</p>
 
-      <!-- 4 Circular Action Buttons -->
+      <!-- 4 Modern Glass Action Buttons -->
       <div class="hero-actions-grid-4">
         <button class="hero-action-btn-item" onclick="openQuickComposer('expense')">
           <div class="hero-action-btn-circle expense">
@@ -230,8 +230,8 @@
       </div>
     </div>
 
-    <!-- 3. 🎯 DAILY SAFE-TO-SPEND CARD (Directly below Balance Card) -->
-    <div class="card safe-to-spend-card" style="padding:16px 18px;margin-bottom:20px;border-radius:22px;display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow-md);">
+    <!-- 3. 🎯 DAILY SAFE-TO-SPEND CARD (With 1-Tap Savings Goal Trigger) -->
+    <div class="card safe-to-spend-card" onclick="openSavingsTargetModal()" style="padding:16px 18px;margin-bottom:20px;border-radius:22px;display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow-md);cursor:pointer;" title="Tap to set or change your monthly savings target">
       <div style="display:flex;align-items:center;gap:12px;">
         <div style="width:44px;height:44px;border-radius:14px;background:rgba(236,72,153,0.12);display:grid;place-items:center;font-size:22px;">🎯</div>
         <div>
@@ -240,6 +240,9 @@
           <span style="font-size:11px;color:var(--text-dim);" id="safe-to-spend-sub">Calculated for the remaining days</span>
         </div>
       </div>
+      <button class="pill" onclick="event.stopPropagation();openSavingsTargetModal();" style="font-size:11px;font-weight:700;padding:6px 10px;border-radius:12px;cursor:pointer;flex-shrink:0;">
+        <span>🎯 Goal</span>
+      </button>
     </div>
 
     <!-- Recent Activity Section -->
@@ -313,17 +316,32 @@
       </div>
     </div>
 
+    <!-- Monthly Savings Target Card -->
+    <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;background:linear-gradient(135deg,rgba(16,185,129,0.06) 0%,rgba(124,58,237,0.06) 100%);border:1.5px solid rgba(16,185,129,0.25);">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+        <span style="font-size:20px;">🎯</span>
+        <div>
+          <h3 style="font-size:16px;font-weight:700;margin:0;">Monthly Savings Target</h3>
+          <p style="font-size:11px;color:var(--text-dim);margin:2px 0 0;">Money protected from daily spending</p>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <input type="number" id="settings-savings-input" placeholder="e.g. 5000" style="flex:1;font-size:15px;font-weight:700;"/>
+        <button class="btn btn-primary" onclick="saveSavingsTargetFromSettings()" style="padding:0 16px;">Save</button>
+      </div>
+    </div>
+
     <!-- Monthly Budget Card -->
     <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-        <span style="font-size:20px;">🎯</span>
+        <span style="font-size:20px;">💳</span>
         <h3 style="font-size:16px;font-weight:700;margin:0;">Monthly Budget Limit</h3>
       </div>
       <div style="display:flex;gap:8px;">
         <input type="number" id="budget-input" placeholder="e.g. 15000" style="flex:1;font-size:15px;font-weight:700;"/>
-        <button class="btn btn-primary" onclick="saveMonthlyBudget()" style="padding:0 16px;">Save</button>
+        <button class="btn" onclick="saveMonthlyBudget()" style="padding:0 16px;">Save</button>
       </div>
-      <p style="font-size:11px;color:var(--text-dim);margin:6px 0 0;">Sets your monthly expenditure target.</p>
+      <p style="font-size:11px;color:var(--text-dim);margin:6px 0 0;">Sets your monthly expenditure ceiling.</p>
     </div>
 
     <!-- Appearance / Theme -->
@@ -487,7 +505,38 @@
   </div>
 </div>
 
-<!-- Floating Voice Mic FAB (Matching Photo media_1788000297640.png) -->
+<!-- 5. Monthly Savings Target Modal -->
+<div class="modal-overlay" id="savings-modal" style="display:none;" onclick="if(event.target===this)closeSavingsTargetModal()">
+  <div class="modal-sheet" style="padding:22px 20px 30px;">
+    <div class="modal-sheet-handle"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:22px;">🎯</span>
+        <h3 style="font-size:18px;font-weight:800;margin:0;">Monthly Savings Goal</h3>
+      </div>
+      <button class="icon-btn" onclick="closeSavingsTargetModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <p style="font-size:12.5px;color:var(--text-dim);margin:0 0 16px;">How much money do you want to keep saved this month? We will protect this amount and recalculate your daily safe-to-spend limit.</p>
+    
+    <label style="font-size:11px;font-weight:800;letter-spacing:0.5px;color:var(--text-dim);display:block;margin-bottom:6px;text-transform:uppercase;">Savings Goal (₹)</label>
+    <div style="position:relative;margin-bottom:14px;">
+      <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:24px;font-weight:800;color:var(--text-dim);">₹</span>
+      <input type="number" id="savings-target-input" placeholder="0" inputmode="numeric" style="padding-left:38px;font-size:24px;font-weight:800;font-family:'Space Grotesk',sans-serif;height:54px;border-radius:16px;"/>
+    </div>
+
+    <!-- Quick Presets -->
+    <div style="display:flex;gap:6px;margin-bottom:18px;">
+      <button class="btn btn-sm" onclick="setSavingsPreset(2000)" style="flex:1;border-radius:12px;font-weight:700;">₹2,000</button>
+      <button class="btn btn-sm" onclick="setSavingsPreset(5000)" style="flex:1;border-radius:12px;font-weight:700;">₹5,000</button>
+      <button class="btn btn-sm" onclick="setSavingsPreset(10000)" style="flex:1;border-radius:12px;font-weight:700;">₹10,000</button>
+      <button class="btn btn-sm" onclick="setSavingsPreset(0)" style="flex:0.8;border-radius:12px;font-weight:700;color:var(--red);">Clear</button>
+    </div>
+
+    <button class="btn btn-primary" onclick="saveSavingsTarget()" style="width:100%;padding:14px;font-size:15px;font-weight:800;border-radius:16px;">Save Target 🎯</button>
+  </div>
+</div>
+
+<!-- Floating Voice Mic FAB (Theme-Adaptive Glowing Design) -->
 <button class="floating-voice-fab" onclick="startVoiceForComposer()" title="Voice Add (English/Hindi/Hinglish)" aria-label="Voice Add">
   <i class="ti ti-microphone"></i>
 </button>

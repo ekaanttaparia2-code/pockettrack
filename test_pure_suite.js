@@ -239,6 +239,25 @@ it('9.1 Extracts amount, category, type, and wallet from natural speech', () => 
   assert.strictEqual(p3.wallet, 'card');
 });
 
+// ── TEST 10: Monthly Savings Target & Safe-to-Spend ──
+it('10.1 Sets savings target and adjusts daily safe-to-spend limit', () => {
+  window.entries = [
+    { id: 'i1', type: 'income', amt: 30000, cat: 'salary', date: '2026-09-01' },
+    { id: 'e1', type: 'expense', amt: 10000, cat: 'rent', date: '2026-09-01' }
+  ];
+  // Balance is 20000
+  // Set savings target = 5000 -> spendable = 15000
+  document.getElementById('savings-target-input').value = '5000';
+  saveSavingsTarget();
+
+  assert.strictEqual(localStorage.getItem('pocketTrackSavingsTarget'), '5000');
+  
+  updateHeaderStats();
+  const safeText = document.getElementById('safe-to-spend-val').textContent;
+  assert.ok(safeText.startsWith('₹'), 'Safe to spend must be formatted');
+  assert.ok(document.getElementById('safe-to-spend-sub').textContent.includes('Saving ₹5,000'));
+});
+
 console.log('\n═══════════════════════════════════════════════');
 console.log(`TOTAL: ${passed + failed} | PASSED: ${passed} | FAILED: ${failed}`);
 console.log('═══════════════════════════════════════════════');

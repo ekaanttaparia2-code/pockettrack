@@ -47,20 +47,28 @@ function updateHeaderStats() {
   if (exp) exp.textContent = '₹' + spent.toLocaleString('en-IN');
   if (cnt) cnt.textContent = String(list.length);
 
-  // Calculate Daily Safe-to-Spend
+  // Calculate Daily Safe-to-Spend with Monthly Savings Target
   const today = new Date();
   const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
   const daysLeft = Math.max(1, daysInMonth - today.getDate() + 1);
-  const safePerDay = balance > 0 ? Math.floor(balance / daysLeft) : 0;
+  const savingsTarget = parseFloat(localStorage.getItem('pocketTrackSavingsTarget')) || 0;
+  
+  // Spendable balance protects the savings target
+  const spendable = Math.max(0, balance - savingsTarget);
+  const safePerDay = Math.floor(spendable / daysLeft);
 
   const safeEl = document.getElementById('safe-to-spend-val');
   const safeSub = document.getElementById('safe-to-spend-sub');
 
   if (safeEl) safeEl.textContent = '₹' + safePerDay.toLocaleString('en-IN') + '/day';
   if (safeSub) {
-    safeSub.textContent = balance > 0 
-      ? `₹${safePerDay.toLocaleString('en-IN')} left today (${daysLeft}d left)`
-      : `₹0 left today (${daysLeft}d left in month)`;
+    if (savingsTarget > 0) {
+      safeSub.textContent = `🎯 Saving ₹${savingsTarget.toLocaleString('en-IN')} · ₹${safePerDay.toLocaleString('en-IN')} safe today (${daysLeft}d left)`;
+    } else {
+      safeSub.textContent = balance > 0 
+        ? `₹${safePerDay.toLocaleString('en-IN')} left today (${daysLeft}d left in month)`
+        : `₹0 left today (${daysLeft}d left in month)`;
+    }
   }
 
   if (typeof animateNumber === 'function') {
@@ -76,6 +84,62 @@ function updateHeaderStats() {
   if (typeof renderSettingsWallets === 'function') renderSettingsWallets();
 }
 window.updateHeaderStats = updateHeaderStats;
+
+// ── SAVINGS TARGET MODAL & SETTINGS ──
+function openSavingsTargetModal() {
+  const m = document.getElementById('savings-modal');
+  if (m) {
+    const input = document.getElementById('savings-target-input');
+    const current = localStorage.getItem('pocketTrackSavingsTarget') || '';
+    if (input) input.value = current;
+    m.style.display = 'flex';
+    if (typeof document !== 'undefined' && document.body && document.body.style) {
+      document.body.style.overflow = 'hidden';
+    }
+    if (input) setTimeout(() => input.focus(), 50);
+  }
+}
+window.openSavingsTargetModal = openSavingsTargetModal;
+
+function closeSavingsTargetModal() {
+  const m = document.getElementById('savings-modal');
+  if (m) {
+    m.style.display = 'none';
+    if (typeof document !== 'undefined' && document.body && document.body.style) {
+      document.body.style.overflow = '';
+    }
+  }
+}
+window.closeSavingsTargetModal = closeSavingsTargetModal;
+
+function setSavingsPreset(val) {
+  const input = document.getElementById('savings-target-input');
+  if (input) input.value = val > 0 ? val : '';
+}
+window.setSavingsPreset = setSavingsPreset;
+
+function saveSavingsTarget() {
+  const input = document.getElementById('savings-target-input');
+  const val = input ? parseFloat(input.value) || 0 : 0;
+  localStorage.setItem('pocketTrackSavingsTarget', val > 0 ? String(val) : '');
+  
+  const settingsInput = document.getElementById('settings-savings-input');
+  if (settingsInput) settingsInput.value = val > 0 ? String(val) : '';
+  
+  closeSavingsTargetModal();
+  updateHeaderStats();
+  toast(val > 0 ? `Savings goal set to ₹${val.toLocaleString('en-IN')}! 🎯` : 'Savings goal cleared', 'success');
+}
+window.saveSavingsTarget = saveSavingsTarget;
+
+function saveSavingsTargetFromSettings() {
+  const input = document.getElementById('settings-savings-input');
+  const val = input ? parseFloat(input.value) || 0 : 0;
+  localStorage.setItem('pocketTrackSavingsTarget', val > 0 ? String(val) : '');
+  updateHeaderStats();
+  toast(val > 0 ? `Monthly Savings Target saved: ₹${val.toLocaleString('en-IN')} 🎯` : 'Savings target cleared', 'success');
+}
+window.saveSavingsTargetFromSettings = saveSavingsTargetFromSettings;
 
 // ── RECENT ACTIVITY ON HOME (Top 5) ──
 function renderHomeRecent() {
