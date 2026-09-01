@@ -316,8 +316,26 @@
       </div>
     </div>
 
-    <!-- Monthly Budget Card -->
-    <!-- Monthly Savings Target Card -->
+    <!-- 🔁 Recurring Transactions & Subscriptions Card -->
+    <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:20px;">🔁</span>
+          <div>
+            <h3 style="font-size:16px;font-weight:700;margin:0;">Recurring Payments & Rules</h3>
+            <p style="font-size:11px;color:var(--text-dim);margin:2px 0 0;">Automated monthly bills, rent & salary</p>
+          </div>
+        </div>
+        <button class="btn btn-sm" onclick="openRecurringModal()" style="font-size:11.5px;padding:4px 10px;border-radius:10px;">
+          <span>Manage</span>
+        </button>
+      </div>
+      <div id="settings-recurring-list" style="display:flex;flex-direction:column;gap:6px;">
+        <!-- Populated via transactions.js -->
+      </div>
+    </div>
+
+    <!-- Monthly Savings Target Card (With Per-Wallet Selector) -->
     <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;background:linear-gradient(135deg,rgba(16,185,129,0.06) 0%,rgba(124,58,237,0.06) 100%);border:1.5px solid rgba(16,185,129,0.25);">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
         <span style="font-size:20px;">🎯</span>
@@ -326,23 +344,37 @@
           <p style="font-size:11px;color:var(--text-dim);margin:2px 0 0;">Money protected from daily spending</p>
         </div>
       </div>
-      <div style="display:flex;gap:8px;">
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <select id="settings-savings-wallet" onchange="onSettingsSavingsWalletChange(this.value)" style="flex:0.9;font-size:12.5px;font-weight:700;">
+          <option value="all">🌐 Overall (All)</option>
+          <option value="cash">💵 Cash</option>
+          <option value="bank">🏦 Bank / UPI</option>
+          <option value="card">💳 Credit Card</option>
+        </select>
         <input type="number" id="settings-savings-input" placeholder="e.g. 5000" style="flex:1;font-size:15px;font-weight:700;"/>
         <button class="btn btn-primary" onclick="saveSavingsTargetFromSettings()" style="padding:0 16px;">Save</button>
       </div>
     </div>
 
-    <!-- Monthly Budget Card -->
+    <!-- Monthly Budget Card (With Per-Wallet Selector) -->
     <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
         <span style="font-size:20px;">💳</span>
-        <h3 style="font-size:16px;font-weight:700;margin:0;">Monthly Budget Limit</h3>
+        <div>
+          <h3 style="font-size:16px;font-weight:700;margin:0;">Monthly Budget Limit</h3>
+          <p style="font-size:11px;color:var(--text-dim);margin:2px 0 0;">Sets your monthly expenditure ceiling</p>
+        </div>
       </div>
       <div style="display:flex;gap:8px;">
+        <select id="settings-budget-wallet" onchange="onSettingsBudgetWalletChange(this.value)" style="flex:0.9;font-size:12.5px;font-weight:700;">
+          <option value="all">🌐 Overall (All)</option>
+          <option value="cash">💵 Cash</option>
+          <option value="bank">🏦 Bank / UPI</option>
+          <option value="card">💳 Credit Card</option>
+        </select>
         <input type="number" id="budget-input" placeholder="e.g. 15000" style="flex:1;font-size:15px;font-weight:700;"/>
         <button class="btn" onclick="saveMonthlyBudget()" style="padding:0 16px;">Save</button>
       </div>
-      <p style="font-size:11px;color:var(--text-dim);margin:6px 0 0;">Sets your monthly expenditure ceiling.</p>
     </div>
 
     <!-- Appearance / Theme -->
@@ -430,13 +462,30 @@
     </div>
 
     <!-- Wallet & Date Row -->
-    <div style="display:flex;gap:8px;margin-bottom:16px;">
+    <div style="display:flex;gap:8px;margin-bottom:14px;">
       <select id="comp-wallet" style="flex:1;">
         <option value="cash">💵 Cash</option>
         <option value="bank">🏦 Bank / UPI</option>
         <option value="card">💳 Credit Card</option>
       </select>
       <input type="date" id="comp-date" style="flex:1;"/>
+    </div>
+
+    <!-- 🔁 Recurring Toggle Box -->
+    <div class="composer-recurring-box">
+      <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--text);user-select:none;">
+        <input type="checkbox" id="comp-is-recurring" onchange="toggleComposerRecurring(this.checked)" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;"/>
+        <span>🔁 Repeat Automatically</span>
+      </label>
+      <div id="comp-recurring-freq-wrap" style="display:none;align-items:center;gap:8px;">
+        <span style="font-size:11px;color:var(--text-dim);font-weight:600;">Interval:</span>
+        <select id="comp-recurring-freq" style="flex:1;padding:6px 10px;font-size:12px;border-radius:10px;">
+          <option value="monthly">Monthly (Every Month)</option>
+          <option value="weekly">Weekly (Every Week)</option>
+          <option value="daily">Daily</option>
+          <option value="yearly">Yearly</option>
+        </select>
+      </div>
     </div>
 
     <div class="btn-row" style="display:flex;gap:10px;">
@@ -471,22 +520,27 @@
   </div>
 </div>
 
-<!-- 3. Add Custom Wallet Modal -->
+<!-- 3. Add Custom Wallet Modal (With Curated Preloaded Emoji Grid) -->
 <div class="modal-overlay" id="wallet-modal" style="display:none;" onclick="if(event.target===this)closeNewWalletModal()">
   <div class="modal-sheet">
     <div class="modal-sheet-handle"></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-      <h3 style="font-size:18px;font-weight:800;margin:0;">+ Add New Wallet</h3>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span id="new-wallet-preview-icon" style="font-size:24px;">👛</span>
+        <h3 style="font-size:18px;font-weight:800;margin:0;">+ Add New Account</h3>
+      </div>
       <button class="icon-btn" onclick="closeNewWalletModal()"><i class="ti ti-x"></i></button>
     </div>
     
-    <label style="font-size:11.5px;font-weight:700;color:var(--text-dim);display:block;margin-bottom:4px;">Wallet Name</label>
-    <input type="text" id="new-wallet-name" placeholder="e.g. Paytm, Crypto, Petty Cash" style="margin-bottom:12px;"/>
+    <label style="font-size:11.5px;font-weight:700;color:var(--text-dim);display:block;margin-bottom:4px;">Account / Wallet Name</label>
+    <input type="text" id="new-wallet-name" placeholder="e.g. Paytm, Amazon Pay, Petty Cash" style="margin-bottom:14px;"/>
 
-    <label style="font-size:11.5px;font-weight:700;color:var(--text-dim);display:block;margin-bottom:4px;">Icon Emoji</label>
-    <input type="text" id="new-wallet-icon" placeholder="💰" maxlength="2" style="margin-bottom:12px;width:60px;text-align:center;font-size:20px;"/>
+    <label style="font-size:11.5px;font-weight:700;color:var(--text-dim);display:block;margin-bottom:6px;">Choose Wallet Icon</label>
+    <div class="wallet-emoji-grid" id="wallet-emoji-grid">
+      <!-- Injected from wallets.js -->
+    </div>
 
-    <button class="btn btn-primary" onclick="saveNewWallet()" style="width:100%;padding:14px;font-size:15px;font-weight:800;">Create Wallet</button>
+    <button class="btn btn-primary" onclick="saveNewWallet()" style="width:100%;padding:14px;font-size:15px;font-weight:800;border-radius:16px;">Create Wallet</button>
   </div>
 </div>
 
@@ -506,7 +560,7 @@
   </div>
 </div>
 
-<!-- 5. Monthly Savings Target Modal -->
+<!-- 5. Monthly Savings Target Modal (With Per-Wallet Selector) -->
 <div class="modal-overlay" id="savings-modal" style="display:none;" onclick="if(event.target===this)closeSavingsTargetModal()">
   <div class="modal-sheet" style="padding:22px 20px 30px;">
     <div class="modal-sheet-handle"></div>
@@ -517,8 +571,13 @@
       </div>
       <button class="icon-btn" onclick="closeSavingsTargetModal()"><i class="ti ti-x"></i></button>
     </div>
-    <p style="font-size:12.5px;color:var(--text-dim);margin:0 0 16px;">How much money do you want to keep saved this month? We will protect this amount and recalculate your daily safe-to-spend limit.</p>
+    <p style="font-size:12.5px;color:var(--text-dim);margin:0 0 14px;">Select an account to protect savings from daily spending, or set an overall goal.</p>
     
+    <label style="font-size:11px;font-weight:800;letter-spacing:0.5px;color:var(--text-dim);display:block;margin-bottom:6px;text-transform:uppercase;">Apply To Account</label>
+    <select id="savings-wallet-select" onchange="onSavingsWalletChange(this.value)" style="margin-bottom:14px;font-size:13.5px;font-weight:700;border-radius:14px;">
+      <option value="all">🌐 Overall (All Accounts)</option>
+    </select>
+
     <label style="font-size:11px;font-weight:800;letter-spacing:0.5px;color:var(--text-dim);display:block;margin-bottom:6px;text-transform:uppercase;">Savings Goal (₹)</label>
     <div style="position:relative;margin-bottom:14px;">
       <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:24px;font-weight:800;color:var(--text-dim);">₹</span>
@@ -534,6 +593,29 @@
     </div>
 
     <button class="btn btn-primary" onclick="saveSavingsTarget()" style="width:100%;padding:14px;font-size:15px;font-weight:800;border-radius:16px;">Save Target 🎯</button>
+  </div>
+</div>
+
+<!-- 6. Recurring Transactions Manager Modal -->
+<div class="modal-overlay" id="recurring-modal" style="display:none;" onclick="if(event.target===this)closeRecurringModal()">
+  <div class="modal-sheet" style="padding:22px 20px 30px;">
+    <div class="modal-sheet-handle"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:22px;">🔁</span>
+        <h3 style="font-size:18px;font-weight:800;margin:0;">Recurring Payments & Bills</h3>
+      </div>
+      <button class="icon-btn" onclick="closeRecurringModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <p style="font-size:12.5px;color:var(--text-dim);margin:0 0 16px;">These transactions will automatically log on their due date so you never miss a subscription or recurring income.</p>
+    
+    <div id="recurring-rules-list" style="display:flex;flex-direction:column;gap:8px;max-height:42vh;overflow-y:auto;margin-bottom:18px;">
+      <!-- Populated via transactions.js -->
+    </div>
+
+    <button class="btn btn-primary" onclick="closeRecurringModal();openQuickComposer('expense');" style="width:100%;padding:14px;font-size:14.5px;font-weight:800;border-radius:16px;">
+      <i class="ti ti-plus"></i> Add New Recurring Rule
+    </button>
   </div>
 </div>
 

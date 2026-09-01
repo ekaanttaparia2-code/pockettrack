@@ -178,19 +178,31 @@ window.animateNumber = animateNumber;
 // ── BUDGET SETTING ──
 function saveMonthlyBudget() {
   const input = document.getElementById('budget-input');
+  const wSel = document.getElementById('settings-budget-wallet');
+  const walletId = wSel ? wSel.value : 'all';
   if (!input) return;
   const val = parseFloat(input.value) || 0;
-  window.monthlyBudget = val;
-  localStorage.setItem('pocketTrackBudget', val);
-  toast('Monthly budget set to ₹' + val.toLocaleString('en-IN'), 'success');
+
+  if (typeof saveWalletBudget === 'function') {
+    saveWalletBudget(walletId, val);
+  } else {
+    window.monthlyBudget = val;
+    localStorage.setItem('pocketTrackBudget', val);
+  }
+  if (typeof renderSettingsWallets === 'function') renderSettingsWallets();
+  const wName = walletId === 'all' ? 'Overall' : ((typeof getWallets === 'function' ? getWallets().find(w => w.id === walletId) : null) || {}).name || walletId;
+  toast(val > 0 ? `Monthly budget for ${wName}: ₹${val.toLocaleString('en-IN')}` : `Budget cleared for ${wName}`, 'success');
 }
 window.saveMonthlyBudget = saveMonthlyBudget;
 
 // ── INITIALIZATION ──
 document.addEventListener('DOMContentLoaded', () => {
   if (typeof initAuth === 'function') initAuth();
+  if (typeof checkAndProcessRecurring === 'function') checkAndProcessRecurring();
   if (typeof updateHeaderStats === 'function') updateHeaderStats();
   if (typeof renderSettingsWallets === 'function') renderSettingsWallets();
+  if (typeof renderRecurringList === 'function') renderRecurringList();
+
   const bInput = document.getElementById('budget-input');
   if (bInput && window.monthlyBudget > 0) bInput.value = window.monthlyBudget;
   const sInput = document.getElementById('settings-savings-input');

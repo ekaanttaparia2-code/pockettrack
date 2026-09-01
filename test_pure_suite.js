@@ -153,8 +153,9 @@ it('3.2 Deleting one transfer counterpart atomically removes the other', () => {
 
 // ── TEST 4: Custom Wallet Creation & Deletion ──
 it('4.1 Adds and deletes custom wallet accounts safely', () => {
+  openNewWalletModal();
+  selectWalletEmoji('🪙');
   document.getElementById('new-wallet-name').value = 'Petty Cash';
-  document.getElementById('new-wallet-icon').value = '🪙';
 
   saveNewWallet();
 
@@ -256,6 +257,67 @@ it('10.1 Sets savings target and adjusts daily safe-to-spend limit', () => {
   const safeText = document.getElementById('safe-to-spend-val').textContent;
   assert.ok(safeText.startsWith('₹'), 'Safe to spend must be formatted');
   assert.ok(document.getElementById('safe-to-spend-sub').textContent.includes('Saving ₹5,000'));
+});
+
+// ── TEST 11: Curated Preloaded Emoji Grid for Wallets ──
+it('11.1 Selects curated emoji and creates wallet without manual emoji typing', () => {
+  openNewWalletModal();
+  selectWalletEmoji('💎');
+  document.getElementById('new-wallet-name').value = 'Crypto Vault';
+  saveNewWallet();
+
+  const vault = getWallets().find(w => w.name === 'Crypto Vault');
+  assert.ok(vault, 'Custom wallet must be created');
+  assert.strictEqual(vault.icon, '💎', 'Wallet icon must be the selected emoji');
+});
+
+// ── TEST 12: Recurring Transactions Engine ──
+it('12.1 Saves recurring subscription rule and processes due items', () => {
+  const rule = {
+    id: 'rec_test_netflix',
+    amt: 499,
+    type: 'expense',
+    cat: 'entertainment',
+    desc: 'Netflix 4K',
+    wallet: 'bank',
+    frequency: 'monthly',
+    nextDueDate: new Date().toISOString().split('T')[0],
+    lastProcessedDate: '',
+    active: true
+  };
+  saveRecurringRule(rule);
+
+  const initialCount = window.entries.length;
+  const processed = checkAndProcessRecurring();
+  
+  assert.strictEqual(processed, 1, 'Due recurring rule must be processed');
+  assert.strictEqual(window.entries.length, initialCount + 1, 'New transaction entry must be logged');
+  assert.strictEqual(window.entries[0].amt, 499);
+  assert.strictEqual(window.entries[0].wallet, 'bank');
+});
+
+it('12.2 Toggling recurring rule pauses and resumes auto-processing', () => {
+  toggleRecurringRule('rec_test_netflix');
+  const r = getRecurringRules().find(x => x.id === 'rec_test_netflix');
+  assert.strictEqual(r.active, false, 'Rule must be paused');
+
+  toggleRecurringRule('rec_test_netflix');
+  const r2 = getRecurringRules().find(x => x.id === 'rec_test_netflix');
+  assert.strictEqual(r2.active, true, 'Rule must be active again');
+});
+
+// ── TEST 13: Per-Wallet Savings Targets & Budgets ──
+it('13.1 Saves and retrieves distinct savings targets and budgets per wallet', () => {
+  saveWalletSavingsTarget('bank', 8000);
+  saveWalletSavingsTarget('cash', 2000);
+  saveWalletBudget('card', 12000);
+
+  const targets = getWalletSavingsTargets();
+  const budgets = getWalletBudgets();
+
+  assert.strictEqual(targets.bank, 8000);
+  assert.strictEqual(targets.cash, 2000);
+  assert.strictEqual(budgets.card, 12000);
 });
 
 console.log('\n═══════════════════════════════════════════════');

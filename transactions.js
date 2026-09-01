@@ -85,13 +85,27 @@ function updateHeaderStats() {
 }
 window.updateHeaderStats = updateHeaderStats;
 
-// ── SAVINGS TARGET MODAL & SETTINGS ──
-function openSavingsTargetModal() {
+// ── SAVINGS TARGET MODAL & MULTI-WALLET SETTINGS ──
+let currentSavingsTargetWallet = 'all';
+
+function openSavingsTargetModal(walletId = 'all') {
+  currentSavingsTargetWallet = walletId || 'all';
   const m = document.getElementById('savings-modal');
   if (m) {
+    // Populate wallet select
+    const wSel = document.getElementById('savings-wallet-select');
+    if (wSel && typeof getWallets === 'function') {
+      let opts = `<option value="all">🌐 Overall (All Accounts)</option>`;
+      opts += getWallets().map(w => `<option value="${w.id}">${w.icon} ${w.name}</option>`).join('');
+      wSel.innerHTML = opts;
+      wSel.value = currentSavingsTargetWallet;
+    }
+
     const input = document.getElementById('savings-target-input');
-    const current = localStorage.getItem('pocketTrackSavingsTarget') || '';
-    if (input) input.value = current;
+    const targets = typeof getWalletSavingsTargets === 'function' ? getWalletSavingsTargets() : {};
+    const current = targets[currentSavingsTargetWallet] || (currentSavingsTargetWallet === 'all' ? (localStorage.getItem('pocketTrackSavingsTarget') || '') : '');
+    if (input) input.value = current > 0 ? current : '';
+
     m.style.display = 'flex';
     if (typeof document !== 'undefined' && document.body && document.body.style) {
       document.body.style.overflow = 'hidden';
@@ -112,6 +126,15 @@ function closeSavingsTargetModal() {
 }
 window.closeSavingsTargetModal = closeSavingsTargetModal;
 
+function onSavingsWalletChange(walletId) {
+  currentSavingsTargetWallet = walletId;
+  const input = document.getElementById('savings-target-input');
+  const targets = typeof getWalletSavingsTargets === 'function' ? getWalletSavingsTargets() : {};
+  const current = targets[walletId] || '';
+  if (input) input.value = current > 0 ? current : '';
+}
+window.onSavingsWalletChange = onSavingsWalletChange;
+
 function setSavingsPreset(val) {
   const input = document.getElementById('savings-target-input');
   if (input) input.value = val > 0 ? val : '';
@@ -120,26 +143,214 @@ window.setSavingsPreset = setSavingsPreset;
 
 function saveSavingsTarget() {
   const input = document.getElementById('savings-target-input');
+  const wSel = document.getElementById('savings-wallet-select');
+  const walletId = (wSel && wSel.value) ? wSel.value : (currentSavingsTargetWallet || 'all');
   const val = input ? parseFloat(input.value) || 0 : 0;
-  localStorage.setItem('pocketTrackSavingsTarget', val > 0 ? String(val) : '');
+
+  if (typeof saveWalletSavingsTarget === 'function') {
+    saveWalletSavingsTarget(walletId, val);
+  } else {
+    localStorage.setItem('pocketTrackSavingsTarget', val > 0 ? String(val) : '');
+  }
   
   const settingsInput = document.getElementById('settings-savings-input');
-  if (settingsInput) settingsInput.value = val > 0 ? String(val) : '';
+  if (settingsInput && walletId === 'all') settingsInput.value = val > 0 ? String(val) : '';
   
   closeSavingsTargetModal();
   updateHeaderStats();
-  toast(val > 0 ? `Savings goal set to ₹${val.toLocaleString('en-IN')}! 🎯` : 'Savings goal cleared', 'success');
+  const wName = walletId === 'all' ? 'Overall' : ((typeof getWallets === 'function' ? getWallets().find(w => w.id === walletId) : null) || {}).name || walletId;
+  toast(val > 0 ? `Savings goal for ${wName} set to ₹${val.toLocaleString('en-IN')}! 🎯` : `Savings goal cleared for ${wName}`, 'success');
 }
 window.saveSavingsTarget = saveSavingsTarget;
 
 function saveSavingsTargetFromSettings() {
+  const wSel = document.getElementById('settings-savings-wallet');
+  const walletId = wSel ? wSel.value : 'all';
   const input = document.getElementById('settings-savings-input');
   const val = input ? parseFloat(input.value) || 0 : 0;
-  localStorage.setItem('pocketTrackSavingsTarget', val > 0 ? String(val) : '');
+
+  if (typeof saveWalletSavingsTarget === 'function') {
+    saveWalletSavingsTarget(walletId, val);
+  } else {
+    localStorage.setItem('pocketTrackSavingsTarget', val > 0 ? String(val) : '');
+  }
   updateHeaderStats();
-  toast(val > 0 ? `Monthly Savings Target saved: ₹${val.toLocaleString('en-IN')} 🎯` : 'Savings target cleared', 'success');
+  const wName = walletId === 'all' ? 'Overall' : (getWallets().find(w => w.id === walletId) || {}).name || walletId;
+  toast(val > 0 ? `Savings Target for ${wName}: ₹${val.toLocaleString('en-IN')} 🎯` : 'Savings target cleared', 'success');
 }
 window.saveSavingsTargetFromSettings = saveSavingsTargetFromSettings;
+
+function onSettingsSavingsWalletChange(walletId) {
+  const input = document.getElementById('settings-savings-input');
+  const targets = typeof getWalletSavingsTargets === 'function' ? getWalletSavingsTargets() : {};
+  const current = targets[walletId] || '';
+  if (input) input.value = current > 0 ? current : '';
+}
+window.onSettingsSavingsWalletChange = onSettingsSavingsWalletChange;
+
+function onSettingsBudgetWalletChange(walletId) {
+  const input = document.getElementById('budget-input');
+  const budgets = typeof getWalletBudgets === 'function' ? getWalletBudgets() : {};
+  const current = budgets[walletId] || (walletId === 'all' ? (localStorage.getItem('pocketTrackBudget') || '') : '');
+  if (input) input.value = current > 0 ? current : '';
+}
+window.onSettingsBudgetWalletChange = onSettingsBudgetWalletChange;
+
+// ── RECURRING TRANSACTIONS ENGINE ──
+function getRecurringRules() {
+  try {
+    const raw = localStorage.getItem('pocketTrackRecurringRules');
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return [];
+}
+window.getRecurringRules = getRecurringRules;
+
+function saveRecurringRule(rule) {
+  const rules = getRecurringRules();
+  const idx = rules.findIndex(r => r.id === rule.id);
+  if (idx !== -1) rules[idx] = rule;
+  else rules.unshift(rule);
+  localStorage.setItem('pocketTrackRecurringRules', JSON.stringify(rules));
+  renderRecurringList();
+}
+window.saveRecurringRule = saveRecurringRule;
+
+function deleteRecurringRule(id) {
+  let rules = getRecurringRules().filter(r => r.id !== id);
+  localStorage.setItem('pocketTrackRecurringRules', JSON.stringify(rules));
+  renderRecurringList();
+  toast('Recurring rule deleted', 'info');
+}
+window.deleteRecurringRule = deleteRecurringRule;
+
+function toggleRecurringRule(id) {
+  const rules = getRecurringRules();
+  const r = rules.find(x => x.id === id);
+  if (r) {
+    r.active = !r.active;
+    localStorage.setItem('pocketTrackRecurringRules', JSON.stringify(rules));
+    renderRecurringList();
+    toast(r.active ? 'Recurring rule enabled 🔁' : 'Recurring rule paused ⏸️', 'info');
+  }
+}
+window.toggleRecurringRule = toggleRecurringRule;
+
+function advanceDueDate(currentDateStr, freq) {
+  const d = new Date(currentDateStr || new Date().toISOString().split('T')[0]);
+  if (freq === 'daily') d.setDate(d.getDate() + 1);
+  else if (freq === 'weekly') d.setDate(d.getDate() + 7);
+  else if (freq === 'yearly') d.setFullYear(d.getFullYear() + 1);
+  else d.setMonth(d.getMonth() + 1); // default monthly
+  return d.toISOString().split('T')[0];
+}
+window.advanceDueDate = advanceDueDate;
+
+function checkAndProcessRecurring() {
+  const rules = getRecurringRules();
+  if (!rules.length) return 0;
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  let processed = 0;
+
+  rules.forEach(r => {
+    if (!r.active) return;
+    const dueDate = r.nextDueDate || todayStr;
+    if (dueDate <= todayStr && r.lastProcessedDate !== todayStr) {
+      const newEntry = {
+        id: 'rec_entry_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+        amt: parseFloat(r.amt),
+        type: r.type || 'expense',
+        cat: r.cat || 'other',
+        desc: `🔁 ${r.desc || 'Recurring Payment'}`,
+        date: todayStr,
+        wallet: r.wallet || 'cash',
+        recurringRuleId: r.id,
+        createdAt: Date.now()
+      };
+      window.entries.unshift(newEntry);
+      r.lastProcessedDate = todayStr;
+      r.nextDueDate = advanceDueDate(todayStr, r.frequency || 'monthly');
+      processed++;
+    }
+  });
+
+  if (processed > 0) {
+    localStorage.setItem('pocketTrackEntries', JSON.stringify(window.entries));
+    localStorage.setItem('pocketTrackRecurringRules', JSON.stringify(rules));
+    updateHeaderStats();
+    toast(`🔁 Automatically processed ${processed} recurring bill/income!`, 'success');
+  }
+  return processed;
+}
+window.checkAndProcessRecurring = checkAndProcessRecurring;
+
+function openRecurringModal() {
+  const m = document.getElementById('recurring-modal');
+  if (m) {
+    renderRecurringList();
+    m.style.display = 'flex';
+    if (typeof document !== 'undefined' && document.body && document.body.style) {
+      document.body.style.overflow = 'hidden';
+    }
+  }
+}
+window.openRecurringModal = openRecurringModal;
+
+function closeRecurringModal() {
+  const m = document.getElementById('recurring-modal');
+  if (m) {
+    m.style.display = 'none';
+    if (typeof document !== 'undefined' && document.body && document.body.style) {
+      document.body.style.overflow = '';
+    }
+  }
+}
+window.closeRecurringModal = closeRecurringModal;
+
+function renderRecurringList() {
+  const container = document.getElementById('recurring-rules-list');
+  const settingsContainer = document.getElementById('settings-recurring-list');
+  const rules = getRecurringRules();
+
+  let html = '';
+  if (!rules.length) {
+    html = `<div style="padding:24px 0;text-align:center;color:var(--text-dim);font-size:13px;">No recurring expenses or incomes set yet. Toggle "Repeat" in the Composer to add one! 🔁</div>`;
+  } else {
+    rules.forEach(r => {
+      const isInc = r.type === 'income';
+      const catIcon = getCategoryIcon(r.cat, r.type);
+      html += `
+        <div class="recurring-card ${r.active ? '' : 'paused'}">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="font-size:22px;">${catIcon}</div>
+            <div>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <strong style="font-size:13.5px;color:var(--text);">${escapeHtml(r.desc || 'Recurring')}</strong>
+                <span class="recurring-badge">${r.frequency || 'monthly'}</span>
+              </div>
+              <span style="font-size:11px;color:var(--text-dim);display:block;margin-top:2px;">
+                ${isInc ? '+₹' : '-₹'}${parseFloat(r.amt).toLocaleString('en-IN')} · Next: ${r.nextDueDate || 'Today'}
+              </span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button class="icon-btn" onclick="toggleRecurringRule('${r.id}')" title="${r.active ? 'Pause rule' : 'Enable rule'}" style="font-size:16px;">
+              <i class="ti ti-${r.active ? 'player-pause' : 'player-play'}"></i>
+            </button>
+            <button class="icon-btn" onclick="deleteRecurringRule('${r.id}')" title="Delete rule" style="color:var(--red);font-size:15px;">
+              <i class="ti ti-trash"></i>
+            </button>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  if (container) container.innerHTML = html;
+  if (settingsContainer) settingsContainer.innerHTML = html;
+}
+window.renderRecurringList = renderRecurringList;
 
 // ── RECENT ACTIVITY ON HOME (Top 5) ──
 function renderHomeRecent() {
@@ -294,6 +505,10 @@ function openQuickComposer(type='expense', editEntry=null) {
     selectComposerCategory(currentComposerType === 'income' ? 'salary' : 'food');
     if (delBtn) delBtn.style.display = 'none';
     if (saveBtn) saveBtn.textContent = 'Save Entry';
+    const recCheck = document.getElementById('comp-is-recurring');
+    const recFreqWrap = document.getElementById('comp-recurring-freq-wrap');
+    if (recCheck) recCheck.checked = false;
+    if (recFreqWrap) recFreqWrap.style.display = 'none';
   }
 
   m.style.display = 'flex';
@@ -309,6 +524,12 @@ function closeQuickComposer() {
   currentEditingId = null;
 }
 window.closeQuickComposer = closeQuickComposer;
+
+function toggleComposerRecurring(checked) {
+  const wrap = document.getElementById('comp-recurring-freq-wrap');
+  if (wrap) wrap.style.display = checked ? 'flex' : 'none';
+}
+window.toggleComposerRecurring = toggleComposerRecurring;
 
 function setComposerType(type) {
   currentComposerType = type;
@@ -387,7 +608,30 @@ function saveComposerEntry() {
       createdAt: Date.now()
     };
     window.entries.unshift(newEntry);
-    toast(type === 'income' ? `Added +₹${amt} Income! 💵` : `Added -₹${amt} Expense! 💸`, 'success');
+    
+    // Check if recurring option was selected
+    const recCheck = document.getElementById('comp-is-recurring');
+    const freqSelect = document.getElementById('comp-recurring-freq');
+    if (recCheck && recCheck.checked) {
+      const freq = freqSelect ? freqSelect.value : 'monthly';
+      const rule = {
+        id: 'rec_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+        amt,
+        type,
+        cat,
+        desc: desc || (cat.charAt(0).toUpperCase() + cat.slice(1)),
+        wallet,
+        frequency: freq,
+        nextDueDate: advanceDueDate(date, freq),
+        lastProcessedDate: date,
+        active: true,
+        createdAt: Date.now()
+      };
+      saveRecurringRule(rule);
+      toast(`Added entry & set ${freq} recurring rule! 🔁`, 'success');
+    } else {
+      toast(type === 'income' ? `Added +₹${amt} Income! 💵` : `Added -₹${amt} Expense! 💸`, 'success');
+    }
   }
 
   localStorage.setItem('pocketTrackEntries', JSON.stringify(window.entries));

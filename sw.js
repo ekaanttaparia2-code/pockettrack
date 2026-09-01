@@ -1,4 +1,4 @@
-const CACHE = 'pockettrack-v30-savings-mom-palette';
+const CACHE = 'pockettrack-v31-recurring-per-wallet-emoji-grid';
 const SHELL = [
   './',
   './index.html',
