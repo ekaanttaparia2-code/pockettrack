@@ -217,13 +217,19 @@ function renderInsightsTab() {
   const headerHtml = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
       <div style="display:flex;align-items:center;gap:8px;">
-        <img src="icon-192.png" alt="PocketTrack" width="28" height="28" style="border-radius:8px;box-shadow:0 2px 8px rgba(124,58,237,0.25);"/>
+        <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#10b981,#047857);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(16,185,129,0.25);">
+          <svg width="18" height="18" viewBox="0 0 32 32" fill="none">
+            <path d="M10 8H18C20.7614 8 23 10.2386 23 13C23 15.7614 20.7614 18 18 18H14.5V24H10V8Z" fill="white"/>
+            <path d="M14.5 11.5H17.5C18.8807 11.5 20 12.6193 20 14C20 15.3807 18.8807 16.5 17.5 16.5H14.5V11.5Z" fill="#10b981"/>
+            <circle cx="22" cy="23" r="2.5" fill="#34d399"/>
+          </svg>
+        </div>
         <div>
           <p class="eyebrow" style="letter-spacing:1px;font-size:9px;font-weight:800;color:var(--accent);margin:0;">INSIGHTS & VISUALS</p>
           <h2 style="font-size:19px;font-weight:800;margin:0;line-height:1.2;">Where Money Goes</h2>
         </div>
       </div>
-      <button class="btn btn-sm" onclick="downloadMonthlyPDFStatement('${data.monthStr}')" style="font-size:11px;padding:5px 10px;border-radius:10px;color:var(--accent);border-color:rgba(124,58,237,0.3);">
+      <button class="btn btn-sm" onclick="downloadMonthlyPDFStatement('${data.monthStr}')" style="font-size:11px;padding:5px 10px;border-radius:10px;color:var(--accent);border-color:rgba(16,185,129,0.3);">
         <i class="ti ti-file-text"></i> PDF
       </button>
     </div>

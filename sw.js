@@ -1,4 +1,4 @@
-const CACHE = 'pockettrack-v34-calm-emerald-hero-safespent';
+const CACHE = 'pockettrack-v35-fixed-bottom-nav-clean-logo';
 const SHELL = [
   './',
   './index.html',

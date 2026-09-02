@@ -247,14 +247,27 @@ function updateHeaderStats() {
 
   const safeEl = document.getElementById('safe-to-spend-val');
   const safeSub = document.getElementById('safe-to-spend-sub');
+  const targetEl = document.getElementById('hero-target-display');
 
   if (safeEl) {
     if (locked) {
-      safeEl.textContent = '₹••••/day';
+      safeEl.textContent = '₹••••';
       safeEl.classList.add('privacy-masked');
     } else {
-      safeEl.textContent = '₹' + safePerDay.toLocaleString('en-IN') + '/day';
+      safeEl.textContent = '₹' + safePerDay.toLocaleString('en-IN');
       safeEl.classList.remove('privacy-masked');
+    }
+  }
+
+  if (targetEl) {
+    if (locked) {
+      targetEl.textContent = '₹••••';
+      targetEl.style.color = 'var(--text-dim)';
+    } else if (savingsTarget > 0) {
+      targetEl.textContent = `🎯 ₹${savingsTarget.toLocaleString('en-IN')} goal`;
+      targetEl.style.color = 'var(--green)';
+    } else {
+      targetEl.innerHTML = `<span style="font-size:12px;font-weight:700;color:var(--green);text-decoration:underline;">+ Set goal</span>`;
     }
   }
 
@@ -273,7 +286,7 @@ function updateHeaderStats() {
     animateNumber('hero-income', income);
     animateNumber('hero-spent', spent);
     animateNumber('hero-count', list.length, '', '');
-    if (safeEl) animateNumber('safe-to-spend-val', safePerDay, '₹', '/day');
+    if (safeEl) animateNumber('safe-to-spend-val', safePerDay, '₹', '');
   }
 
   renderHomeRecent();
