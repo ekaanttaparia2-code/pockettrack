@@ -122,14 +122,6 @@
 </div>
 
 <div class="shell">
-  <!-- GUEST BANNER -->
-  <div class="card" id="guest-mode-banner" style="display:none;padding:10px 14px;margin-bottom:0.75rem;border-radius:16px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
-      <p style="font-size:12px;margin:0;color:var(--text-dim);"><i class="ti ti-sparkles" style="color:var(--accent);"></i> <strong>Guest Demo Mode</strong> · Testing locally.</p>
-      <button class="btn btn-sm" onclick="showAuthScreen()" style="font-size:11.5px;padding:4px 10px;border-radius:10px;">Sign in</button>
-    </div>
-  </div>
-
   <!-- MAIN HEADER -->
   <header>
     <div class="brand">
@@ -149,65 +141,51 @@
   </header>
 
   <!-- ==========================================
-       TAB 1: HOME
+       TAB 1: HOME (Ultra-Clean, Safe-to-Spend First)
        ========================================== -->
   <div id="tab-home" class="tab-content active">
-    <!-- Overview Header with Clean Spacing -->
-    <div class="home-greeting" style="margin-bottom:16px;">
-      <div>
-        <p class="eyebrow" style="letter-spacing:1.5px;font-size:9.5px;font-weight:800;color:var(--accent);margin:0 0 4px;">OVERVIEW</p>
-        <h2 style="font-size:22px;font-weight:800;margin:0;">Your money, at a glance.</h2>
-      </div>
-    </div>
-
-    <!-- 1. Dedicated Rectangular Stat Boxes (Mom's Vibrant Color Palette) -->
-    <div class="stats-boxes-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;">
-      <div class="card stat-box income-box">
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
-          <span style="width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);"></span>
-          <span style="font-size:10px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;color:var(--green);">Income</span>
-        </div>
-        <strong style="font-family:'Space Grotesk',sans-serif;font-size:15.5px;font-weight:800;color:var(--green);display:block;" id="hero-income">₹0</strong>
-      </div>
-
-      <div class="card stat-box spent-box">
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
-          <span style="width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:0 0 6px var(--red);"></span>
-          <span style="font-size:10px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;color:var(--red);">Spent</span>
-        </div>
-        <strong style="font-family:'Space Grotesk',sans-serif;font-size:15.5px;font-weight:800;color:var(--red);display:block;" id="hero-spent">₹0</strong>
-      </div>
-
-      <div class="card stat-box entries-box">
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
-          <span style="width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px var(--accent);"></span>
-          <span style="font-size:10px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;color:var(--accent);">Entries</span>
-        </div>
-        <strong style="font-family:'Space Grotesk',sans-serif;font-size:15.5px;font-weight:800;color:var(--accent);display:block;" id="hero-count">0</strong>
-      </div>
-    </div>
-
-    <!-- 2. The Sleek Modern Balance Card (With Privacy Eye Toggle) -->
-    <div class="hero-card hero-card-modern" id="hero-balance-card" onclick="onBalanceCardClick()" style="margin-bottom:16px;padding:20px 18px 18px;cursor:pointer;" title="Tap to view or unlock balance">
-      <div class="hero-top" style="margin-bottom:6px;">
-        <div>
-          <span class="hero-label">BALANCE</span>
-          <p class="hero-caption">Available across your tracked money</p>
+    
+    <!-- 🎯 1. UNIFIED HERO SAFE-TO-SPEND CARD (The Core Hero of PocketTrack) -->
+    <div class="hero-card hero-card-modern" id="hero-safe-spend-card">
+      <div class="hero-top">
+        <div class="safe-spend-badge">
+          <span class="pulse-dot"></span>
+          <span>Daily Safe-to-Spend</span>
         </div>
         <div style="display:flex;align-items:center;gap:6px;">
-          <button class="privacy-eye-btn" onclick="event.stopPropagation();toggleBalancePrivacy();" id="privacy-eye-btn" title="Toggle Hide Balance">
+          <button class="privacy-eye-btn" onclick="event.stopPropagation();toggleBalancePrivacy();" id="privacy-eye-btn" title="Toggle Hide Numbers">
             <i class="ti ti-eye" id="privacy-eye-icon"></i>
           </button>
-          <div class="hero-chip-green-rupee">
-            <span>₹</span>
-          </div>
+          <button class="pill" onclick="event.stopPropagation();onSafeToSpendCardClick();" style="font-size:11px;font-weight:700;padding:5px 10px;border-radius:12px;cursor:pointer;" title="Adjust Monthly Savings Target">
+            <span>🎯 Goal</span>
+          </button>
         </div>
       </div>
-      
-      <p class="hero-balance" id="hdr-balance" style="margin:4px 0 16px;">₹0</p>
 
-      <!-- 4 Modern Glass Action Buttons -->
-      <div class="hero-actions-grid-4">
+      <!-- The Big Hero Safe-to-Spend Number -->
+      <div class="hero-safe-spend-main" onclick="onSafeToSpendCardClick()" style="cursor:pointer;" title="Tap to adjust savings goal">
+        <div class="hero-safe-spend-number-wrap">
+          <span class="hero-safe-spend-val" id="safe-to-spend-val">₹0</span>
+          <span class="hero-safe-spend-unit">/ day</span>
+        </div>
+        <p class="hero-safe-spend-sub" id="safe-to-spend-sub">Calculated for the remaining days</p>
+      </div>
+
+      <!-- Secondary Context Bar (Total Balance & Monthly Savings Target) -->
+      <div class="hero-submetrics-bar" onclick="onBalanceCardClick()" style="cursor:pointer;" title="Tap to view balance details">
+        <div class="submetric-item">
+          <span class="submetric-label">Total Balance</span>
+          <strong class="submetric-val" id="hdr-balance">₹0</strong>
+        </div>
+        <div class="submetric-divider"></div>
+        <div class="submetric-item" style="text-align:right;">
+          <span class="submetric-label">Monthly Target</span>
+          <strong class="submetric-val" id="hero-target-display" style="color:var(--green);">₹0 saved</strong>
+        </div>
+      </div>
+
+      <!-- 3 Clean Action Buttons (Expense, Income, UPI Paste — No Transfer Clutter!) -->
+      <div class="hero-actions-grid-3">
         <button class="hero-action-btn-item" onclick="event.stopPropagation();openQuickComposer('expense');">
           <div class="hero-action-btn-circle expense">
             <i class="ti ti-arrow-up-right"></i>
@@ -220,12 +198,6 @@
           </div>
           <span class="hero-action-btn-label">Income</span>
         </button>
-        <button class="hero-action-btn-item" onclick="event.stopPropagation();openTransferModal();">
-          <div class="hero-action-btn-circle transfer">
-            <i class="ti ti-arrows-left-right"></i>
-          </div>
-          <span class="hero-action-btn-label">Transfer</span>
-        </button>
         <button class="hero-action-btn-item" onclick="event.stopPropagation();pasteFromClipboardAndLog();">
           <div class="hero-action-btn-circle upi">
             <i class="ti ti-clipboard-text"></i>
@@ -235,30 +207,15 @@
       </div>
     </div>
 
-    <!-- 3. 🎯 DAILY SAFE-TO-SPEND CARD (With 1-Tap Savings Goal Trigger) -->
-    <div class="card safe-to-spend-card" onclick="onSafeToSpendCardClick()" style="padding:16px 18px;margin-bottom:14px;border-radius:22px;display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow-md);cursor:pointer;" title="Tap to set or change your monthly savings target">
-      <div style="display:flex;align-items:center;gap:12px;">
-        <div style="width:44px;height:44px;border-radius:14px;background:rgba(236,72,153,0.12);display:grid;place-items:center;font-size:22px;">🎯</div>
-        <div>
-          <span style="font-size:10.5px;font-weight:800;letter-spacing:1px;color:var(--green);text-transform:uppercase;">DAILY SAFE-TO-SPEND</span>
-          <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800;color:var(--text);margin-top:2px;" id="safe-to-spend-val">₹0/day</div>
-          <span style="font-size:11px;color:var(--text-dim);" id="safe-to-spend-sub">Calculated for the remaining days</span>
-        </div>
-      </div>
-      <button class="pill" onclick="event.stopPropagation();onSafeToSpendCardClick();" style="font-size:11px;font-weight:700;padding:6px 10px;border-radius:12px;cursor:pointer;flex-shrink:0;">
-        <span>🎯 Goal</span>
-      </button>
-    </div>
-
-    <!-- 4. ⚡ 1-TAP QUICK SPEND SPEED DIAL BAR -->
+    <!-- 2. ⚡ QUICK SPEND SPEED DIAL BAR -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin:0 2px 6px;">
-      <p class="section-kicker" style="font-size:10px;font-weight:800;color:var(--text-dim);letter-spacing:1px;margin:0;">⚡ 1-TAP QUICK LOG</p>
+      <p class="section-kicker" style="font-size:10px;font-weight:800;color:var(--text-dim);letter-spacing:1px;margin:0;">⚡ QUICK SPEND</p>
     </div>
     <div class="quick-presets-bar" id="quick-presets-bar">
       <!-- Injected dynamically via transactions.js -->
     </div>
 
-    <!-- Recent Activity Section -->
+    <!-- 3. RECENT ACTIVITY (Clean, Minimalist Passbook Preview) -->
     <div class="home-section-head" style="display:flex;justify-content:space-between;align-items:center;margin:18px 2px 10px;">
       <div>
         <p class="section-kicker" style="font-size:10px;font-weight:800;color:var(--text-dim);letter-spacing:1px;margin:0 0 2px;">RECENT ACTIVITY</p>
@@ -773,11 +730,6 @@
     </div>
   </div>
 </div>
-
-<!-- Floating Voice Mic FAB (Theme-Adaptive Glowing Design) -->
-<button class="floating-voice-fab" onclick="startVoiceForComposer()" title="Voice Add (English/Hindi/Hinglish)" aria-label="Voice Add">
-  <i class="ti ti-microphone"></i>
-</button>
 
 <!-- Core Modular Scripts -->
 <script src="app.js"></script>

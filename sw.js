@@ -1,4 +1,4 @@
-const CACHE = 'pockettrack-v33-pin-lock-income-insights';
+const CACHE = 'pockettrack-v34-calm-emerald-hero-safespent';
 const SHELL = [
   './',
   './index.html',
