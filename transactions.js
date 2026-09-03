@@ -1588,40 +1588,118 @@ window.backupAppDataJSON = backupAppDataJSON;
 function restoreAppDataJSON(inputEl) {
   if (!inputEl || !inputEl.files || !inputEl.files[0]) return;
   const file = inputEl.files[0];
+
+  // 1. File size limit guard (5MB max)
+  if (file.size > 5 * 1024 * 1024) {
+    toast('File too large (max 5MB)', 'error');
+    inputEl.value = '';
+    return;
+  }
+
   const reader = new FileReader();
 
   reader.onload = function(e) {
     try {
       const parsed = JSON.parse(e.target.result);
-      if (!parsed || (!Array.isArray(parsed.entries) && !Array.isArray(parsed.wallets))) {
-        toast('Invalid backup file format', 'error');
+
+      // 2. Strict Object & Schema Validation
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        toast('Invalid backup file: Expected a JSON object', 'error');
+        inputEl.value = '';
         return;
       }
 
-      if (Array.isArray(parsed.entries)) {
-        window.entries = parsed.entries;
-        localStorage.setItem('pocketTrackEntries', JSON.stringify(parsed.entries));
-      }
-      if (Array.isArray(parsed.wallets)) {
-        window.wallets = parsed.wallets;
-        localStorage.setItem('pocketTrackWallets', JSON.stringify(parsed.wallets));
-      }
-      if (parsed.savingsTarget) localStorage.setItem('pocketTrackSavingsTarget', parsed.savingsTarget);
-      if (parsed.savingsTargets) localStorage.setItem('pocketTrackSavingsTargets', typeof parsed.savingsTargets === 'string' ? parsed.savingsTargets : JSON.stringify(parsed.savingsTargets));
-      if (parsed.budgets) localStorage.setItem('pocketTrackBudgets', typeof parsed.budgets === 'string' ? parsed.budgets : JSON.stringify(parsed.budgets));
-      if (parsed.friendsLedger) localStorage.setItem('pocketTrackFriendsLedger', typeof parsed.friendsLedger === 'string' ? parsed.friendsLedger : JSON.stringify(parsed.friendsLedger));
-      if (parsed.quickPresets) localStorage.setItem('pocketTrackQuickPresets', typeof parsed.quickPresets === 'string' ? parsed.quickPresets : JSON.stringify(parsed.quickPresets));
-      if (parsed.recurringRules) localStorage.setItem('pocketTrackRecurringRules', typeof parsed.recurringRules === 'string' ? parsed.recurringRules : JSON.stringify(parsed.recurringRules));
-      if (parsed.userName) localStorage.setItem('pocketTrackUserName', parsed.userName);
+      const hasEntries = Array.isArray(parsed.entries);
+      const hasWallets = Array.isArray(parsed.wallets);
+      const isPocketTrackBackup = parsed.version === '1.0' || hasEntries || hasWallets;
 
+      if (!isPocketTrackBackup) {
+        toast('Unrecognized backup format. Please select a valid PocketTrack JSON file.', 'error');
+        inputEl.value = '';
+        return;
+      }
+
+      // 3. Sanitize and Validate Entries
+      if (hasEntries) {
+        const validEntries = parsed.entries.filter(item => {
+          return item && typeof item === 'object' &&
+            item.id &&
+            !isNaN(parseFloat(item.amt)) &&
+            (item.type === 'income' || item.type === 'expense');
+        }).map(item => ({
+          id: String(item.id),
+          amt: parseFloat(item.amt),
+          type: item.type,
+          cat: String(item.cat || 'other'),
+          desc: String(item.desc || item.note || ''),
+          wallet: String(item.wallet || 'cash'),
+          date: String(item.date || new Date().toISOString().split('T')[0]),
+          transferGroupId: item.transferGroupId ? String(item.transferGroupId) : undefined,
+          isTransfer: Boolean(item.isTransfer)
+        }));
+
+        window.entries = validEntries;
+        localStorage.setItem('pocketTrackEntries', JSON.stringify(validEntries));
+      }
+
+      // 4. Sanitize and Validate Wallets
+      if (hasWallets) {
+        const validWallets = parsed.wallets.filter(w => w && w.id && w.name).map(w => ({
+          id: String(w.id),
+          name: String(w.name),
+          icon: String(w.icon || '👛'),
+          balance: parseFloat(w.balance) || 0
+        }));
+        if (validWallets.length > 0) {
+          window.wallets = validWallets;
+          localStorage.setItem('pocketTrackWallets', JSON.stringify(validWallets));
+        }
+      }
+
+      // 5. Restore Settings & Configuration Keys Safely
+      if (parsed.savingsTarget !== undefined) {
+        localStorage.setItem('pocketTrackSavingsTarget', String(parseFloat(parsed.savingsTarget) || ''));
+      }
+      if (parsed.savingsTargets && typeof parsed.savingsTargets === 'object') {
+        localStorage.setItem('pocketTrackSavingsTargets', JSON.stringify(parsed.savingsTargets));
+      }
+      if (parsed.budgets && typeof parsed.budgets === 'object') {
+        localStorage.setItem('pocketTrackBudgets', JSON.stringify(parsed.budgets));
+      }
+      if (Array.isArray(parsed.friendsLedger)) {
+        localStorage.setItem('pocketTrackFriendsLedger', JSON.stringify(parsed.friendsLedger));
+      }
+      if (Array.isArray(parsed.quickPresets)) {
+        localStorage.setItem('pocketTrackQuickPresets', JSON.stringify(parsed.quickPresets));
+      }
+      if (Array.isArray(parsed.recurringRules)) {
+        localStorage.setItem('pocketTrackRecurringRules', JSON.stringify(parsed.recurringRules));
+      }
+      if (parsed.userName && typeof parsed.userName === 'string') {
+        localStorage.setItem('pocketTrackUserName', parsed.userName.trim());
+      }
+
+      // 6. Immediate State Re-render & Clean Reload
       updateHeaderStats();
+      if (typeof renderHomeRecent === 'function') renderHomeRecent();
+      if (typeof renderQuickPresets === 'function') renderQuickPresets();
+      if (typeof renderActivityList === 'function') renderActivityList();
       if (typeof renderSettingsWallets === 'function') renderSettingsWallets();
       if (typeof renderFriendsLedger === 'function') renderFriendsLedger();
-      toast('Backup restored successfully! 🔄', 'success');
+      if (typeof renderInsightsTab === 'function') renderInsightsTab();
+
+      toast('Backup restored! Reloading app... 🔄', 'success');
       inputEl.value = '';
+
+      if (typeof window !== 'undefined' && window.location && typeof window.location.reload === 'function') {
+        setTimeout(() => {
+          window.location.reload();
+        }, 600);
+      }
     } catch (err) {
       console.error('Backup restore error:', err);
-      toast('Failed to read or parse backup file', 'error');
+      toast('Failed to parse backup file: Invalid JSON syntax', 'error');
+      inputEl.value = '';
     }
   };
 

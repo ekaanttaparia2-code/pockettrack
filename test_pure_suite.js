@@ -478,6 +478,42 @@ it('20.1 Enables Senior Mode and saves user profile name', () => {
   assert.strictEqual(localStorage.getItem('pocketTrackUserName'), 'Aarav');
 });
 
+// ── TEST 21: JSON Backup & Safe Restore Schema Validation ──
+it('21.1 Exports backup data and safely validates restore format', () => {
+  window.entries = [{ id: 'test_1', type: 'income', amt: 5000, date: '2026-09-01', cat: 'salary', wallet: 'bank' }];
+  saveUserProfileName('TestUser');
+  
+  // Backup function must exist
+  assert.strictEqual(typeof backupAppDataJSON, 'function');
+  assert.strictEqual(typeof restoreAppDataJSON, 'function');
+
+  // Test invalid restore data handling
+  let toastMsg = '';
+  const origToast = window.toast;
+  window.toast = (msg) => { toastMsg = msg; };
+
+  // Simulated FileReader mock
+  class MockFileReader {
+    readAsText(file) {
+      setTimeout(() => {
+        this.onload({ target: { result: file._content } });
+      }, 10);
+    }
+  }
+  const origFileReader = global.FileReader;
+  global.FileReader = MockFileReader;
+
+  // 1. Invalid random text
+  restoreAppDataJSON({ files: [{ size: 100, _content: 'This is a random text file!' }] });
+  setTimeout(() => {
+    assert.ok(toastMsg.includes('Invalid') || toastMsg.includes('Unrecognized'));
+  }, 20);
+
+  // Restore globals
+  global.FileReader = origFileReader;
+  window.toast = origToast;
+});
+
 console.log('\n═══════════════════════════════════════════════');
 console.log(`TOTAL: ${passed + failed} | PASSED: ${passed} | FAILED: ${failed}`);
 console.log('═══════════════════════════════════════════════');

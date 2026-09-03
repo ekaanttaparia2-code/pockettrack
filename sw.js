@@ -1,4 +1,4 @@
-const CACHE = 'pockettrack-v42-json-backup-polish';
+const CACHE = 'pockettrack-v43-restore-hardened';
 const SHELL = [
   './',
   './index.html',
