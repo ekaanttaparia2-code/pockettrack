@@ -10,27 +10,35 @@ function initAuth() {
   if (typeof auth === 'undefined') return;
 
   auth.onAuthStateChanged(user => {
+    const syncStatus = document.getElementById('sync-status');
+    const syncDot = document.querySelector('#sync-pill-btn .dot');
+
     if (user) {
       currentUser = user;
       window.currentUser = user;
       window.isGuestMode = false;
       const authScreen = document.getElementById('auth-screen');
-      const guestBanner = document.getElementById('guest-mode-banner');
       const emailEl = document.getElementById('settings-user-email');
-      const syncStatus = document.getElementById('sync-status');
 
       if (authScreen) authScreen.style.display = 'none';
-      if (guestBanner) guestBanner.style.display = 'none';
       if (emailEl) emailEl.textContent = user.email || 'Signed in User';
-      if (syncStatus) syncStatus.textContent = 'Synced';
+      if (syncStatus) syncStatus.textContent = 'Cloud';
+      if (syncDot) {
+        syncDot.style.background = 'var(--green)';
+        syncDot.style.boxShadow = '0 0 6px var(--green)';
+      }
 
       listenToCloudEntries();
     } else {
       currentUser = null;
       window.currentUser = null;
       if (!window.isGuestMode) {
-        // Auto-enable guest mode for frictionless instant use if not logged in
         startGuestSandboxMode();
+      }
+      if (syncStatus) syncStatus.textContent = 'Local';
+      if (syncDot) {
+        syncDot.style.background = '#f59e0b';
+        syncDot.style.boxShadow = '0 0 6px #f59e0b';
       }
     }
   });
@@ -193,8 +201,13 @@ function listenToCloudEntries() {
 }
 
 function triggerManualSync() {
+  if (!currentUser || currentUser.isGuest) {
+    toast('📱 Data is saved safely on your device! Sign in for real-time Cloud backup.', 'info');
+    showAuthScreen();
+    return;
+  }
   toast('Syncing with cloud...', 'info');
   syncEntriesToCloud();
-  setTimeout(() => toast('All changes synced! ☁️', 'success'), 400);
+  setTimeout(() => toast('Cloud backup synced! ☁️', 'success'), 350);
 }
 window.triggerManualSync = triggerManualSync;

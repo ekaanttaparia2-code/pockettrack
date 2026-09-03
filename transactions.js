@@ -922,49 +922,107 @@ function deleteEntry(id) {
 }
 window.deleteEntry = deleteEntry;
 
-// ── 1-TAP UPI PASTE ──
+// ── SMART UPI SMS & NOTIFICATION PARSER ──
+function parseUpiSms(text) {
+  if (!text || typeof text !== 'string') return null;
+  const t = text.trim();
+  const lower = t.toLowerCase();
+
+  // 1. Detect Type (Income vs Expense)
+  const isIncome = /(?:credited|received|refunded|deposited|reversal|cashback|added to)/i.test(lower);
+  const type = isIncome ? 'income' : 'expense';
+
+  // 2. Detect Amount (e.g. Rs 250, INR 450.00, ₹1,200.50, debited by Rs 150)
+  let amt = 0;
+  const amtMatch = t.match(/(?:rs\.?|inr|₹)\s*([\d,]+(?:\.\d{1,2})?)/i) || 
+                   t.match(/([\d,]+(?:\.\d{1,2})?)\s*(?:rs\.?|inr|₹)/i) ||
+                   t.match(/(?:debited by|credited by|paid|sent|amount of)\s*(?:rs\.?|inr|₹)?\s*([\d,]+(?:\.\d{1,2})?)/i);
+  if (amtMatch && amtMatch[1]) {
+    amt = parseFloat(amtMatch[1].replace(/,/g, ''));
+  }
+
+  // 3. Extract Merchant / Payee / Beneficiary
+  let merchant = '';
+  const toMatch = t.match(/(?:to|towards|at|for|vpa|paid to|info:)\s+([A-Za-z0-9\s&'-]{2,30}?)(?:\s+(?:on|ref|upi|via|using|avbl|avl|bal|a\/c|acct|\.|\n|$))/i);
+  const fromMatch = t.match(/(?:from|by|received from)\s+([A-Za-z0-9\s&'-]{2,30}?)(?:\s+(?:on|ref|upi|via|using|avbl|avl|bal|a\/c|acct|\.|\n|$))/i);
+
+  if (isIncome && fromMatch && fromMatch[1]) {
+    merchant = fromMatch[1].trim();
+  } else if (toMatch && toMatch[1]) {
+    merchant = toMatch[1].trim();
+  }
+
+  if (merchant) {
+    merchant = merchant
+      .replace(/\b(?:upi|vpa|ref|no|txn|transfer|user|val|dr|cr|a\/c|acct)\b/gi, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  // 4. Auto-detect Category with Word Boundaries
+  let cat = isIncome ? 'other' : 'food';
+  const combined = (merchant + ' ' + lower).toLowerCase();
+
+  if (/\b(swiggy|zomato|mcdonald|starbucks|burger|pizza|chai|coffee|cafe|restaurant|dhaba|bakery|eats|food)\b/i.test(combined)) {
+    cat = 'food';
+  } else if (/\b(uber|ola|rapido|metro|fuel|petrol|diesel|shell|hpcl|bpcl|auto|cab|irctc|flight|indigo)\b/i.test(combined)) {
+    cat = 'transport';
+  } else if (/\b(blinkit|zepto|instamart|bigbasket|dmart|grocery|supermarket|kirana|milk|vegetable|fruit)\b/i.test(combined)) {
+    cat = 'grocery';
+  } else if (/\b(amazon|flipkart|myntra|zara|ajio|shopping|mall|retail|trends|nykaa)\b/i.test(combined)) {
+    cat = 'shopping';
+  } else if (/\b(electricity|bescom|tneb|jio|airtel|broadband|water|gas|bill|bills|recharge|dth)\b/i.test(combined)) {
+    cat = 'bills';
+  } else if (/\b(pharmacy|apollo|1mg|practo|hospital|clinic|doctor|medplus|netmeds|health)\b/i.test(combined)) {
+    cat = 'health';
+  } else if (/\b(netflix|spotify|hotstar|prime|pvr|inox|movie|cinema|game|entertainment)\b/i.test(combined)) {
+    cat = 'entertainment';
+  } else if (/\b(salary|allowance|stipend|payroll)\b/i.test(combined)) {
+    cat = 'salary';
+  } else if (/\b(freelance|client|project|upwork|fiverr|consulting)\b/i.test(combined)) {
+    cat = 'freelance';
+  }
+
+  if (!merchant || merchant.length < 2) {
+    merchant = isIncome ? 'UPI Received' : (cat.charAt(0).toUpperCase() + cat.slice(1));
+  }
+
+  return { amt, type, cat, merchant, wallet: 'bank', raw: t };
+}
+window.parseUpiSms = parseUpiSms;
+
+// ── 1-TAP / 2-TAP UPI PASTE FLOW ──
 window.pasteFromClipboardAndLog = async function() {
   try {
     if (navigator.clipboard && navigator.clipboard.readText) {
       const text = await navigator.clipboard.readText();
       if (!text || !text.trim()) {
-        toast('Clipboard is empty. Copy any UPI alert first!', 'info');
+        toast('Clipboard is empty. Copy any UPI alert or SMS first!', 'info');
+        openQuickComposer('expense');
         return;
       }
-      
-      // Parse amount from text (e.g. Paid Rs 150, Sent INR 250, Received ₹500)
-      const amtMatch = text.match(/(?:rs\.?|inr|₹)\s*([\d,]+(?:\.\d{1,2})?)/i) || text.match(/([\d,]+(?:\.\d{1,2})?)\s*(?:rs\.?|inr|₹)/i);
-      const isIncome = /received|credited|received from/i.test(text);
 
-      if (amtMatch && amtMatch[1]) {
-        const amt = parseFloat(amtMatch[1].replace(/,/g, ''));
-        const newEntry = {
-          id: 'upi_' + Date.now(),
-          amt,
-          type: isIncome ? 'income' : 'expense',
-          cat: isIncome ? 'other' : 'food',
-          desc: text.slice(0, 40) + '...',
-          date: new Date().toISOString().split('T')[0],
-          wallet: 'bank',
-          createdAt: Date.now()
-        };
-        window.entries.unshift(newEntry);
-        localStorage.setItem('pocketTrackEntries', JSON.stringify(window.entries));
-        updateHeaderStats();
-        if (typeof syncEntriesToCloud === 'function') syncEntriesToCloud();
-        toast(`Pasted UPI: ${isIncome ? '+' : '-'}₹${amt} logged! ⚡`, 'success');
+      const parsed = parseUpiSms(text);
+      if (parsed && parsed.amt > 0) {
+        // Open composer pre-filled with extracted data so user can review and save in 1 tap
+        openQuickComposer(parsed.type, {
+          amt: parsed.amt,
+          desc: parsed.merchant,
+          cat: parsed.cat,
+          wallet: parsed.wallet
+        });
+        toast(`📋 Detected ${parsed.type === 'income' ? '+' : '-'}₹${parsed.amt} for ${parsed.merchant}!`, 'success');
       } else {
-        // Open composer with text pre-filled in note
-        openQuickComposer('expense', { desc: text.slice(0, 50) });
-        toast('Could not detect exact amount. Please enter amount.', 'info');
+        openQuickComposer('expense', { desc: text.slice(0, 60) });
+        toast('Opened composer with copied text', 'info');
       }
     } else {
       openQuickComposer('expense');
-      toast('Please paste manually into composer note', 'info');
+      toast('Please paste details into the composer note', 'info');
     }
   } catch (e) {
     openQuickComposer('expense');
-    toast('Please enter transaction details', 'info');
+    toast('Opened composer — enter transaction details', 'info');
   }
 };
 

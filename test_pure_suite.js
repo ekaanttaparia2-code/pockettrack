@@ -241,6 +241,20 @@ it('9.1 Extracts amount, category, type, and wallet from natural speech', () => 
   assert.strictEqual(p3.wallet, 'card');
 });
 
+it('9.2 Parses real Indian bank UPI SMS alerts accurately', () => {
+  const sms1 = parseUpiSms('Paid Rs 240.00 to Swiggy on 03-09-2026 UPI Ref 829102');
+  assert.strictEqual(sms1.amt, 240);
+  assert.strictEqual(sms1.type, 'expense');
+  assert.strictEqual(sms1.cat, 'food');
+  assert.strictEqual(sms1.merchant, 'Swiggy');
+
+  const sms2 = parseUpiSms('Dear SBI User, your A/C ... credited by Rs 15,000.00 from Client via UPI');
+  assert.strictEqual(sms2.amt, 15000);
+  assert.strictEqual(sms2.type, 'income');
+  assert.strictEqual(sms2.cat, 'freelance');
+  assert.strictEqual(sms2.merchant, 'Client');
+});
+
 // ── TEST 10: Monthly Savings Target & Safe-to-Spend ──
 it('10.1 Sets savings target and adjusts daily safe-to-spend limit', () => {
   window.entries = [

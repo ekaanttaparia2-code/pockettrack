@@ -1,4 +1,4 @@
-const CACHE = 'pockettrack-v36-insights-icon-presets-carousel';
+const CACHE = 'pockettrack-v37-smart-upi-paste-honest-sync';
 const SHELL = [
   './',
   './index.html',
