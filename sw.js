@@ -1,4 +1,4 @@
-const CACHE = 'pockettrack-v37-smart-upi-paste-honest-sync';
+const CACHE = 'pockettrack-v38-grid-quick-spend';
 const SHELL = [
   './',
   './index.html',

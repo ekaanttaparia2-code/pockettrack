@@ -1197,19 +1197,13 @@ function renderQuickPresets() {
   const container = document.getElementById('quick-presets-bar');
   if (!container) return;
   const presets = getQuickPresets();
-  let html = presets.map(p => `
-    <button type="button" class="quick-preset-chip" onclick="logQuickPreset('${p.id}')" title="1-Tap Log: ${p.name} ₹${p.amt}">
+  const html = presets.map(p => `
+    <button type="button" class="quick-preset-chip" onclick="logQuickPreset('${p.id}')" title="2-Tap Log: ${p.name} ₹${p.amt}">
       <span>${p.icon || '⚡'}</span>
       <span>${escapeHtml(p.name)}</span>
-      <span style="color:var(--accent);">₹${p.amt}</span>
+      <span style="color:var(--green);font-weight:800;">₹${p.amt}</span>
     </button>
   `).join('');
-  html += `
-    <button type="button" class="quick-preset-chip add-chip" onclick="openAddPresetModal()" title="Add Custom Quick Preset">
-      <i class="ti ti-plus"></i>
-      <span>Add Preset</span>
-    </button>
-  `;
   container.innerHTML = html;
 }
 window.renderQuickPresets = renderQuickPresets;
