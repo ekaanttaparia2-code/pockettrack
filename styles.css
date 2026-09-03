@@ -197,38 +197,53 @@ header {
 }
 
 /* =====================================================================
-   HERO SAFE-TO-SPEND CARD (The Core X-Factor of PocketTrack)
+   HERO BALANCE CARD (Primary Hero of PocketTrack)
    ===================================================================== */
 .hero-card-modern {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(145deg, #ffffff 0%, #f7fcf9 55%, #edfdf5 100%);
-  border: 1.5px solid rgba(16, 185, 129, 0.25);
   border-radius: var(--radius-lg);
   padding: 20px 18px 18px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
+  box-shadow: 0 8px 28px rgba(16, 185, 129, 0.08);
+  transition: background 0.25s ease, border-color 0.25s ease;
+  background: linear-gradient(145deg, #0d1a14 0%, #11241c 50%, #0a1510 100%);
+  border: 1.5px solid rgba(16, 185, 129, 0.3);
+}
+
+:root[data-theme="light"] .hero-card-modern,
+html[data-theme="light"] .hero-card-modern,
+body.light-theme .hero-card-modern,
+body[data-theme="light"] .hero-card-modern {
+  background: linear-gradient(145deg, #ffffff 0%, #f7fcf9 55%, #edfdf5 100%);
+  border: 1.5px solid rgba(16, 185, 129, 0.22);
   box-shadow: 0 8px 28px rgba(16, 185, 129, 0.08);
 }
-[data-theme="dark"] .hero-card-modern {
-  background: linear-gradient(145deg, #0f1d17 0%, #13261e 50%, #0d1914 100%);
-  border: 1.5px solid rgba(16, 185, 129, 0.3);
-  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.4);
+
+:root[data-theme="dark"] .hero-card-modern,
+html[data-theme="dark"] .hero-card-modern,
+body.dark-theme .hero-card-modern,
+body[data-theme="dark"] .hero-card-modern {
+  background: linear-gradient(145deg, #0d1a14 0%, #11241c 50%, #0a1510 100%) !important;
+  border: 1.5px solid rgba(16, 185, 129, 0.3) !important;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.5) !important;
 }
+
 .hero-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
-.safe-spend-badge {
+.balance-hero-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.8px;
-  color: var(--green);
+  color: var(--text-dim);
   text-transform: uppercase;
 }
 .pulse-dot {
@@ -244,32 +259,104 @@ header {
   50% { opacity: 0.4; transform: scale(0.85); }
 }
 
-.hero-safe-spend-main {
-  margin-bottom: 14px;
+.hero-balance-main {
+  margin-bottom: 12px;
 }
-.hero-safe-spend-number-wrap {
+.hero-balance-number-wrap {
   display: flex;
   align-items: baseline;
   gap: 4px;
 }
-.hero-safe-spend-val {
+.hero-balance-val {
   font-family: var(--heading);
-  font-size: 40px;
+  font-size: 42px;
   font-weight: 800;
   letter-spacing: -1.5px;
   color: var(--text);
   line-height: 1.1;
 }
-.hero-safe-spend-unit {
-  font-family: var(--heading);
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text-dim);
-}
-.hero-safe-spend-sub {
-  font-size: 12.5px;
+.hero-balance-sub {
+  font-size: 12px;
   color: var(--text-dim);
   margin-top: 4px;
+  font-weight: 600;
+}
+
+/* Secondary Safe-to-Spend Slice Bar inside Card */
+.hero-safe-slice-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  transition: background 0.15s ease;
+}
+.hero-safe-slice-bar:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+[data-theme="dark"] .hero-safe-slice-bar {
+  background: rgba(0, 0, 0, 0.28);
+}
+[data-theme="dark"] .hero-safe-slice-bar:hover {
+  background: rgba(0, 0, 0, 0.38);
+}
+
+/* =====================================================================
+   DISTINCT INCOME & SPENT BLOCKS (Replacing Entries Chip)
+   ===================================================================== */
+.hero-cashflow-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.cashflow-block {
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.cashflow-block:hover {
+  transform: translateY(-2px);
+}
+.cashflow-block.income {
+  border-left: 3.5px solid var(--green);
+  background: linear-gradient(135deg, var(--card) 0%, rgba(16, 185, 129, 0.04) 100%);
+}
+.cashflow-block.expense {
+  border-left: 3.5px solid var(--red);
+  background: linear-gradient(135deg, var(--card) 0%, rgba(244, 63, 94, 0.04) 100%);
+}
+[data-theme="dark"] .cashflow-block.income {
+  background: linear-gradient(135deg, #0d1a14 0%, rgba(16, 185, 129, 0.1) 100%);
+}
+[data-theme="dark"] .cashflow-block.expense {
+  background: linear-gradient(135deg, #1b0e12 0%, rgba(244, 63, 94, 0.1) 100%);
+}
+.cashflow-block-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+.cashflow-block-val {
+  font-family: var(--heading);
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+.cashflow-block-sub {
+  font-size: 10.5px;
+  color: var(--text-dim);
+  font-weight: 600;
+  display: block;
+  margin-top: 2px;
 }
 
 /* Secondary Context Bar inside Card (Total Balance & Savings Target) */

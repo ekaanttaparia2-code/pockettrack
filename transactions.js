@@ -1581,10 +1581,7 @@ function getFriendsLedger() {
     const raw = localStorage.getItem('pocketTrackFriendsLedger');
     if (raw) return JSON.parse(raw);
   } catch (e) {}
-  return [
-    { id: 'f_1', name: 'Rahul Sharma', amt: 450, type: 'lent', note: 'Dinner split at Dhaba', date: '2026-09-02' },
-    { id: 'f_2', name: 'Priya Verma', amt: 200, type: 'borrowed', note: 'Auto fare', date: '2026-09-01' }
-  ];
+  return [];
 }
 window.getFriendsLedger = getFriendsLedger;
 
@@ -1601,8 +1598,17 @@ function renderFriendsLedger() {
 
   if (!list.length) {
     container.innerHTML = `
-      <div class="empty-mini" style="padding:32px 0;text-align:center;color:var(--text-dim);font-size:13px;">
-        No active splits or friend debts. Tap <strong>+ Split / Lend</strong> to record one!
+      <div class="card" style="padding:28px 18px;text-align:center;border-radius:22px;border:1.5px dashed var(--border);">
+        <div style="width:52px;height:52px;border-radius:16px;background:var(--green-soft);color:var(--green);display:grid;place-items:center;font-size:24px;margin:0 auto 12px;">
+          👥
+        </div>
+        <h3 style="font-size:16px;font-weight:800;color:var(--text);margin:0 0 6px;">Friends & Split Ledger</h3>
+        <p style="font-size:12.5px;color:var(--text-dim);margin:0 auto 16px;max-width:320px;line-height:1.5;">
+          Keep track of money you've lent to friends or borrowed. Send 1-tap WhatsApp reminders with pre-filled amounts, and settle balances instantly.
+        </p>
+        <button class="btn btn-primary" onclick="openAddFriendModal()" style="padding:10px 22px;border-radius:12px;font-weight:800;font-size:13px;">
+          + Add First Split / Lent
+        </button>
       </div>
     `;
     return;

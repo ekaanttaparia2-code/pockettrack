@@ -28,6 +28,7 @@ function initAuth() {
         syncDot.style.boxShadow = '0 0 6px var(--green)';
       }
 
+      updateSettingsAuthUI();
       listenToCloudEntries();
     } else {
       currentUser = null;
@@ -40,10 +41,37 @@ function initAuth() {
         syncDot.style.background = '#f59e0b';
         syncDot.style.boxShadow = '0 0 6px #f59e0b';
       }
+      updateSettingsAuthUI();
     }
   });
 }
 window.initAuth = initAuth;
+
+function updateSettingsAuthUI() {
+  const emailEl = document.getElementById('settings-user-email');
+  const subEl = document.getElementById('settings-user-sub');
+  const actionsEl = document.getElementById('settings-auth-actions');
+  if (!actionsEl) return;
+
+  if (currentUser && !currentUser.isGuest) {
+    if (emailEl) emailEl.textContent = currentUser.email || 'Google User';
+    if (subEl) subEl.innerHTML = `<span style="color:var(--green);font-weight:700;">🟢 Cloud Synced</span> · Auto-backed up`;
+    actionsEl.innerHTML = `
+      <button class="btn btn-sm" onclick="handleSignOut()" style="color:var(--red);border-color:rgba(239,68,68,0.3);font-size:12px;padding:6px 14px;border-radius:10px;font-weight:700;display:inline-flex;align-items:center;gap:4px;">
+        <i class="ti ti-logout"></i> Sign out
+      </button>
+    `;
+  } else {
+    if (emailEl) emailEl.textContent = 'Guest User';
+    if (subEl) subEl.textContent = 'Your data is saved safely on this device';
+    actionsEl.innerHTML = `
+      <button class="btn btn-sm btn-primary" onclick="showAuthScreen()" style="font-size:12px;padding:6px 14px;border-radius:10px;font-weight:700;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;">
+        <i class="ti ti-login"></i> Cloud Sign in
+      </button>
+    `;
+  }
+}
+window.updateSettingsAuthUI = updateSettingsAuthUI;
 
 function authAction(mode) {
   const emailInput = document.getElementById('auth-email');
@@ -66,7 +94,11 @@ function authAction(mode) {
     ? auth.signInWithEmailAndPassword(email, pass)
     : auth.createUserWithEmailAndPassword(email, pass);
 
-  action.catch(err => {
+  action.then(() => {
+    const authScreen = document.getElementById('auth-screen');
+    if (authScreen) authScreen.style.display = 'none';
+    toast('Welcome to PocketTrack! ☁️', 'success');
+  }).catch(err => {
     if (errEl) {
       errEl.textContent = err.message;
       errEl.style.display = 'block';
@@ -80,7 +112,11 @@ function signInWithGoogle() {
   if (errEl) errEl.style.display = 'none';
   const provider = new firebase.auth.GoogleAuthProvider();
   
-  auth.signInWithPopup(provider).catch(err => {
+  auth.signInWithPopup(provider).then(() => {
+    const authScreen = document.getElementById('auth-screen');
+    if (authScreen) authScreen.style.display = 'none';
+    toast('Signed in with Google! ☁️', 'success');
+  }).catch(err => {
     if (err.code !== 'auth/popup-closed-by-user') {
       if (errEl) {
         errEl.textContent = err.message;
@@ -92,10 +128,12 @@ function signInWithGoogle() {
 window.signInWithGoogle = signInWithGoogle;
 
 function handleSignOut() {
-  if (currentUser) {
+  if (currentUser && !currentUser.isGuest) {
     auth.signOut().then(() => {
-      toast('Signed out', 'info');
-      showAuthScreen();
+      currentUser = null;
+      window.currentUser = null;
+      startGuestSandboxMode();
+      toast('Signed out from Cloud', 'info');
     });
   } else {
     showAuthScreen();
@@ -117,23 +155,16 @@ function startGuestSandboxMode() {
 
   const authScreen = document.getElementById('auth-screen');
   const guestBanner = document.getElementById('guest-mode-banner');
-  const emailEl = document.getElementById('settings-user-email');
 
   if (authScreen) authScreen.style.display = 'none';
-  if (guestBanner) guestBanner.style.display = 'block';
-  if (emailEl) emailEl.textContent = 'Guest Mode (Offline)';
+  if (guestBanner) guestBanner.style.display = 'none';
 
-  // If no entries exist yet, add starter sample entries
-  if (!window.entries || window.entries.length === 0) {
-    const today = new Date().toISOString().split('T')[0];
-    window.entries = [
-      { id: 'demo_1', type: 'income', amt: 25000, desc: 'Salary / Allowance', cat: 'salary', date: today, wallet: 'bank' },
-      { id: 'demo_2', type: 'expense', amt: 350, desc: 'Lunch & Chai', cat: 'food', date: today, wallet: 'cash' },
-      { id: 'demo_3', type: 'expense', amt: 1200, desc: 'Groceries & Milk', cat: 'grocery', date: today, wallet: 'card' }
-    ];
-    localStorage.setItem('pocketTrackEntries', JSON.stringify(window.entries));
+  // Fresh user starts clean - NO automatic sample demo data!
+  if (!window.entries) {
+    window.entries = [];
   }
 
+  updateSettingsAuthUI();
   if (typeof updateHeaderStats === 'function') updateHeaderStats();
 }
 window.startGuestSandboxMode = startGuestSandboxMode;

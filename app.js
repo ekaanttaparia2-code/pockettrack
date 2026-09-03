@@ -97,6 +97,7 @@ function setTab(tabName) {
     if (seniorToggle) {
       seniorToggle.checked = (localStorage.getItem('pocketTrackSeniorMode') === 'true');
     }
+    if (typeof updateSettingsAuthUI === 'function') updateSettingsAuthUI();
   }
   if (tabName === 'home' && typeof updateHeaderStats === 'function') {
     updateHeaderStats();
@@ -149,21 +150,21 @@ function setAppTheme(theme, save=true) {
   const isLight = (theme === 'light');
   if (typeof document !== 'undefined') {
     if (document.documentElement) {
-      if (isLight) {
-        document.documentElement.setAttribute('data-theme', 'light');
-        document.documentElement.classList.add('light-theme');
-      } else {
-        document.documentElement.removeAttribute('data-theme');
-        document.documentElement.classList.remove('light-theme');
-      }
+      document.documentElement.setAttribute('data-theme', theme);
+      document.documentElement.classList.toggle('light-theme', isLight);
+      document.documentElement.classList.toggle('dark-theme', !isLight);
     }
     if (document.body) {
+      document.body.setAttribute('data-theme', theme);
       document.body.classList.toggle('light-theme', isLight);
-      if (isLight) document.body.setAttribute('data-theme', 'light');
-      else document.body.removeAttribute('data-theme');
+      document.body.classList.toggle('dark-theme', !isLight);
     }
     const icon = document.getElementById('theme-icon');
     if (icon) icon.textContent = isLight ? '🌙' : '☀️';
+    if (typeof document.querySelector === 'function') {
+      const metaTheme = document.querySelector('meta[name="theme-color"]');
+      if (metaTheme) metaTheme.setAttribute('content', isLight ? '#f8fafc' : '#09100d');
+    }
   }
   if (save && typeof localStorage !== 'undefined') {
     localStorage.setItem('pocketTrackTheme', theme);

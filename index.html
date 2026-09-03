@@ -28,23 +28,19 @@
   function applyAppTheme(theme) {
     var isLight = (theme === 'light');
     if (document.documentElement) {
-      if (isLight) {
-        document.documentElement.setAttribute('data-theme', 'light');
-        document.documentElement.classList.add('light-theme');
-      } else {
-        document.documentElement.removeAttribute('data-theme');
-        document.documentElement.classList.remove('light-theme');
-      }
+      document.documentElement.setAttribute('data-theme', theme);
+      document.documentElement.classList.toggle('light-theme', isLight);
+      document.documentElement.classList.toggle('dark-theme', !isLight);
     }
     if (document.body) {
+      document.body.setAttribute('data-theme', theme);
       document.body.classList.toggle('light-theme', isLight);
-      if (isLight) document.body.setAttribute('data-theme', 'light');
-      else document.body.removeAttribute('data-theme');
+      document.body.classList.toggle('dark-theme', !isLight);
     }
     var icon = document.getElementById('theme-icon');
     if (icon) icon.textContent = isLight ? '🌙' : '☀️';
     var metaTheme = document.querySelector('meta[name="theme-color"]');
-    if (metaTheme) metaTheme.setAttribute('content', isLight ? '#f8fafc' : '#070414');
+    if (metaTheme) metaTheme.setAttribute('content', isLight ? '#f8fafc' : '#09100d');
   }
 
   function setAppTheme(theme, save) {
@@ -151,46 +147,47 @@
        ========================================== -->
   <div id="tab-home" class="tab-content active">
     
-    <!-- 🎯 1. UNIFIED HERO SAFE-TO-SPEND CARD (The Core Hero of PocketTrack) -->
-    <div class="hero-card hero-card-modern" id="hero-safe-spend-card">
+    <!-- 🎯 1. HERO TOTAL BALANCE CARD (The Core Hero of PocketTrack) -->
+    <div class="hero-card hero-card-modern" id="hero-balance-card">
       <div class="hero-top">
-        <div class="safe-spend-badge">
-          <span class="pulse-dot"></span>
-          <span>Daily Safe-to-Spend</span>
+        <div class="balance-hero-badge">
+          <span style="font-size:16px;">👛</span>
+          <span style="font-size:11px;font-weight:800;letter-spacing:0.8px;color:var(--text-dim);text-transform:uppercase;">TOTAL BALANCE</span>
         </div>
         <div style="display:flex;align-items:center;gap:6px;">
           <button class="privacy-eye-btn" onclick="event.stopPropagation();toggleBalancePrivacy();" id="privacy-eye-btn" title="Toggle Hide Numbers">
             <i class="ti ti-eye" id="privacy-eye-icon"></i>
           </button>
-          <button class="pill" onclick="event.stopPropagation();onSafeToSpendCardClick();" style="font-size:11px;font-weight:700;padding:5px 10px;border-radius:12px;cursor:pointer;" title="Adjust Monthly Savings Target">
-            <span>🎯 Goal</span>
-          </button>
         </div>
       </div>
 
-      <!-- The Big Hero Safe-to-Spend Number -->
-      <div class="hero-safe-spend-main" onclick="onSafeToSpendCardClick()" style="cursor:pointer;" title="Tap to adjust savings goal">
-        <div class="hero-safe-spend-number-wrap">
-          <span class="hero-safe-spend-val" id="safe-to-spend-val">₹0</span>
-          <span class="hero-safe-spend-unit">/ day</span>
+      <!-- The Big Hero Balance Number -->
+      <div class="hero-balance-main" onclick="onBalanceCardClick()" style="cursor:pointer;" title="Tap to view wallets">
+        <div class="hero-balance-number-wrap">
+          <span class="hero-balance-val" id="hdr-balance">₹0</span>
         </div>
-        <p class="hero-safe-spend-sub" id="safe-to-spend-sub">Calculated for the remaining days</p>
+        <p class="hero-balance-sub" id="hero-balance-sub">Net across your wallets</p>
       </div>
 
-      <!-- Secondary Context Bar (Total Balance & Monthly Savings Target) -->
-      <div class="hero-submetrics-bar" onclick="onBalanceCardClick()" style="cursor:pointer;" title="Tap to view balance details">
-        <div class="submetric-item">
-          <span class="submetric-label">Total Balance</span>
-          <strong class="submetric-val" id="hdr-balance">₹0</strong>
+      <!-- Secondary Safe-to-Spend Slice Bar inside Card -->
+      <div class="hero-safe-slice-bar" onclick="onSafeToSpendCardClick()" style="cursor:pointer;" title="Tap to adjust monthly savings goal">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="pulse-dot"></span>
+          <div>
+            <span style="font-size:10px;font-weight:800;color:var(--green);letter-spacing:0.5px;text-transform:uppercase;display:block;">DAILY SAFE-TO-SPEND</span>
+            <div style="display:flex;align-items:baseline;gap:4px;">
+              <strong style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:800;color:var(--text);" id="safe-to-spend-val">₹0</strong>
+              <span style="font-size:11px;color:var(--text-dim);font-weight:700;">/ day</span>
+            </div>
+          </div>
         </div>
-        <div class="submetric-divider"></div>
-        <div class="submetric-item" style="text-align:right;">
-          <span class="submetric-label">Monthly Target</span>
-          <strong class="submetric-val" id="hero-target-display" style="color:var(--green);">₹0 saved</strong>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span id="hero-target-display" style="font-size:11px;font-weight:700;color:var(--text-dim);">+ Set goal</span>
+          <span class="pill" style="font-size:10px;font-weight:800;padding:4px 8px;border-radius:10px;color:var(--green);">🎯 Goal</span>
         </div>
       </div>
 
-      <!-- 3 Clean Action Buttons (Expense, Income, UPI Paste — No Transfer Clutter!) -->
+      <!-- 3 Clean Action Buttons (Expense, Income, UPI Paste) -->
       <div class="hero-actions-grid-3">
         <button class="hero-action-btn-item" onclick="event.stopPropagation();openQuickComposer('expense');">
           <div class="hero-action-btn-circle expense">
@@ -213,7 +210,30 @@
       </div>
     </div>
 
-    <!-- 2. ⚡ QUICK SPEND SPEED DIAL BAR -->
+    <!-- 2. DISTINCT INCOME & SPENT BLOCKS (Replacing Entries Chip) -->
+    <div class="hero-cashflow-grid">
+      <!-- Income Block -->
+      <div class="cashflow-block income" onclick="setTab('activity');setActivityFilter('income');" style="cursor:pointer;" title="View Income in Passbook">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <span class="cashflow-block-label" style="color:var(--green);">INCOME</span>
+          <span style="font-size:14px;">💵</span>
+        </div>
+        <div class="cashflow-block-val" id="hero-income" style="color:var(--green);">₹0</div>
+        <span class="cashflow-block-sub">This month</span>
+      </div>
+
+      <!-- Spent Block -->
+      <div class="cashflow-block expense" onclick="setTab('activity');setActivityFilter('expense');" style="cursor:pointer;" title="View Expenses in Passbook">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <span class="cashflow-block-label" style="color:var(--red);">SPENT</span>
+          <span style="font-size:14px;">💸</span>
+        </div>
+        <div class="cashflow-block-val" id="hero-spent" style="color:var(--red);">₹0</div>
+        <span class="cashflow-block-sub">This month</span>
+      </div>
+    </div>
+
+    <!-- 3. ⚡ QUICK SPEND SPEED DIAL BAR -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin:0 2px 8px;">
       <p class="section-kicker" style="font-size:10px;font-weight:800;color:var(--text-dim);letter-spacing:1px;margin:0;">⚡ QUICK SPEND</p>
       <button class="text-action" onclick="openAddPresetModal()" style="background:none;border:none;color:var(--green);font-weight:700;font-size:11.5px;cursor:pointer;display:flex;align-items:center;gap:3px;" title="Add Custom Quick Preset">
@@ -456,17 +476,14 @@
 
     <!-- Account & Cloud Sync -->
     <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
         <div>
           <h3 style="font-size:15px;font-weight:700;margin:0;" id="settings-user-email">Guest User</h3>
-          <p style="font-size:11.5px;color:var(--text-dim);margin:2px 0 0;">Your data is saved safely in device storage</p>
+          <p style="font-size:11.5px;color:var(--text-dim);margin:2px 0 0;" id="settings-user-sub">Your data is saved safely on this device</p>
         </div>
-        <div style="display:flex;gap:6px;">
-          <button class="btn btn-sm btn-primary" onclick="showAuthScreen()" style="font-size:11.5px;padding:6px 12px;border-radius:10px;font-weight:700;">
-            <i class="ti ti-login"></i> Cloud Sign in
-          </button>
-          <button class="btn btn-sm" onclick="handleSignOut()" style="color:var(--red);border-color:rgba(239,68,68,0.3);">
-            <i class="ti ti-logout"></i>
+        <div id="settings-auth-actions" style="display:flex;gap:6px;align-items:center;flex-shrink:0;">
+          <button class="btn btn-sm btn-primary" onclick="showAuthScreen()" style="font-size:12px;padding:7px 14px;border-radius:10px;font-weight:700;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;">
+            <i class="ti ti-cloud-upload"></i> Cloud Sign in
           </button>
         </div>
       </div>
