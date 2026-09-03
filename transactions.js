@@ -1420,6 +1420,7 @@ function exportTransactionsCSV() {
   toast('Passbook CSV exported successfully! 📊', 'success');
 }
 window.exportTransactionsCSV = exportTransactionsCSV;
+window.exportCSV = exportTransactionsCSV;
 
 // ── CLEAN 1-PAGE PDF FINANCIAL STATEMENT ──
 function downloadMonthlyPDFStatement(monthStr) {
@@ -1553,6 +1554,80 @@ function downloadMonthlyPDFStatement(monthStr) {
   toast('Statement PDF downloaded! 📄', 'success');
 }
 window.downloadMonthlyPDFStatement = downloadMonthlyPDFStatement;
+
+// ── DATA BACKUP & RESTORE (JSON) ──
+function backupAppDataJSON() {
+  const data = {
+    version: '1.0',
+    exportedAt: new Date().toISOString(),
+    entries: window.entries || [],
+    wallets: window.wallets || [],
+    savingsTarget: localStorage.getItem('pocketTrackSavingsTarget') || '',
+    savingsTargets: localStorage.getItem('pocketTrackSavingsTargets') || '{}',
+    budgets: localStorage.getItem('pocketTrackBudgets') || '{}',
+    friendsLedger: localStorage.getItem('pocketTrackFriendsLedger') || '[]',
+    quickPresets: localStorage.getItem('pocketTrackQuickPresets') || '[]',
+    recurringRules: localStorage.getItem('pocketTrackRecurringRules') || '[]',
+    userName: localStorage.getItem('pocketTrackUserName') || ''
+  };
+
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const dateStr = new Date().toISOString().split('T')[0];
+  a.href = url;
+  a.download = `PocketTrack_Backup_${dateStr}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('Data Backup (JSON) downloaded! 💾', 'success');
+}
+window.backupAppDataJSON = backupAppDataJSON;
+
+function restoreAppDataJSON(inputEl) {
+  if (!inputEl || !inputEl.files || !inputEl.files[0]) return;
+  const file = inputEl.files[0];
+  const reader = new FileReader();
+
+  reader.onload = function(e) {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      if (!parsed || (!Array.isArray(parsed.entries) && !Array.isArray(parsed.wallets))) {
+        toast('Invalid backup file format', 'error');
+        return;
+      }
+
+      if (Array.isArray(parsed.entries)) {
+        window.entries = parsed.entries;
+        localStorage.setItem('pocketTrackEntries', JSON.stringify(parsed.entries));
+      }
+      if (Array.isArray(parsed.wallets)) {
+        window.wallets = parsed.wallets;
+        localStorage.setItem('pocketTrackWallets', JSON.stringify(parsed.wallets));
+      }
+      if (parsed.savingsTarget) localStorage.setItem('pocketTrackSavingsTarget', parsed.savingsTarget);
+      if (parsed.savingsTargets) localStorage.setItem('pocketTrackSavingsTargets', typeof parsed.savingsTargets === 'string' ? parsed.savingsTargets : JSON.stringify(parsed.savingsTargets));
+      if (parsed.budgets) localStorage.setItem('pocketTrackBudgets', typeof parsed.budgets === 'string' ? parsed.budgets : JSON.stringify(parsed.budgets));
+      if (parsed.friendsLedger) localStorage.setItem('pocketTrackFriendsLedger', typeof parsed.friendsLedger === 'string' ? parsed.friendsLedger : JSON.stringify(parsed.friendsLedger));
+      if (parsed.quickPresets) localStorage.setItem('pocketTrackQuickPresets', typeof parsed.quickPresets === 'string' ? parsed.quickPresets : JSON.stringify(parsed.quickPresets));
+      if (parsed.recurringRules) localStorage.setItem('pocketTrackRecurringRules', typeof parsed.recurringRules === 'string' ? parsed.recurringRules : JSON.stringify(parsed.recurringRules));
+      if (parsed.userName) localStorage.setItem('pocketTrackUserName', parsed.userName);
+
+      updateHeaderStats();
+      if (typeof renderSettingsWallets === 'function') renderSettingsWallets();
+      if (typeof renderFriendsLedger === 'function') renderFriendsLedger();
+      toast('Backup restored successfully! 🔄', 'success');
+      inputEl.value = '';
+    } catch (err) {
+      console.error('Backup restore error:', err);
+      toast('Failed to read or parse backup file', 'error');
+    }
+  };
+
+  reader.readAsText(file);
+}
+window.restoreAppDataJSON = restoreAppDataJSON;
 
 // ── UTILITIES ──
 function getCategoryIcon(catId, type) {

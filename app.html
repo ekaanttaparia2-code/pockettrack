@@ -489,6 +489,34 @@
       </div>
     </div>
 
+    <!-- 💾 Data Management & Statement Exports -->
+    <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <span style="font-size:20px;">💾</span>
+        <div>
+          <h3 style="font-size:15px;font-weight:700;margin:0;">Data & Statement Exports</h3>
+          <p style="font-size:11.5px;color:var(--text-dim);margin:2px 0 0;">Export statements or backup your device data</p>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+        <button class="btn btn-sm" onclick="downloadMonthlyPDFStatement()" style="font-size:11.5px;padding:7px 10px;font-weight:700;border-radius:11px;">
+          📄 PDF Statement
+        </button>
+        <button class="btn btn-sm" onclick="exportCSV()" style="font-size:11.5px;padding:7px 10px;font-weight:700;border-radius:11px;">
+          📊 CSV Spreadsheet
+        </button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <button class="btn btn-sm" onclick="backupAppDataJSON()" style="font-size:11.5px;padding:7px 10px;font-weight:700;border-radius:11px;" title="Save a copy of all local data">
+          💾 Backup JSON
+        </button>
+        <button class="btn btn-sm" onclick="document.getElementById('import-json-file').click()" style="font-size:11.5px;padding:7px 10px;font-weight:700;border-radius:11px;" title="Restore data from a JSON backup">
+          🔄 Restore JSON
+        </button>
+        <input type="file" id="import-json-file" accept=".json" onchange="restoreAppDataJSON(this)" style="display:none;" />
+      </div>
+    </div>
+
     <!-- Clear All Data / Reset Demo -->
     <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;border:1px solid rgba(239,68,68,0.25);background:rgba(239,68,68,0.03);">
       <div style="display:flex;justify-content:space-between;align-items:center;">
