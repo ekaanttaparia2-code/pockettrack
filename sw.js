@@ -1,4 +1,4 @@
-const CACHE = 'pockettrack-v40-balance-hero-dark-fix';
+const CACHE = 'pockettrack-v41-launch-ready';
 const SHELL = [
   './',
   './index.html',

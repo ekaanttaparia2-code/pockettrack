@@ -53,8 +53,9 @@ function updateSettingsAuthUI() {
   const actionsEl = document.getElementById('settings-auth-actions');
   if (!actionsEl) return;
 
-  if (currentUser && !currentUser.isGuest) {
-    if (emailEl) emailEl.textContent = currentUser.email || 'Google User';
+  const user = window.currentUser || currentUser;
+  if (user && !user.isGuest) {
+    if (emailEl) emailEl.textContent = user.email || 'Google User';
     if (subEl) subEl.innerHTML = `<span style="color:var(--green);font-weight:700;">🟢 Cloud Synced</span> · Auto-backed up`;
     actionsEl.innerHTML = `
       <button class="btn btn-sm" onclick="handleSignOut()" style="color:var(--red);border-color:rgba(239,68,68,0.3);font-size:12px;padding:6px 14px;border-radius:10px;font-weight:700;display:inline-flex;align-items:center;gap:4px;">
@@ -154,10 +155,7 @@ function startGuestSandboxMode() {
   window.currentUser = currentUser;
 
   const authScreen = document.getElementById('auth-screen');
-  const guestBanner = document.getElementById('guest-mode-banner');
-
   if (authScreen) authScreen.style.display = 'none';
-  if (guestBanner) guestBanner.style.display = 'none';
 
   // Fresh user starts clean - NO automatic sample demo data!
   if (!window.entries) {

@@ -246,8 +246,12 @@ function updateHeaderStats() {
   const safePerDay = Math.floor(spendable / daysLeft);
 
   const safeEl = document.getElementById('safe-to-spend-val');
-  const safeSub = document.getElementById('safe-to-spend-sub');
   const targetEl = document.getElementById('hero-target-display');
+  const balSub = document.getElementById('hero-balance-sub');
+
+  if (balSub) {
+    balSub.textContent = locked ? 'Protected by PIN lock' : 'Net across your wallets';
+  }
 
   if (safeEl) {
     if (locked) {
@@ -271,6 +275,7 @@ function updateHeaderStats() {
     }
   }
 
+  const safeSub = document.getElementById('safe-to-spend-sub');
   if (safeSub) {
     if (savingsTarget > 0) {
       safeSub.textContent = `🎯 Saving ₹${savingsTarget.toLocaleString('en-IN')} · ${locked ? '₹••••' : '₹' + safePerDay.toLocaleString('en-IN')} safe today (${daysLeft}d left)`;
@@ -285,7 +290,7 @@ function updateHeaderStats() {
     animateNumber('hdr-balance', balance);
     animateNumber('hero-income', income);
     animateNumber('hero-spent', spent);
-    animateNumber('hero-count', list.length, '', '');
+    if (document.getElementById('hero-count')) animateNumber('hero-count', list.length, '', '');
     if (safeEl) animateNumber('safe-to-spend-val', safePerDay, '₹', '');
   }
 
@@ -402,9 +407,10 @@ window.onSettingsSavingsWalletChange = onSettingsSavingsWalletChange;
 
 function onSettingsBudgetWalletChange(walletId) {
   const input = document.getElementById('budget-input');
+  if (!input) return;
   const budgets = typeof getWalletBudgets === 'function' ? getWalletBudgets() : {};
   const current = budgets[walletId] || (walletId === 'all' ? (localStorage.getItem('pocketTrackBudget') || '') : '');
-  if (input) input.value = current > 0 ? current : '';
+  input.value = current > 0 ? current : '';
 }
 window.onSettingsBudgetWalletChange = onSettingsBudgetWalletChange;
 
