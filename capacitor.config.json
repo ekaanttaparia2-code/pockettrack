@@ -4,7 +4,7 @@
   "webDir": ".",
   "bundledWebRuntime": false,
   "server": {
-    "url": "https://pockettrack-bay.vercel.app",
+    "url": "https://ekaanttaparia2-code-pockettrack.vercel.app",
     "cleartext": false
   },
   "plugins": {

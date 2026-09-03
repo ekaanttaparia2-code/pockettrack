@@ -11,6 +11,15 @@
       ]
     },
     {
+      "source": "/assets.json",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ]
+    },
+    {
       "source": "/sw.js",
       "headers": [
         {
