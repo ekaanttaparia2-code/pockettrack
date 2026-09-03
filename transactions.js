@@ -1123,9 +1123,8 @@ function getQuickPresets() {
   } catch (e) {}
   return [
     { id: 'p_chai', name: 'Chai', amt: 20, icon: '☕', cat: 'food', wallet: 'cash' },
-    { id: 'p_metro', name: 'Metro / Auto', amt: 40, icon: '🚇', cat: 'transport', wallet: 'bank' },
-    { id: 'p_snacks', name: 'Snacks', amt: 50, icon: '🥪', cat: 'food', wallet: 'cash' },
-    { id: 'p_fuel', name: 'Fuel', amt: 200, icon: '⛽', cat: 'transport', wallet: 'card' }
+    { id: 'p_metro', name: 'Metro', amt: 40, icon: '🚇', cat: 'transport', wallet: 'bank' },
+    { id: 'p_snacks', name: 'Snacks', amt: 50, icon: '🥪', cat: 'food', wallet: 'cash' }
   ];
 }
 window.getQuickPresets = getQuickPresets;

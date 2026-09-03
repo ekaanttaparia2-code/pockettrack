@@ -17,11 +17,21 @@
 
 /* Nav & Core */
 .ti-home::before, .ti-smart-home::before { content: '🏠'; }
+.ti-chart-pie::before, .ti-chart-donut::before, .ti-chart-bar::before, .ti-chart-line::before, .ti-insights::before { content: '📊'; }
 .ti-receipt::before, .ti-list::before { content: '📋'; }
 .ti-settings::before, .ti-gear::before, .ti-adjusts::before { content: '⚙️'; }
 .ti-search::before { content: '🔍'; }
 
-/* Actions */
+/* Privacy & Auth */
+.ti-eye::before { content: '👁️'; }
+.ti-eye-off::before { content: '🙈'; }
+.ti-key::before, .ti-lock::before { content: '🔑'; }
+.ti-login::before { content: '🔐'; }
+.ti-logout::before { content: '🚪'; }
+.ti-user-plus::before { content: '🙋'; }
+.ti-sparkles::before { content: '✨'; }
+
+/* Actions & Controls */
 .ti-plus::before { content: '➕'; }
 .ti-arrow-up-right::before { content: '↗'; font-weight: 800; font-size: 1.15em; }
 .ti-arrow-down-left::before { content: '↙'; font-weight: 800; font-size: 1.15em; }
@@ -32,10 +42,12 @@
 .ti-trash::before { content: '🗑️'; }
 .ti-x::before { content: '✕'; font-weight: 800; }
 .ti-arrow-right::before { content: '→'; font-weight: 800; }
+.ti-chevron-left::before { content: '‹'; font-weight: 800; font-size: 1.3em; }
+.ti-chevron-right::before { content: '›'; font-weight: 800; font-size: 1.3em; }
+.ti-calendar::before { content: '📅'; }
+.ti-file-text::before, .ti-report::before { content: '📄'; }
+.ti-player-pause::before { content: '⏸'; }
+.ti-player-play::before { content: '▶'; }
 
-/* Wallets & Auth */
+/* Wallets */
 .ti-wallet::before { content: '👛'; }
-.ti-login::before { content: '🔐'; }
-.ti-logout::before { content: '🚪'; }
-.ti-user-plus::before { content: '🙋'; }
-.ti-sparkles::before { content: '✨'; }

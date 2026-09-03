@@ -350,7 +350,7 @@ it('14.2 Unlocks session with correct PIN and unmasks balances', () => {
 // ── TEST 15: ⚡ 2-Tap Quick Spend Presets ──
 it('15.1 Opens composer prefilled with preset values for quick adjustment (2-Tap)', () => {
   const presets = getQuickPresets();
-  assert.ok(presets.length >= 4, 'Must have default quick presets');
+  assert.ok(presets.length >= 3, 'Must have default quick presets');
   const chai = presets.find(p => p.id === 'p_chai');
   assert.ok(chai, 'Chai preset must exist');
 

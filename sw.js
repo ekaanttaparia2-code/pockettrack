@@ -1,4 +1,4 @@
-const CACHE = 'pockettrack-v35-fixed-bottom-nav-clean-logo';
+const CACHE = 'pockettrack-v36-insights-icon-presets-carousel';
 const SHELL = [
   './',
   './index.html',
