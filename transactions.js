@@ -623,26 +623,70 @@ function renderHomeRecent() {
 window.renderHomeRecent = renderHomeRecent;
 window.renderHomeSnapshot = renderHomeRecent;
 
-// ── FULL ACTIVITY PASSBOOK ──
+// ── FULL ACTIVITY PASSBOOK (Date-Grouped with Running Balance) ──
+let currentActivityCategoryFilter = 'all';
+window.currentActivityCategoryFilter = 'all';
+
 function renderActivityList() {
   const container = document.getElementById('entries-list');
   if (!container) return;
-  let list = window.entries || [];
+  const allEntries = window.entries || [];
   const locked = isPrivacyActive();
 
-  // Filter
+  // If no transactions exist at all
+  if (!allEntries.length) {
+    container.innerHTML = `
+      <div class="empty-mini" style="padding:40px 16px;text-align:center;">
+        <span style="font-size:32px;display:block;margin-bottom:8px;">📋</span>
+        <h3 style="font-size:16px;font-weight:800;color:var(--text);margin:0 0 6px;">Nothing logged yet</h3>
+        <p style="font-size:12.5px;color:var(--text-dim);margin:0 0 16px;">Tap <strong>Expense</strong> on Home to start tracking your daily spend.</p>
+        <button class="btn btn-primary" onclick="openQuickComposer('expense')" style="padding:10px 20px;font-size:13px;border-radius:12px;font-weight:700;">+ Add Expense</button>
+      </div>
+    `;
+    return;
+  }
+
+  // 1. Calculate Running Balance Chronologically (Oldest to Newest)
+  const chronological = [...allEntries].sort((a, b) => {
+    const dComp = String(a.date || '').localeCompare(String(b.date || ''));
+    if (dComp !== 0) return dComp;
+    return (a.createdAt || 0) - (b.createdAt || 0);
+  });
+
+  let running = 0;
+  const runningBalMap = {};
+  chronological.forEach(e => {
+    const amt = parseFloat(e.amt) || 0;
+    if (e.type === 'income') running += amt;
+    else if (e.type === 'expense') running -= amt;
+    runningBalMap[e.id] = running;
+  });
+
+  // 2. Filter & Search on View List (Newest first)
+  let filtered = [...allEntries].sort((a, b) => {
+    const dComp = String(b.date || '').localeCompare(String(a.date || ''));
+    if (dComp !== 0) return dComp;
+    return (b.createdAt || 0) - (a.createdAt || 0);
+  });
+
+  // Type filter
   if (currentActivityFilter !== 'all') {
     if (currentActivityFilter === 'transfer') {
-      list = list.filter(e => e.cat === 'transfer');
+      filtered = filtered.filter(e => e.cat === 'transfer');
     } else {
-      list = list.filter(e => e.type === currentActivityFilter && e.cat !== 'transfer');
+      filtered = filtered.filter(e => e.type === currentActivityFilter && e.cat !== 'transfer');
     }
   }
 
-  // Search
+  // Category filter
+  if (currentActivityCategoryFilter !== 'all') {
+    filtered = filtered.filter(e => e.cat === currentActivityCategoryFilter);
+  }
+
+  // Search filter
   if (currentSearchQuery.trim()) {
     const q = currentSearchQuery.toLowerCase();
-    list = list.filter(e => 
+    filtered = filtered.filter(e => 
       (e.desc && e.desc.toLowerCase().includes(q)) || 
       (e.note && e.note.toLowerCase().includes(q)) || 
       (e.cat && e.cat.toLowerCase().includes(q)) || 
@@ -650,35 +694,74 @@ function renderActivityList() {
     );
   }
 
-  if (!list.length) {
-    container.innerHTML = `<div class="empty-mini" style="padding:32px 0;text-align:center;color:var(--text-dim);font-size:13px;">No transactions match your filter.</div>`;
+  if (!filtered.length) {
+    container.innerHTML = `<div class="empty-mini" style="padding:32px 0;text-align:center;color:var(--text-dim);font-size:13px;">No transactions match your filters.</div>`;
     return;
   }
 
-  let rowsHtml = '';
-  list.forEach(e => {
-    const isInc = e.type === 'income';
-    const isTr = e.cat === 'transfer';
-    const amtClass = isTr ? 'transfer' : (isInc ? 'income' : 'expense');
-    const sign = isTr ? '' : (isInc ? '+₹' : '-₹');
-    const catIcon = getCategoryIcon(e.cat, e.type);
-    const displayAmt = locked ? '₹••••' : `${sign}${parseFloat(e.amt || 0).toLocaleString('en-IN')}`;
+  // 3. Group by Date
+  const todayStr = new Date().toISOString().split('T')[0];
+  const yesterdayObj = new Date();
+  yesterdayObj.setDate(yesterdayObj.getDate() - 1);
+  const yesterdayStr = yesterdayObj.toISOString().split('T')[0];
 
-    rowsHtml += `
-      <div class="entry-row" onclick="${locked ? 'openUnlockPinModal()' : `startEditEntry('${e.id}')`}">
-        <div class="entry-left">
-          <div class="entry-icon">${catIcon}</div>
-          <div class="entry-main">
-            <div class="entry-title">${escapeHtml(e.desc || e.note || e.cat || 'Transaction')}</div>
-            <div class="entry-meta">
-              <span>${formatDate(e.date)}</span>
-              ${typeof getWalletBadgeHtml === 'function' ? getWalletBadgeHtml(e.wallet) : ''}
-            </div>
-          </div>
-        </div>
-        <div class="entry-amt ${amtClass} ${locked ? 'privacy-masked' : ''}">${displayAmt}</div>
+  const dateGroups = {};
+  filtered.forEach(e => {
+    const d = e.date || todayStr;
+    if (!dateGroups[d]) dateGroups[d] = { entries: [], dayTotal: 0 };
+    dateGroups[d].entries.push(e);
+    const amt = parseFloat(e.amt) || 0;
+    if (e.type === 'income') dateGroups[d].dayTotal += amt;
+    else if (e.type === 'expense') dateGroups[d].dayTotal -= amt;
+  });
+
+  let html = '';
+  Object.keys(dateGroups).forEach(dateKey => {
+    const group = dateGroups[dateKey];
+    let label = formatDate(dateKey);
+    if (dateKey === todayStr) label = `Today · ${label}`;
+    else if (dateKey === yesterdayStr) label = `Yesterday · ${label}`;
+
+    const totalSign = group.dayTotal >= 0 ? '+₹' : '-₹';
+    const totalColor = group.dayTotal >= 0 ? 'var(--green)' : 'var(--text-dim)';
+    const dayTotalFormatted = locked ? '₹••••' : `${totalSign}${Math.abs(group.dayTotal).toLocaleString('en-IN')}`;
+
+    html += `
+      <div class="activity-date-header">
+        <span>${label}</span>
+        <span class="activity-date-total" style="color:${totalColor};">${dayTotalFormatted}</span>
       </div>
     `;
+
+    group.entries.forEach(e => {
+      const isInc = e.type === 'income';
+      const isTr = e.cat === 'transfer';
+      const amtClass = isTr ? 'transfer' : (isInc ? 'income' : 'expense');
+      const sign = isTr ? '' : (isInc ? '+₹' : '-₹');
+      const catIcon = getCategoryIcon(e.cat, e.type);
+      const displayAmt = locked ? '₹••••' : `${sign}${parseFloat(e.amt || 0).toLocaleString('en-IN')}`;
+      const rBal = runningBalMap[e.id];
+      const rBalFormatted = (rBal !== undefined && !locked) ? `Bal: ₹${rBal.toLocaleString('en-IN')}` : '';
+
+      html += `
+        <div class="entry-row" onclick="${locked ? 'openUnlockPinModal()' : `startEditEntry('${e.id}')`}">
+          <div class="entry-left">
+            <div class="entry-icon">${catIcon}</div>
+            <div class="entry-main">
+              <div class="entry-title">${escapeHtml(e.desc || e.note || e.cat || 'Transaction')}</div>
+              <div class="entry-meta">
+                ${typeof getWalletBadgeHtml === 'function' ? getWalletBadgeHtml(e.wallet) : ''}
+                <span>${typeof getCategoryName === 'function' ? getCategoryName(e.cat, e.type) : e.cat}</span>
+              </div>
+            </div>
+          </div>
+          <div class="entry-amt-wrap">
+            <div class="entry-amt ${amtClass} ${locked ? 'privacy-masked' : ''}">${displayAmt}</div>
+            ${rBalFormatted ? `<div class="entry-running-bal">${rBalFormatted}</div>` : ''}
+          </div>
+        </div>
+      `;
+    });
   });
 
   if (locked) {
@@ -690,12 +773,12 @@ function renderActivityList() {
           <span style="font-size:11px;color:var(--text-dim);">Tap to enter PIN & view amounts</span>
         </div>
         <div class="privacy-blur">
-          ${rowsHtml}
+          ${html}
         </div>
       </div>
     `;
   } else {
-    container.innerHTML = rowsHtml;
+    container.innerHTML = html;
   }
 }
 window.renderActivityList = renderActivityList;
@@ -704,11 +787,20 @@ window.renderEntries = renderActivityList;
 function setActivityFilter(filter, btn) {
   currentActivityFilter = filter;
   window.currentActivityFilter = filter;
-  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('#activity-type-chips .filter-chip').forEach(c => c.classList.remove('active'));
   if (btn) btn.classList.add('active');
   renderActivityList();
 }
 window.setActivityFilter = setActivityFilter;
+
+function setActivityCategoryFilter(cat, btn) {
+  currentActivityCategoryFilter = cat;
+  window.currentActivityCategoryFilter = cat;
+  document.querySelectorAll('.activity-cat-chip').forEach(c => c.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderActivityList();
+}
+window.setActivityCategoryFilter = setActivityCategoryFilter;
 
 function onActivitySearch(val) {
   currentSearchQuery = val;
@@ -1482,4 +1574,207 @@ function escapeHtml(str) {
   }[m]));
 }
 window.escapeHtml = escapeHtml;
+
+// ── 👥 FRIENDS & SPLIT LEDGER ──
+function getFriendsLedger() {
+  try {
+    const raw = localStorage.getItem('pocketTrackFriendsLedger');
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return [
+    { id: 'f_1', name: 'Rahul Sharma', amt: 450, type: 'lent', note: 'Dinner split at Dhaba', date: '2026-09-02' },
+    { id: 'f_2', name: 'Priya Verma', amt: 200, type: 'borrowed', note: 'Auto fare', date: '2026-09-01' }
+  ];
+}
+window.getFriendsLedger = getFriendsLedger;
+
+function saveFriendsLedger(list) {
+  localStorage.setItem('pocketTrackFriendsLedger', JSON.stringify(list));
+  renderFriendsLedger();
+}
+window.saveFriendsLedger = saveFriendsLedger;
+
+function renderFriendsLedger() {
+  const container = document.getElementById('friends-ledger-list');
+  if (!container) return;
+  const list = getFriendsLedger();
+
+  if (!list.length) {
+    container.innerHTML = `
+      <div class="empty-mini" style="padding:32px 0;text-align:center;color:var(--text-dim);font-size:13px;">
+        No active splits or friend debts. Tap <strong>+ Split / Lend</strong> to record one!
+      </div>
+    `;
+    return;
+  }
+
+  let html = '';
+  list.forEach(f => {
+    const isLent = f.type === 'lent';
+    const statusText = isLent ? `You get ₹${f.amt.toLocaleString('en-IN')}` : `You owe ₹${f.amt.toLocaleString('en-IN')}`;
+    const statusColor = isLent ? 'var(--green)' : 'var(--red)';
+    const waMsg = encodeURIComponent(`Hey ${f.name}, gentle reminder about ₹${f.amt} for ${f.note || 'our shared expense'} via PocketTrack.`);
+
+    html += `
+      <div class="ledger-friend-card">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:36px;height:36px;border-radius:12px;background:${isLent ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)'};display:grid;place-items:center;font-size:18px;">
+            ${isLent ? '🟢' : '🔴'}
+          </div>
+          <div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <strong style="font-size:14px;color:var(--text);">${escapeHtml(f.name)}</strong>
+              <span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:6px;background:${isLent ? 'var(--green-soft)' : 'rgba(239,68,68,0.1)'};color:${statusColor};">
+                ${isLent ? 'Lent' : 'Borrowed'}
+              </span>
+            </div>
+            <div style="font-size:11.5px;color:var(--text-dim);margin-top:2px;">
+              ${escapeHtml(f.note || 'Split')} · <strong style="color:${statusColor};">${statusText}</strong>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          ${isLent ? `<a href="https://wa.me/?text=${waMsg}" target="_blank" rel="noopener" class="ledger-whatsapp-btn" title="Remind on WhatsApp">💬 Remind</a>` : ''}
+          <button class="btn btn-sm" onclick="settleFriendDebt('${f.id}')" style="font-size:11.5px;padding:5px 10px;border-radius:10px;font-weight:700;">
+            Settle
+          </button>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+window.renderFriendsLedger = renderFriendsLedger;
+
+function settleFriendDebt(id) {
+  const list = getFriendsLedger();
+  const f = list.find(x => x.id === id);
+  if (!f) return;
+
+  const isLent = f.type === 'lent';
+  const newEntry = {
+    id: 'settle_' + Date.now(),
+    amt: f.amt,
+    type: isLent ? 'income' : 'expense',
+    cat: 'other',
+    desc: `🤝 Settled with ${f.name} (${f.note || 'debt'})`,
+    date: new Date().toISOString().split('T')[0],
+    wallet: 'bank',
+    createdAt: Date.now()
+  };
+  window.entries.unshift(newEntry);
+  localStorage.setItem('pocketTrackEntries', JSON.stringify(window.entries));
+  updateHeaderStats();
+
+  saveFriendsLedger(list.filter(x => x.id !== id));
+  toast(`🤝 Settled ₹${f.amt} with ${f.name} & logged transaction!`, 'success');
+}
+window.settleFriendDebt = settleFriendDebt;
+
+function addFriendDebt(name, amt, type, note) {
+  if (!name || !amt) return;
+  const list = getFriendsLedger();
+  list.unshift({
+    id: 'f_' + Date.now(),
+    name: name.trim(),
+    amt: parseFloat(amt),
+    type: type || 'lent',
+    note: note ? note.trim() : '',
+    date: new Date().toISOString().split('T')[0]
+  });
+  saveFriendsLedger(list);
+  toast(`Added split with ${name}! 👥`, 'success');
+}
+window.addFriendDebt = addFriendDebt;
+
+function openAddFriendModal() {
+  const m = document.getElementById('friend-split-modal');
+  if (m) m.style.display = 'flex';
+}
+window.openAddFriendModal = openAddFriendModal;
+
+function closeAddFriendModal() {
+  const m = document.getElementById('friend-split-modal');
+  if (m) m.style.display = 'none';
+}
+window.closeAddFriendModal = closeAddFriendModal;
+
+function submitAddFriend() {
+  const nameInput = document.getElementById('friend-name-input');
+  const amtInput = document.getElementById('friend-amt-input');
+  const typeSelect = document.getElementById('friend-type-select');
+  const noteInput = document.getElementById('friend-note-input');
+
+  const name = nameInput ? nameInput.value : '';
+  const amt = amtInput ? amtInput.value : '';
+  const type = typeSelect ? typeSelect.value : 'lent';
+  const note = noteInput ? noteInput.value : '';
+
+  if (!name || !amt || parseFloat(amt) <= 0) {
+    toast('Please enter a friend name and valid amount', 'error');
+    return;
+  }
+
+  addFriendDebt(name, amt, type, note);
+  if (nameInput) nameInput.value = '';
+  if (amtInput) amtInput.value = '';
+  if (noteInput) noteInput.value = '';
+  closeAddFriendModal();
+}
+window.submitAddFriend = submitAddFriend;
+
+// ── SENIOR / ACCESSIBILITY MODE ──
+function toggleSeniorMode(enabled) {
+  localStorage.setItem('pocketTrackSeniorMode', enabled ? 'true' : 'false');
+  if (typeof document !== 'undefined' && document.documentElement) {
+    document.documentElement.classList.toggle('senior-mode', enabled);
+  }
+  toast(enabled ? '👴 Senior / Large font mode enabled!' : 'Standard mode enabled', 'info');
+}
+window.toggleSeniorMode = toggleSeniorMode;
+
+function applySeniorMode() {
+  const isSenior = localStorage.getItem('pocketTrackSeniorMode') === 'true';
+  if (typeof document !== 'undefined' && document.documentElement) {
+    document.documentElement.classList.toggle('senior-mode', isSenior);
+  }
+  const toggle = document.getElementById('setting-senior-toggle');
+  if (toggle) toggle.checked = isSenior;
+}
+window.applySeniorMode = applySeniorMode;
+
+// ── USER PROFILE NAME ──
+function saveUserProfileName(name) {
+  const n = name ? name.trim() : 'User';
+  localStorage.setItem('pocketTrackUserName', n);
+  const el = document.getElementById('settings-user-name');
+  if (el) el.value = n;
+  toast('Profile name saved! 👋', 'success');
+}
+window.saveUserProfileName = saveUserProfileName;
+
+// ── CLEAR ALL DATA / RESET DEMO ──
+function clearAllAppData() {
+  if (confirm('Are you sure you want to reset all data and start fresh? This cannot be undone.')) {
+    localStorage.removeItem('pocketTrackEntries');
+    localStorage.removeItem('pocketTrackWallets');
+    localStorage.removeItem('pocketTrackSavingsTarget');
+    localStorage.removeItem('pocketTrackBudget');
+    localStorage.removeItem('pocketTrackRecurringRules');
+    localStorage.removeItem('pocketTrackFriendsLedger');
+    window.entries = [];
+    window.wallets = [
+      { id: 'cash', name: 'Cash', icon: '💵', balance: 0 },
+      { id: 'bank', name: 'Bank / UPI', icon: '🏦', balance: 0 },
+      { id: 'card', name: 'Credit Card', icon: '💳', balance: 0 }
+    ];
+    updateHeaderStats();
+    if (typeof renderActivityList === 'function') renderActivityList();
+    if (typeof renderSettingsWallets === 'function') renderSettingsWallets();
+    if (typeof renderFriendsLedger === 'function') renderFriendsLedger();
+    toast('All data cleared. Starting fresh! 🧹', 'info');
+  }
+}
+window.clearAllAppData = clearAllAppData;
 

@@ -79,20 +79,55 @@ function setTab(tabName) {
   if (tabName === 'insights' && typeof renderInsightsTab === 'function') {
     renderInsightsTab();
   }
-  if (tabName === 'activity' && typeof renderActivityList === 'function') {
-    renderActivityList();
+  if (tabName === 'activity') {
+    if (typeof renderActivityList === 'function') renderActivityList();
+    if (typeof renderFriendsLedger === 'function') renderFriendsLedger();
   }
   if (tabName === 'settings') {
     if (typeof renderSettingsWallets === 'function') renderSettingsWallets();
     const sInput = document.getElementById('settings-savings-input');
     const currSav = localStorage.getItem('pocketTrackSavingsTarget') || '';
     if (sInput && currSav) sInput.value = currSav;
+    
+    const nameInput = document.getElementById('settings-user-name');
+    const currName = localStorage.getItem('pocketTrackUserName') || '';
+    if (nameInput && currName) nameInput.value = currName;
+
+    const seniorToggle = document.getElementById('setting-senior-toggle');
+    if (seniorToggle) {
+      seniorToggle.checked = (localStorage.getItem('pocketTrackSeniorMode') === 'true');
+    }
   }
   if (tabName === 'home' && typeof updateHeaderStats === 'function') {
     updateHeaderStats();
   }
 }
 window.setTab = setTab;
+
+function switchActivityView(view) {
+  const isPassbook = (view === 'passbook');
+  const pbControls = document.getElementById('activity-passbook-controls');
+  const ledControls = document.getElementById('activity-ledger-controls');
+  const pbList = document.getElementById('entries-list');
+  const ledWrap = document.getElementById('friends-ledger-wrap');
+  const btnPb = document.getElementById('btn-view-passbook');
+  const btnLed = document.getElementById('btn-view-ledger');
+
+  if (pbControls) pbControls.style.display = isPassbook ? 'block' : 'none';
+  if (ledControls) ledControls.style.display = isPassbook ? 'none' : 'flex';
+  if (pbList) pbList.style.display = isPassbook ? 'block' : 'none';
+  if (ledWrap) ledWrap.style.display = isPassbook ? 'none' : 'block';
+
+  if (btnPb) btnPb.classList.toggle('active', isPassbook);
+  if (btnLed) btnLed.classList.toggle('active', !isPassbook);
+
+  if (!isPassbook) {
+    if (typeof renderFriendsLedger === 'function') renderFriendsLedger();
+  } else {
+    if (typeof renderActivityList === 'function') renderActivityList();
+  }
+}
+window.switchActivityView = switchActivityView;
 
 // ── TOAST NOTIFICATIONS ──
 function toast(msg, type='info') {
@@ -216,5 +251,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const privacySettingToggle = document.getElementById('setting-privacy-toggle');
   if (privacySettingToggle) {
     privacySettingToggle.checked = (localStorage.getItem('pocketTrackPrivacyMode') === 'true');
+  }
+
+  if (typeof applySeniorMode === 'function') {
+    applySeniorMode();
   }
 });

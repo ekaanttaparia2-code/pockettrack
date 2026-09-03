@@ -443,17 +443,134 @@ header {
   background: var(--card);
   border: 1px solid var(--border);
 }
+.entry-amt-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
 .entry-amt {
   font-family: var(--heading);
   font-size: 15px;
   font-weight: 800;
   letter-spacing: -0.3px;
-  flex-shrink: 0;
-  margin-left: 8px;
 }
 .entry-amt.income { color: var(--green); }
 .entry-amt.expense { color: var(--red); }
 .entry-amt.transfer { color: #0284c7; }
+.entry-running-bal {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-dim);
+  margin-top: 1px;
+}
+
+/* Activity Date Group Header */
+.activity-date-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 4px 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--border);
+  margin-top: 8px;
+}
+.activity-date-header:first-child {
+  margin-top: 0;
+  padding-top: 6px;
+}
+.activity-date-total {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text-dim);
+}
+
+/* Category Filter Bar in Activity */
+.activity-cat-scroll {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 2px 2px 10px;
+  margin-bottom: 10px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.activity-cat-scroll::-webkit-scrollbar {
+  display: none;
+}
+.activity-cat-chip {
+  flex-shrink: 0;
+  padding: 5px 10px;
+  border-radius: 10px;
+  font-size: 11.5px;
+  font-weight: 700;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+.activity-cat-chip.active {
+  background: var(--green-soft);
+  color: var(--green);
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+/* Senior / High Accessibility Mode */
+.senior-mode body,
+.senior-mode .shell {
+  font-size: 17px;
+}
+.senior-mode .entry-title {
+  font-size: 16px;
+}
+.senior-mode .entry-amt {
+  font-size: 18px;
+}
+.senior-mode .hero-safe-spend-val {
+  font-size: 46px;
+}
+.senior-mode .btn {
+  font-size: 16px;
+  padding: 14px 20px;
+}
+
+/* Friends Ledger Card */
+.ledger-friend-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  margin-bottom: 8px;
+  transition: transform 0.15s ease;
+}
+.ledger-friend-card:hover {
+  transform: translateY(-1px);
+  border-color: var(--green);
+}
+.ledger-whatsapp-btn {
+  background: #25D366;
+  color: #ffffff;
+  border: none;
+  font-weight: 700;
+  font-size: 11.5px;
+  padding: 5px 10px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  text-decoration: none;
+}
 
 /* Modern Segmented Tab Slider for Activity (All, Expenses, Income, Transfers) */
 .filter-chips-bar {

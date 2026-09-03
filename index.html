@@ -248,55 +248,111 @@
   </div>
 
   <!-- ==========================================
-       TAB 3: ACTIVITY / PASSBOOK
+       TAB 3: ACTIVITY / PASSBOOK & LEDGER
        ========================================== -->
   <div id="tab-activity" class="tab-content" style="display:none;">
-    <div class="activity-header" style="margin-bottom:14px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-        <h2 style="font-size:20px;font-weight:800;margin:0;">Passbook & History</h2>
-        <div style="display:flex;gap:6px;">
-          <button class="btn btn-sm" onclick="downloadMonthlyPDFStatement()" style="font-size:11.5px;padding:6px 10px;border-radius:12px;color:var(--accent);border-color:rgba(124,58,237,0.3);" title="Download Clean 1-Page PDF Statement">
-            <i class="ti ti-file-text"></i> PDF Statement
+    <div class="activity-header" style="margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <!-- Sub-view toggle: Passbook vs Friends Ledger -->
+        <div style="display:flex;gap:4px;background:rgba(0,0,0,0.05);padding:3px;border-radius:14px;">
+          <button class="filter-chip active" id="btn-view-passbook" onclick="switchActivityView('passbook')" style="padding:6px 12px;font-size:12px;font-weight:800;">
+            📋 Passbook
           </button>
-          <button class="btn btn-sm" onclick="exportTransactionsCSV()" style="font-size:11.5px;padding:6px 10px;border-radius:12px;" title="Export Structured CSV / Excel">
+          <button class="filter-chip" id="btn-view-ledger" onclick="switchActivityView('ledger')" style="padding:6px 12px;font-size:12px;font-weight:800;">
+            👥 Friends Ledger
+          </button>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-sm" onclick="downloadMonthlyPDFStatement()" style="font-size:11px;padding:5px 9px;border-radius:10px;color:var(--accent);border-color:rgba(16,185,129,0.3);" title="Download Clean 1-Page PDF Statement">
+            <i class="ti ti-file-text"></i> PDF
+          </button>
+          <button class="btn btn-sm" onclick="exportTransactionsCSV()" style="font-size:11px;padding:5px 9px;border-radius:10px;" title="Export Structured CSV / Excel">
             <i class="ti ti-download"></i> CSV
           </button>
         </div>
       </div>
       
-      <!-- Search Bar -->
-      <div class="search-wrap" style="position:relative;margin-bottom:10px;">
-        <i class="ti ti-search" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-dim);font-size:16px;"></i>
-        <input type="text" id="activity-search-input" placeholder="Search notes, merchants, amounts..." oninput="onActivitySearch(this.value)" style="padding-left:38px;border-radius:16px;"/>
+      <!-- Passbook View -->
+      <div id="activity-passbook-controls">
+        <!-- Search Bar -->
+        <div class="search-wrap" style="position:relative;margin-bottom:10px;">
+          <i class="ti ti-search" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-dim);font-size:16px;"></i>
+          <input type="text" id="activity-search-input" placeholder="Search notes, merchants, amounts..." oninput="onActivitySearch(this.value)" style="padding-left:38px;border-radius:16px;"/>
+        </div>
+
+        <!-- Segmented Type Filter Tabs -->
+        <div class="filter-chips-bar" id="activity-type-chips" style="margin-bottom:8px;">
+          <button class="filter-chip active" onclick="setActivityFilter('all', this)">All</button>
+          <button class="filter-chip" onclick="setActivityFilter('expense', this)">💸 Expenses</button>
+          <button class="filter-chip" onclick="setActivityFilter('income', this)">💵 Income</button>
+          <button class="filter-chip" onclick="setActivityFilter('transfer', this)">⇄ Transfers</button>
+        </div>
+
+        <!-- Horizontal Category Filter Chips -->
+        <div class="activity-cat-scroll" id="activity-category-filter-chips">
+          <button class="activity-cat-chip active" onclick="setActivityCategoryFilter('all', this)">All Categories</button>
+          <button class="activity-cat-chip" onclick="setActivityCategoryFilter('food', this)">🍔 Food</button>
+          <button class="activity-cat-chip" onclick="setActivityCategoryFilter('transport', this)">🚗 Transport</button>
+          <button class="activity-cat-chip" onclick="setActivityCategoryFilter('grocery', this)">🛒 Grocery</button>
+          <button class="activity-cat-chip" onclick="setActivityCategoryFilter('shopping', this)">🛍️ Shopping</button>
+          <button class="activity-cat-chip" onclick="setActivityCategoryFilter('bills', this)">💡 Bills</button>
+          <button class="activity-cat-chip" onclick="setActivityCategoryFilter('health', this)">💊 Health</button>
+          <button class="activity-cat-chip" onclick="setActivityCategoryFilter('salary', this)">💼 Salary</button>
+          <button class="activity-cat-chip" onclick="setActivityCategoryFilter('freelance', this)">💻 Freelance</button>
+          <button class="activity-cat-chip" onclick="setActivityCategoryFilter('other', this)">🏷️ Other</button>
+        </div>
       </div>
 
-      <!-- Segmented Filter Tabs -->
-      <div class="filter-chips-bar" id="activity-filter-chips">
-        <button class="filter-chip active" onclick="setActivityFilter('all', this)">All</button>
-        <button class="filter-chip" onclick="setActivityFilter('expense', this)">💸 Expenses</button>
-        <button class="filter-chip" onclick="setActivityFilter('income', this)">💵 Income</button>
-        <button class="filter-chip" onclick="setActivityFilter('transfer', this)">⇄ Transfers</button>
+      <!-- Friends Ledger Controls Header -->
+      <div id="activity-ledger-controls" style="display:none;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <p style="font-size:12px;color:var(--text-dim);margin:0;">Track who owes you and who you owe</p>
+        <button class="btn btn-primary btn-sm" onclick="openAddFriendModal()" style="font-size:11.5px;padding:6px 12px;border-radius:10px;font-weight:800;">
+          + Split / Lend
+        </button>
       </div>
     </div>
 
+    <!-- 1. Passbook List Container -->
     <div class="card" id="entries-list" style="padding:4px 14px;border-radius:20px;">
       <!-- Populated via transactions.js -->
       <div class="empty-mini" style="padding:32px 0;text-align:center;color:var(--text-dim);font-size:13px;">No transactions found.</div>
     </div>
+
+    <!-- 2. Friends Ledger Container -->
+    <div id="friends-ledger-wrap" style="display:none;">
+      <div id="friends-ledger-list">
+        <!-- Populated via transactions.js -->
+      </div>
+    </div>
   </div>
 
   <!-- ==========================================
-       TAB 4: SETTINGS & WALLETS
+       TAB 4: SETTINGS & PREFERENCES
        ========================================== -->
   <div id="tab-settings" class="tab-content" style="display:none;">
-    <h2 style="font-size:20px;font-weight:800;margin:0 0 14px;">Settings & Wallets</h2>
+    <h2 style="font-size:20px;font-weight:800;margin:0 0 14px;">Settings & Preferences</h2>
+
+    <!-- User Profile Name Card -->
+    <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+        <span style="font-size:20px;">👤</span>
+        <div>
+          <h3 style="font-size:15.5px;font-weight:700;margin:0;">Profile Name</h3>
+          <p style="font-size:11px;color:var(--text-dim);margin:2px 0 0;">Personalize your greeting and statements</p>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="settings-user-name" placeholder="Your Name (e.g. Kavit)" style="flex:1;font-weight:700;"/>
+        <button class="btn btn-primary" onclick="saveUserProfileName(document.getElementById('settings-user-name').value)" style="padding:0 16px;font-weight:700;">Save</button>
+      </div>
+    </div>
 
     <!-- Wallets Card -->
     <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
         <div style="display:flex;align-items:center;gap:8px;">
           <span style="font-size:20px;">👛</span>
-          <h3 style="font-size:16px;font-weight:700;margin:0;">Wallets & Accounts</h3>
+          <h3 style="font-size:15.5px;font-weight:700;margin:0;">Wallets & Accounts</h3>
         </div>
         <button class="btn btn-sm" onclick="openNewWalletModal()" style="font-size:11.5px;padding:4px 10px;border-radius:10px;">
           <i class="ti ti-plus"></i> Add
@@ -313,7 +369,7 @@
         <div style="display:flex;align-items:center;gap:8px;">
           <span style="font-size:20px;">🔁</span>
           <div>
-            <h3 style="font-size:16px;font-weight:700;margin:0;">Recurring Payments & Rules</h3>
+            <h3 style="font-size:15.5px;font-weight:700;margin:0;">Recurring Payments & Rules</h3>
             <p style="font-size:11px;color:var(--text-dim);margin:2px 0 0;">Automated monthly bills, rent & salary</p>
           </div>
         </div>
@@ -326,49 +382,28 @@
       </div>
     </div>
 
-    <!-- Monthly Savings Target Card (With Per-Wallet Selector) -->
-    <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;background:linear-gradient(135deg,rgba(16,185,129,0.06) 0%,rgba(124,58,237,0.06) 100%);border:1.5px solid rgba(16,185,129,0.25);">
+    <!-- Monthly Savings Target Card -->
+    <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;background:linear-gradient(135deg,rgba(16,185,129,0.06) 0%,rgba(6,182,212,0.06) 100%);border:1.5px solid rgba(16,185,129,0.25);">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
         <span style="font-size:20px;">🎯</span>
         <div>
-          <h3 style="font-size:16px;font-weight:700;margin:0;">Monthly Savings Target</h3>
-          <p style="font-size:11px;color:var(--text-dim);margin:2px 0 0;">Money protected from daily spending</p>
+          <h3 style="font-size:15.5px;font-weight:700;margin:0;">Monthly Savings Target</h3>
+          <p style="font-size:11px;color:var(--text-dim);margin:2px 0 0;">Protects money from daily safe-to-spend calculation</p>
         </div>
       </div>
-      <div style="display:flex;gap:8px;margin-bottom:8px;">
-        <select id="settings-savings-wallet" onchange="onSettingsSavingsWalletChange(this.value)" style="flex:0.9;font-size:12.5px;font-weight:700;">
+      <div style="display:flex;gap:8px;">
+        <select id="settings-savings-wallet" onchange="onSettingsSavingsWalletChange(this.value)" style="flex:0.9;font-size:12px;font-weight:700;">
           <option value="all">🌐 Overall (All)</option>
           <option value="cash">💵 Cash</option>
           <option value="bank">🏦 Bank / UPI</option>
           <option value="card">💳 Credit Card</option>
         </select>
         <input type="number" id="settings-savings-input" placeholder="e.g. 5000" style="flex:1;font-size:15px;font-weight:700;"/>
-        <button class="btn btn-primary" onclick="saveSavingsTargetFromSettings()" style="padding:0 16px;">Save</button>
+        <button class="btn btn-primary" onclick="saveSavingsTargetFromSettings()" style="padding:0 16px;font-weight:700;">Save</button>
       </div>
     </div>
 
-    <!-- Monthly Budget Card (With Per-Wallet Selector) -->
-    <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-        <span style="font-size:20px;">💳</span>
-        <div>
-          <h3 style="font-size:16px;font-weight:700;margin:0;">Monthly Budget Limit</h3>
-          <p style="font-size:11px;color:var(--text-dim);margin:2px 0 0;">Sets your monthly expenditure ceiling</p>
-        </div>
-      </div>
-      <div style="display:flex;gap:8px;">
-        <select id="settings-budget-wallet" onchange="onSettingsBudgetWalletChange(this.value)" style="flex:0.9;font-size:12.5px;font-weight:700;">
-          <option value="all">🌐 Overall (All)</option>
-          <option value="cash">💵 Cash</option>
-          <option value="bank">🏦 Bank / UPI</option>
-          <option value="card">💳 Credit Card</option>
-        </select>
-        <input type="number" id="budget-input" placeholder="e.g. 15000" style="flex:1;font-size:15px;font-weight:700;"/>
-        <button class="btn" onclick="saveMonthlyBudget()" style="padding:0 16px;">Save</button>
-      </div>
-    </div>
-
-    <!-- 🔒 Privacy Mode (Hide Balance by Default & PIN Lock) -->
+    <!-- 🔒 Privacy Mode & PIN Lock -->
     <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;">
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div style="display:flex;align-items:center;gap:8px;">
@@ -386,6 +421,22 @@
         <button class="btn btn-sm" onclick="openSetPinModal()" style="font-size:11.5px;padding:5px 12px;border-radius:10px;">
           <i class="ti ti-key"></i> Set / Change 4-Digit PIN
         </button>
+      </div>
+    </div>
+
+    <!-- Simple / Senior Mode Toggle -->
+    <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:20px;">👴</span>
+          <div>
+            <h3 style="font-size:15px;font-weight:700;margin:0;">Senior / Large Text Mode</h3>
+            <p style="font-size:11.5px;color:var(--text-dim);margin:2px 0 0;">Larger text, bigger buttons, and high contrast</p>
+          </div>
+        </div>
+        <label style="display:flex;align-items:center;cursor:pointer;">
+          <input type="checkbox" id="setting-senior-toggle" onchange="toggleSeniorMode(this.checked)" style="width:20px;height:20px;accent-color:var(--accent);cursor:pointer;"/>
+        </label>
       </div>
     </div>
 
@@ -408,10 +459,28 @@
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
           <h3 style="font-size:15px;font-weight:700;margin:0;" id="settings-user-email">Guest User</h3>
-          <p style="font-size:11.5px;color:var(--text-dim);margin:2px 0 0;">Your data is saved safely in the cloud</p>
+          <p style="font-size:11.5px;color:var(--text-dim);margin:2px 0 0;">Your data is saved safely in device storage</p>
         </div>
-        <button class="btn btn-sm" onclick="handleSignOut()" style="color:var(--red);border-color:rgba(239,68,68,0.3);">
-          <i class="ti ti-logout"></i> Sign out
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-sm btn-primary" onclick="showAuthScreen()" style="font-size:11.5px;padding:6px 12px;border-radius:10px;font-weight:700;">
+            <i class="ti ti-login"></i> Cloud Sign in
+          </button>
+          <button class="btn btn-sm" onclick="handleSignOut()" style="color:var(--red);border-color:rgba(239,68,68,0.3);">
+            <i class="ti ti-logout"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Clear All Data / Reset Demo -->
+    <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;border:1px solid rgba(239,68,68,0.25);background:rgba(239,68,68,0.03);">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <h3 style="font-size:14.5px;font-weight:700;margin:0;color:var(--red);">Reset & Clear All Data</h3>
+          <p style="font-size:11px;color:var(--text-dim);margin:2px 0 0;">Erase local storage records and start fresh</p>
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="clearAllAppData()" style="font-size:11.5px;padding:6px 12px;border-radius:10px;font-weight:700;">
+          <i class="ti ti-trash"></i> Reset All
         </button>
       </div>
     </div>
@@ -737,6 +806,43 @@
       <button class="btn" onclick="closeUnlockPinModal()" style="flex:0.8;border-radius:14px;">Cancel</button>
       <button class="btn btn-primary" onclick="submitUnlockPin()" style="flex:1.2;border-radius:14px;font-weight:800;">Unlock 🔓</button>
     </div>
+  </div>
+</div>
+
+<!-- 10. Add Friend Split / Debt Modal -->
+<div class="modal-overlay" id="friend-split-modal" style="display:none;" onclick="if(event.target===this)closeAddFriendModal()">
+  <div class="modal-sheet" style="padding:22px 20px 30px;">
+    <div class="modal-sheet-handle"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:22px;">👥</span>
+        <h3 style="font-size:18px;font-weight:800;margin:0;">Add Friend Split / Debt</h3>
+      </div>
+      <button class="icon-btn" onclick="closeAddFriendModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <p style="font-size:12.5px;color:var(--text-dim);margin:0 0 16px;">Keep track of money lent to or borrowed from friends.</p>
+
+    <label style="font-size:11px;font-weight:800;letter-spacing:0.5px;color:var(--text-dim);display:block;margin-bottom:4px;text-transform:uppercase;">Friend's Name</label>
+    <input type="text" id="friend-name-input" placeholder="e.g. Rahul, Priya, Alex" style="margin-bottom:12px;font-weight:700;"/>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+      <div>
+        <label style="font-size:11px;font-weight:800;letter-spacing:0.5px;color:var(--text-dim);display:block;margin-bottom:4px;text-transform:uppercase;">Amount (₹)</label>
+        <input type="number" id="friend-amt-input" placeholder="500" style="font-size:16px;font-weight:800;"/>
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:800;letter-spacing:0.5px;color:var(--text-dim);display:block;margin-bottom:4px;text-transform:uppercase;">Type</label>
+        <select id="friend-type-select" style="font-weight:700;">
+          <option value="lent">🟢 I Lent (They owe me)</option>
+          <option value="borrowed">🔴 I Borrowed (I owe them)</option>
+        </select>
+      </div>
+    </div>
+
+    <label style="font-size:11px;font-weight:800;letter-spacing:0.5px;color:var(--text-dim);display:block;margin-bottom:4px;text-transform:uppercase;">Reason / Note (Optional)</label>
+    <input type="text" id="friend-note-input" placeholder="e.g. Pizza dinner split, Auto ride" style="margin-bottom:18px;"/>
+
+    <button class="btn btn-primary" onclick="submitAddFriend()" style="width:100%;padding:14px;font-size:15px;font-weight:800;border-radius:16px;">Save Friend Split 👥</button>
   </div>
 </div>
 

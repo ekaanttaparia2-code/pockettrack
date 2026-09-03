@@ -1,4 +1,4 @@
-const CACHE = 'pockettrack-v38-grid-quick-spend';
+const CACHE = 'pockettrack-v39-activity-ledger-insights';
 const SHELL = [
   './',
   './index.html',

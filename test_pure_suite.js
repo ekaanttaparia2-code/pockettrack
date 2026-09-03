@@ -426,6 +426,58 @@ it('17.1 Exports and download statement functions are correctly initialized', ()
   assert.strictEqual(typeof downloadMonthlyPDFStatement, 'function');
 });
 
+// ── TEST 18: Activity Passbook Date Grouping & Running Balance ──
+it('18.1 Calculates running balance and groups entries by date in passbook', () => {
+  localStorage.setItem('pocketTrackPrivacyMode', 'false');
+  window.isPrivacyUnlockedSession = true;
+  onActivitySearch('');
+  setActivityFilter('all');
+  setActivityCategoryFilter('all');
+
+  window.entries = [
+    { id: 'e1', type: 'income', amt: 10000, date: '2026-09-01', desc: 'Salary', cat: 'salary', createdAt: 100 },
+    { id: 'e2', type: 'expense', amt: 2500, date: '2026-09-02', desc: 'Grocery', cat: 'grocery', createdAt: 200 },
+    { id: 'e3', type: 'expense', amt: 500, date: '2026-09-02', desc: 'Coffee', cat: 'food', createdAt: 300 }
+  ];
+
+  renderActivityList();
+  const passbookHtml = document.getElementById('entries-list').innerHTML;
+  assert.ok(passbookHtml.includes('activity-date-header'), 'Date header should be rendered');
+  assert.ok(passbookHtml.includes('Bal: ₹'), 'Running balance should be calculated and displayed');
+});
+
+// ── TEST 19: Friends Split & Debt Ledger ──
+it('19.1 Adds friend debt, generates WhatsApp reminder, and settles up', () => {
+  localStorage.removeItem('pocketTrackFriendsLedger');
+  addFriendDebt('Kavita', 1200, 'lent', 'Movie tickets');
+
+  const friends = getFriendsLedger();
+  const friendEntry = friends.find(f => f.name === 'Kavita');
+  assert.ok(friendEntry, 'Friend entry must be created');
+  assert.strictEqual(friendEntry.amt, 1200);
+  assert.strictEqual(friendEntry.type, 'lent');
+
+  // Settle friend debt
+  const initialEntriesCount = window.entries.length;
+  settleFriendDebt(friendEntry.id);
+
+  const updatedFriends = getFriendsLedger();
+  assert.strictEqual(updatedFriends.find(f => f.id === friendEntry.id), undefined, 'Friend debt should be cleared after settling');
+  assert.strictEqual(window.entries.length, initialEntriesCount + 1, 'Settling debt should log an income/expense transaction');
+});
+
+// ── TEST 20: Senior / Accessibility Mode & Profile Name ──
+it('20.1 Enables Senior Mode and saves user profile name', () => {
+  toggleSeniorMode(true);
+  assert.strictEqual(localStorage.getItem('pocketTrackSeniorMode'), 'true');
+
+  toggleSeniorMode(false);
+  assert.strictEqual(localStorage.getItem('pocketTrackSeniorMode'), 'false');
+
+  saveUserProfileName('Aarav');
+  assert.strictEqual(localStorage.getItem('pocketTrackUserName'), 'Aarav');
+});
+
 console.log('\n═══════════════════════════════════════════════');
 console.log(`TOTAL: ${passed + failed} | PASSED: ${passed} | FAILED: ${failed}`);
 console.log('═══════════════════════════════════════════════');
