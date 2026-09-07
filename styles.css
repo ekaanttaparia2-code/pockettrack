@@ -32,6 +32,11 @@
   --radius-lg: 26px;
   --heading: 'Space Grotesk', sans-serif;
   --body: 'Inter', sans-serif;
+  /* Fluid Motion Tokens (iOS/WhatsApp Physics) */
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* =====================================================================
@@ -726,9 +731,10 @@ body[data-theme="dark"] .hero-card-modern {
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
 }
 
-/* Tab & Row Animations */
+/* Tab & Row Animations (Silky Smooth 60/120fps Native Feel) */
 .tab-content {
-  animation: tabFadeIn 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform, opacity;
+  animation: tabFadeIn 0.25s var(--ease-spring) both;
 }
 .tab-content:not(.active) {
   display: none !important;
@@ -737,15 +743,41 @@ body[data-theme="dark"] .hero-card-modern {
   display: block;
 }
 @keyframes tabFadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
 }
 .entry-row {
-  animation: rowSlideIn 0.22s ease-out;
+  will-change: transform, opacity;
+  animation: rowSlideIn 0.24s var(--ease-spring) both;
+  transition: transform 0.15s var(--ease-spring), background-color 0.15s ease, border-color 0.15s ease;
 }
+.entry-row:active {
+  transform: scale(0.985);
+}
+.entry-row:nth-child(1) { animation-delay: 0.015s; }
+.entry-row:nth-child(2) { animation-delay: 0.03s; }
+.entry-row:nth-child(3) { animation-delay: 0.045s; }
+.entry-row:nth-child(4) { animation-delay: 0.06s; }
+.entry-row:nth-child(5) { animation-delay: 0.075s; }
+.entry-row:nth-child(6) { animation-delay: 0.09s; }
+.entry-row:nth-child(7) { animation-delay: 0.105s; }
+.entry-row:nth-child(8) { animation-delay: 0.12s; }
+
 @keyframes rowSlideIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
 }
 
 /* =====================================================================
@@ -847,9 +879,13 @@ input:focus, select:focus, textarea:focus {
   color: var(--text-dim);
   padding: 6px 0;
   border-radius: 12px;
-  transition: all 0.18s ease;
+  transition: transform 0.15s var(--ease-spring), color 0.15s ease;
   width: 100%;
   text-align: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.bottom-tab:active {
+  transform: scale(0.92);
 }
 .bottom-tab-icon-wrap {
   width: 28px;
@@ -859,7 +895,7 @@ input:focus, select:focus, textarea:focus {
   justify-content: center;
   font-size: 20px;
   border-radius: 8px;
-  transition: all 0.18s ease;
+  transition: transform 0.2s var(--ease-spring), color 0.15s ease;
 }
 .bottom-tab span {
   font-size: 11px;
@@ -872,34 +908,56 @@ input:focus, select:focus, textarea:focus {
 }
 .bottom-tab.active .bottom-tab-icon-wrap {
   color: var(--green);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  animation: tabPop 0.28s var(--ease-bounce);
+}
+@keyframes tabPop {
+  0% { transform: scale(0.84) translateY(0); }
+  50% { transform: scale(1.16) translateY(-3px); }
+  100% { transform: scale(1) translateY(-2px); }
 }
 
 /* =====================================================================
-   MODALS & BOTTOM SHEETS
+   MODALS & BOTTOM SHEETS (Hardware-Accelerated Entrance & Exit Physics)
    ===================================================================== */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.72);
+  background: rgba(0, 0, 0, 0.70);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   z-index: 9999;
   display: flex;
   align-items: flex-end;
   justify-content: center;
+  animation: backdropFadeIn 0.22s var(--ease-spring) both;
+  will-change: opacity, backdrop-filter;
+}
+.modal-overlay.closing {
+  animation: backdropFadeOut 0.2s cubic-bezier(0.4, 0, 1, 1) forwards;
+  pointer-events: none;
 }
 .modal-sheet {
   width: 100%;
   max-width: 460px;
-  background: var(--card);
+  background: var(--card-solid, #ffffff);
   border: 1px solid var(--border);
   border-radius: 28px 28px 0 0;
   padding: 16px 20px 32px;
-  box-shadow: var(--shadow-lg);
-  animation: slideUp 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.25);
+  animation: sheetSlideUp 0.28s var(--ease-spring) both;
+  will-change: transform, opacity;
+  transform: translate3d(0, 0, 0);
   max-height: 90vh;
   overflow-y: auto;
+}
+[data-theme="dark"] .modal-sheet {
+  background: #0f1a15;
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6);
+}
+.modal-overlay.closing .modal-sheet {
+  animation: sheetSlideDown 0.2s cubic-bezier(0.4, 0, 1, 1) forwards;
 }
 .modal-sheet-handle {
   width: 38px;
@@ -908,9 +966,49 @@ input:focus, select:focus, textarea:focus {
   background: var(--border);
   margin: 0 auto 14px;
 }
-@keyframes slideUp {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
+@keyframes backdropFadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+@keyframes backdropFadeOut {
+  from {
+    opacity: 1;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  to {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+  }
+}
+@keyframes sheetSlideUp {
+  from {
+    opacity: 0.85;
+    transform: translate3d(0, 100%, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+@keyframes sheetSlideDown {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    opacity: 0.7;
+    transform: translate3d(0, 100%, 0);
+  }
 }
 
 .composer-type-btn {
@@ -922,6 +1020,10 @@ input:focus, select:focus, textarea:focus {
   background: none;
   color: var(--text-dim);
   cursor: pointer;
+  transition: background-color 0.16s ease, color 0.16s ease, transform 0.14s var(--ease-spring);
+}
+.composer-type-btn:active {
+  transform: scale(0.94);
 }
 .composer-type-btn.active.expense {
   background: var(--red);
@@ -940,6 +1042,10 @@ input:focus, select:focus, textarea:focus {
   border: 1px solid var(--border);
   color: var(--text);
   cursor: pointer;
+  transition: transform 0.14s var(--ease-spring), background-color 0.15s ease, border-color 0.15s ease;
+}
+.composer-cat-chip:active {
+  transform: scale(0.93);
 }
 .composer-cat-chip.active {
   background: var(--accent);
@@ -947,12 +1053,12 @@ input:focus, select:focus, textarea:focus {
   border-color: var(--accent);
 }
 
-/* Toast */
+/* Toast (Silky iOS-Style Spring Pill) */
 .toast {
   position: fixed;
   bottom: 86px;
   left: 50%;
-  transform: translateX(-50%) translateY(30px);
+  transform: translateX(-50%) translate3d(0, 30px, 0);
   background: #0f172a;
   color: #ffffff;
   padding: 10px 18px;
@@ -963,10 +1069,11 @@ input:focus, select:focus, textarea:focus {
   z-index: 10000;
   opacity: 0;
   pointer-events: none;
-  transition: all 0.25s ease;
+  transition: transform 0.28s var(--ease-spring), opacity 0.22s ease;
+  will-change: transform, opacity;
 }
 .toast.show {
-  transform: translateX(-50%) translateY(0);
+  transform: translateX(-50%) translate3d(0, 0, 0);
   opacity: 1;
 }
 
@@ -1204,4 +1311,61 @@ input:focus, select:focus, textarea:focus {
 }
 .donut-chart-svg {
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.08));
+}
+
+/* =====================================================================
+   FLUID ACCORDIONS & DETAILS EXPANSION
+   ===================================================================== */
+details summary {
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.15s ease;
+}
+details[open] summary ~ * {
+  animation: detailsFadeIn 0.22s var(--ease-spring);
+}
+@keyframes detailsFadeIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -6px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* =====================================================================
+   THEME TRANSITION SMOOTHING (Zero Color Jolt)
+   ===================================================================== */
+body,
+.card,
+header,
+.bottom-tab-bar,
+.bottom-dock,
+.hero-card-modern,
+.cashflow-block,
+.filter-chips-bar,
+input,
+select,
+textarea {
+  transition:
+    background-color 0.24s var(--ease-spring),
+    border-color 0.24s var(--ease-spring),
+    color 0.18s ease,
+    box-shadow 0.24s ease;
+}
+
+/* =====================================================================
+   ACCESSIBILITY: PREFERS REDUCED MOTION
+   ===================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

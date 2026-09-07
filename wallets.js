@@ -146,10 +146,14 @@ function openNewWalletModal() {
 window.openNewWalletModal = openNewWalletModal;
 
 function closeNewWalletModal() {
-  const m = document.getElementById('wallet-modal');
-  if (m) {
-    m.style.display = 'none';
-    if (typeof document !== 'undefined' && document.body && document.body.style) document.body.style.overflow = '';
+  if (typeof smoothCloseModal === 'function') {
+    smoothCloseModal('wallet-modal');
+  } else {
+    const m = document.getElementById('wallet-modal');
+    if (m) {
+      m.style.display = 'none';
+      if (typeof document !== 'undefined' && document.body && document.body.style) document.body.style.overflow = '';
+    }
   }
 }
 window.closeNewWalletModal = closeNewWalletModal;
@@ -188,6 +192,7 @@ window.deleteCustomWallet = deleteCustomWallet;
 function openTransferModal() {
   const m = document.getElementById('wallet-transfer-modal');
   if (!m) return;
+  m.classList.remove('closing');
   const fromSel = document.getElementById('transfer-from-wallet');
   const toSel = document.getElementById('transfer-to-wallet');
   const list = getWallets();
@@ -208,10 +213,14 @@ window.openWalletTransferModal = openTransferModal;
 window.showTransferModal = openTransferModal;
 
 function closeTransferModal() {
-  const m = document.getElementById('wallet-transfer-modal');
-  if (m) {
-    m.style.display = 'none';
-    if (typeof document !== 'undefined' && document.body && document.body.style) document.body.style.overflow = '';
+  if (typeof smoothCloseModal === 'function') {
+    smoothCloseModal('wallet-transfer-modal');
+  } else {
+    const m = document.getElementById('wallet-transfer-modal');
+    if (m) {
+      m.style.display = 'none';
+      if (typeof document !== 'undefined' && document.body && document.body.style) document.body.style.overflow = '';
+    }
   }
 }
 window.closeTransferModal = closeTransferModal;

@@ -49,18 +49,26 @@ function openSetPinModal() {
   if (pinConfirm) pinConfirm.value = '';
   if (errEl) errEl.textContent = '';
   if (m) {
-    m.style.display = 'flex';
-    if (typeof document !== 'undefined' && document.body && document.body.style) document.body.style.overflow = 'hidden';
+    if (typeof smoothOpenModal === 'function') {
+      smoothOpenModal(m);
+    } else {
+      m.style.display = 'flex';
+      if (typeof document !== 'undefined' && document.body && document.body.style) document.body.style.overflow = 'hidden';
+    }
     if (pinInput) setTimeout(() => pinInput.focus(), 100);
   }
 }
 window.openSetPinModal = openSetPinModal;
 
 function closeSetPinModal() {
-  const m = document.getElementById('privacy-set-pin-modal');
-  if (m) {
-    m.style.display = 'none';
-    if (typeof document !== 'undefined' && document.body && document.body.style) document.body.style.overflow = '';
+  if (typeof smoothCloseModal === 'function') {
+    smoothCloseModal('privacy-set-pin-modal');
+  } else {
+    const m = document.getElementById('privacy-set-pin-modal');
+    if (m) {
+      m.style.display = 'none';
+      if (typeof document !== 'undefined' && document.body && document.body.style) document.body.style.overflow = '';
+    }
   }
 }
 window.closeSetPinModal = closeSetPinModal;
@@ -111,8 +119,12 @@ function openUnlockPinModal(callback = null) {
   if (pinInput) pinInput.value = '';
   if (errEl) errEl.textContent = '';
   if (m) {
-    m.style.display = 'flex';
-    if (typeof document !== 'undefined' && document.body && document.body.style) document.body.style.overflow = 'hidden';
+    if (typeof smoothOpenModal === 'function') {
+      smoothOpenModal(m);
+    } else {
+      m.style.display = 'flex';
+      if (typeof document !== 'undefined' && document.body && document.body.style) document.body.style.overflow = 'hidden';
+    }
     if (pinInput) setTimeout(() => pinInput.focus(), 100);
   }
 }
@@ -120,10 +132,14 @@ window.openUnlockPinModal = openUnlockPinModal;
 
 function closeUnlockPinModal() {
   pendingUnlockCallback = null;
-  const m = document.getElementById('privacy-unlock-modal');
-  if (m) {
-    m.style.display = 'none';
-    if (typeof document !== 'undefined' && document.body && document.body.style) document.body.style.overflow = '';
+  if (typeof smoothCloseModal === 'function') {
+    smoothCloseModal('privacy-unlock-modal');
+  } else {
+    const m = document.getElementById('privacy-unlock-modal');
+    if (m) {
+      m.style.display = 'none';
+      if (typeof document !== 'undefined' && document.body && document.body.style) document.body.style.overflow = '';
+    }
   }
 }
 window.closeUnlockPinModal = closeUnlockPinModal;
@@ -247,19 +263,27 @@ function openSafeToSpendBreakdown() {
   if (dEl) dEl.textContent = `${daysLeft} days`;
   if (resEl) resEl.textContent = '₹' + safePerDay.toLocaleString('en-IN') + ' / day';
 
-  m.style.display = 'flex';
-  if (typeof document !== 'undefined' && document.body && document.body.style) {
-    document.body.style.overflow = 'hidden';
+  if (typeof smoothOpenModal === 'function') {
+    smoothOpenModal(m);
+  } else {
+    m.style.display = 'flex';
+    if (typeof document !== 'undefined' && document.body && document.body.style) {
+      document.body.style.overflow = 'hidden';
+    }
   }
 }
 window.openSafeToSpendBreakdown = openSafeToSpendBreakdown;
 
 function closeSafeToSpendBreakdown() {
-  const m = document.getElementById('safe-to-spend-breakdown-modal');
-  if (m) {
-    m.style.display = 'none';
-    if (typeof document !== 'undefined' && document.body && document.body.style) {
-      document.body.style.overflow = '';
+  if (typeof smoothCloseModal === 'function') {
+    smoothCloseModal('safe-to-spend-breakdown-modal');
+  } else {
+    const m = document.getElementById('safe-to-spend-breakdown-modal');
+    if (m) {
+      m.style.display = 'none';
+      if (typeof document !== 'undefined' && document.body && document.body.style) {
+        document.body.style.overflow = '';
+      }
     }
   }
 }
@@ -292,13 +316,18 @@ function updateHeaderStats() {
   }
 
   if (locked) {
-    if (b) { b.textContent = '₹••••••'; b.classList.add('privacy-masked'); }
-    if (inc) { inc.textContent = '₹••••'; inc.classList.add('privacy-masked'); }
-    if (exp) { exp.textContent = '₹••••'; exp.classList.add('privacy-masked'); }
+    if (b) { b.textContent = '₹••••••'; b.classList.add('privacy-masked'); b._prevNumVal = undefined; }
+    if (inc) { inc.textContent = '₹••••'; inc.classList.add('privacy-masked'); inc._prevNumVal = undefined; }
+    if (exp) { exp.textContent = '₹••••'; exp.classList.add('privacy-masked'); exp._prevNumVal = undefined; }
   } else {
-    if (b) { b.textContent = (balance < 0 ? '-₹' : '₹') + Math.abs(balance).toLocaleString('en-IN'); b.classList.remove('privacy-masked'); }
-    if (inc) { inc.textContent = '₹' + income.toLocaleString('en-IN'); inc.classList.remove('privacy-masked'); }
-    if (exp) { exp.textContent = '₹' + spent.toLocaleString('en-IN'); exp.classList.remove('privacy-masked'); }
+    if (b) {
+      b.classList.remove('privacy-masked');
+      if (typeof animateNumber === 'function') {
+        animateNumber('hdr-balance', balance, '₹', '', 320);
+      } else {
+        b.textContent = (balance < 0 ? '-₹' : '₹') + Math.abs(balance).toLocaleString('en-IN');
+      }
+    }
   }
   if (cnt) cnt.textContent = String(list.length);
 
@@ -326,7 +355,19 @@ function updateHeaderStats() {
     if (locked) {
       balSub.innerHTML = 'Spent <span id="hero-spent" style="font-weight:700;">₹••••</span> this month · <span id="hero-income" style="font-weight:700;">₹••••</span> income';
     } else {
-      balSub.innerHTML = 'Spent <span id="hero-spent" style="font-weight:700;">₹' + spent.toLocaleString('en-IN') + '</span> this month · <span id="hero-income" style="font-weight:700;">₹' + income.toLocaleString('en-IN') + '</span> income';
+      const curExp = document.getElementById('hero-spent');
+      const curInc = document.getElementById('hero-income');
+      if (!curExp || !curInc) {
+        balSub.innerHTML = 'Spent <span id="hero-spent" style="font-weight:700;">₹' + spent.toLocaleString('en-IN') + '</span> this month · <span id="hero-income" style="font-weight:700;">₹' + income.toLocaleString('en-IN') + '</span> income';
+      } else {
+        if (typeof animateNumber === 'function') {
+          animateNumber('hero-spent', spent, '₹', '', 300);
+          animateNumber('hero-income', income, '₹', '', 300);
+        } else {
+          curExp.textContent = '₹' + spent.toLocaleString('en-IN');
+          curInc.textContent = '₹' + income.toLocaleString('en-IN');
+        }
+      }
     }
   }
 
@@ -334,9 +375,14 @@ function updateHeaderStats() {
     if (locked) {
       safeEl.textContent = '₹••••';
       safeEl.classList.add('privacy-masked');
+      safeEl._prevNumVal = undefined;
     } else {
-      safeEl.textContent = '₹' + safePerDay.toLocaleString('en-IN');
       safeEl.classList.remove('privacy-masked');
+      if (typeof animateNumber === 'function') {
+        animateNumber('safe-to-spend-val', safePerDay, '₹', '', 300);
+      } else {
+        safeEl.textContent = '₹' + safePerDay.toLocaleString('en-IN');
+      }
     }
   }
 
@@ -361,14 +407,6 @@ function updateHeaderStats() {
         ? `${locked ? '₹••••' : '₹' + safePerDay.toLocaleString('en-IN')} left today (${daysLeft}d left in month)`
         : `₹0 left today (${daysLeft}d left in month)`;
     }
-  }
-
-  if (!locked && typeof animateNumber === 'function') {
-    animateNumber('hdr-balance', balance);
-    animateNumber('hero-income', income);
-    animateNumber('hero-spent', spent);
-    if (document.getElementById('hero-count')) animateNumber('hero-count', list.length, '', '');
-    if (safeEl) animateNumber('safe-to-spend-val', safePerDay, '₹', '');
   }
 
   renderHomeRecent();
@@ -400,9 +438,13 @@ function openSavingsTargetModal(walletId = 'all') {
     const current = targets[currentSavingsTargetWallet] || (currentSavingsTargetWallet === 'all' ? (localStorage.getItem('pocketTrackSavingsTarget') || '') : '');
     if (input) input.value = current > 0 ? current : '';
 
-    m.style.display = 'flex';
-    if (typeof document !== 'undefined' && document.body && document.body.style) {
-      document.body.style.overflow = 'hidden';
+    if (typeof smoothOpenModal === 'function') {
+      smoothOpenModal(m);
+    } else {
+      m.style.display = 'flex';
+      if (typeof document !== 'undefined' && document.body && document.body.style) {
+        document.body.style.overflow = 'hidden';
+      }
     }
     if (input) setTimeout(() => input.focus(), 50);
   }
@@ -410,11 +452,15 @@ function openSavingsTargetModal(walletId = 'all') {
 window.openSavingsTargetModal = openSavingsTargetModal;
 
 function closeSavingsTargetModal() {
-  const m = document.getElementById('savings-modal');
-  if (m) {
-    m.style.display = 'none';
-    if (typeof document !== 'undefined' && document.body && document.body.style) {
-      document.body.style.overflow = '';
+  if (typeof smoothCloseModal === 'function') {
+    smoothCloseModal('savings-modal');
+  } else {
+    const m = document.getElementById('savings-modal');
+    if (m) {
+      m.style.display = 'none';
+      if (typeof document !== 'undefined' && document.body && document.body.style) {
+        document.body.style.overflow = '';
+      }
     }
   }
 }
@@ -584,20 +630,28 @@ function openRecurringModal() {
   const m = document.getElementById('recurring-modal');
   if (m) {
     renderRecurringList();
-    m.style.display = 'flex';
-    if (typeof document !== 'undefined' && document.body && document.body.style) {
-      document.body.style.overflow = 'hidden';
+    if (typeof smoothOpenModal === 'function') {
+      smoothOpenModal(m);
+    } else {
+      m.style.display = 'flex';
+      if (typeof document !== 'undefined' && document.body && document.body.style) {
+        document.body.style.overflow = 'hidden';
+      }
     }
   }
 }
 window.openRecurringModal = openRecurringModal;
 
 function closeRecurringModal() {
-  const m = document.getElementById('recurring-modal');
-  if (m) {
-    m.style.display = 'none';
-    if (typeof document !== 'undefined' && document.body && document.body.style) {
-      document.body.style.overflow = '';
+  if (typeof smoothCloseModal === 'function') {
+    smoothCloseModal('recurring-modal');
+  } else {
+    const m = document.getElementById('recurring-modal');
+    if (m) {
+      m.style.display = 'none';
+      if (typeof document !== 'undefined' && document.body && document.body.style) {
+        document.body.style.overflow = '';
+      }
     }
   }
 }
@@ -934,17 +988,25 @@ function openQuickComposer(type='expense', editEntry=null) {
     if (recFreqWrap) recFreqWrap.style.display = 'none';
   }
 
-  m.style.display = 'flex';
-  if (typeof document !== 'undefined' && document.body && document.body.style) document.body.style.overflow = 'hidden';
-  if (amtInput && !editEntry) amtInput.focus();
+  if (typeof smoothOpenModal === 'function') {
+    smoothOpenModal(m);
+  } else {
+    m.style.display = 'flex';
+    if (typeof document !== 'undefined' && document.body && document.body.style) document.body.style.overflow = 'hidden';
+  }
+  if (amtInput && !editEntry) setTimeout(() => amtInput.focus(), 60);
 }
 window.openQuickComposer = openQuickComposer;
 
 function closeQuickComposer() {
-  const m = document.getElementById('modal-composer');
-  if (m) m.style.display = 'none';
-  if (typeof document !== 'undefined' && document.body && document.body.style) document.body.style.overflow = '';
   currentEditingId = null;
+  if (typeof smoothCloseModal === 'function') {
+    smoothCloseModal('modal-composer');
+  } else {
+    const m = document.getElementById('modal-composer');
+    if (m) m.style.display = 'none';
+    if (typeof document !== 'undefined' && document.body && document.body.style) document.body.style.overflow = '';
+  }
 }
 window.closeQuickComposer = closeQuickComposer;
 
@@ -1343,8 +1405,12 @@ function stopVoiceRecording() {
     try { activeSpeechRecognizer.stop(); } catch (e) {}
     activeSpeechRecognizer = null;
   }
-  const voiceModal = document.getElementById('voice-listening-modal');
-  if (voiceModal) voiceModal.style.display = 'none';
+  if (typeof smoothCloseModal === 'function') {
+    smoothCloseModal('voice-listening-modal');
+  } else {
+    const voiceModal = document.getElementById('voice-listening-modal');
+    if (voiceModal) voiceModal.style.display = 'none';
+  }
 }
 window.stopVoiceRecording = stopVoiceRecording;
 
@@ -1404,17 +1470,25 @@ function openAddPresetModal() {
     if (wSel && typeof getWallets === 'function') {
       wSel.innerHTML = getWallets().map(w => `<option value="${w.id}">${w.icon} ${w.name}</option>`).join('');
     }
-    m.style.display = 'flex';
-    if (typeof document !== 'undefined' && document.body && document.body.style) document.body.style.overflow = 'hidden';
+    if (typeof smoothOpenModal === 'function') {
+      smoothOpenModal(m);
+    } else {
+      m.style.display = 'flex';
+      if (typeof document !== 'undefined' && document.body && document.body.style) document.body.style.overflow = 'hidden';
+    }
   }
 }
 window.openAddPresetModal = openAddPresetModal;
 
 function closeAddPresetModal() {
-  const m = document.getElementById('preset-modal');
-  if (m) {
-    m.style.display = 'none';
-    if (typeof document !== 'undefined' && document.body && document.body.style) document.body.style.overflow = '';
+  if (typeof smoothCloseModal === 'function') {
+    smoothCloseModal('preset-modal');
+  } else {
+    const m = document.getElementById('preset-modal');
+    if (m) {
+      m.style.display = 'none';
+      if (typeof document !== 'undefined' && document.body && document.body.style) document.body.style.overflow = '';
+    }
   }
 }
 window.closeAddPresetModal = closeAddPresetModal;
@@ -1932,13 +2006,23 @@ window.addFriendDebt = addFriendDebt;
 
 function openAddFriendModal() {
   const m = document.getElementById('friend-split-modal');
-  if (m) m.style.display = 'flex';
+  if (m) {
+    if (typeof smoothOpenModal === 'function') {
+      smoothOpenModal(m);
+    } else {
+      m.style.display = 'flex';
+    }
+  }
 }
 window.openAddFriendModal = openAddFriendModal;
 
 function closeAddFriendModal() {
-  const m = document.getElementById('friend-split-modal');
-  if (m) m.style.display = 'none';
+  if (typeof smoothCloseModal === 'function') {
+    smoothCloseModal('friend-split-modal');
+  } else {
+    const m = document.getElementById('friend-split-modal');
+    if (m) m.style.display = 'none';
+  }
 }
 window.closeAddFriendModal = closeAddFriendModal;
 

@@ -182,37 +182,124 @@ function toggleTheme() {
 }
 window.toggleTheme = toggleTheme;
 
-// ── NUMBER ANIMATION ──
-function animateNumber(elementId, targetValue, prefix='₹', suffix='', duration=400) {
+// ── MODAL TRANSITIONS (Hardware Accelerated iOS-Style Sheets) ──
+function smoothOpenModal(modalOrId, callback) {
+  if (typeof document === 'undefined') return;
+  const m = typeof modalOrId === 'string' ? document.getElementById(modalOrId) : modalOrId;
+  if (!m) return;
+  m.classList.remove('closing');
+  m.style.display = 'flex';
+  if (document.body && document.body.style) {
+    document.body.style.overflow = 'hidden';
+  }
+  if (typeof callback === 'function') callback();
+}
+window.smoothOpenModal = smoothOpenModal;
+
+function smoothCloseModal(modalOrId, callback) {
+  if (typeof document === 'undefined') return;
+  const m = typeof modalOrId === 'string' ? document.getElementById(modalOrId) : modalOrId;
+  if (!m) {
+    if (typeof callback === 'function') callback();
+    return;
+  }
+
+  const isNode = typeof process !== 'undefined' && process.versions && process.versions.node;
+  const prefersReduced = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Immediate close for unit tests or reduced motion preference
+  if (isNode || prefersReduced) {
+    m.classList.remove('closing');
+    m.style.display = 'none';
+    if (document.body && document.body.style) document.body.style.overflow = '';
+    if (typeof callback === 'function') callback();
+    return;
+  }
+
+  if (m.style.display === 'none' && !m.classList.contains('closing')) {
+    if (typeof callback === 'function') callback();
+    return;
+  }
+  if (m.classList.contains('closing')) return;
+
+  m.classList.add('closing');
+  let finished = false;
+  const finish = () => {
+    if (finished) return;
+    finished = true;
+    m.classList.remove('closing');
+    m.style.display = 'none';
+    if (document.body && document.body.style) document.body.style.overflow = '';
+    if (typeof callback === 'function') callback();
+  };
+
+  setTimeout(finish, 190);
+}
+window.smoothCloseModal = smoothCloseModal;
+
+// ── NUMBER ANIMATION (Fluid Quartic Easing Odometer) ──
+function animateNumber(elementId, targetValue, prefix='₹', suffix='', duration=320) {
   if (typeof document === 'undefined') return;
   const el = typeof elementId === 'string' ? document.getElementById(elementId) : elementId;
   if (!el) return;
   const target = parseFloat(targetValue) || 0;
-  const startValue = parseFloat((el.textContent || '').replace(/[^0-9.-]+/g, '')) || 0;
-  if (startValue === target) {
-    el.textContent = (target < 0 ? '-' + prefix + Math.abs(target).toLocaleString('en-IN') : prefix + target.toLocaleString('en-IN')) + suffix;
+  const formatted = (target < 0 ? '-' + prefix + Math.abs(target).toLocaleString('en-IN') : prefix + target.toLocaleString('en-IN')) + suffix;
+
+  const isNode = typeof process !== 'undefined' && process.versions && process.versions.node;
+  const prefersReduced = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (isNode || prefersReduced || duration <= 0) {
+    el.textContent = formatted;
+    el._prevNumVal = target;
     return;
   }
-  
+
+  if (el.classList && el.classList.contains('privacy-masked')) {
+    el.textContent = formatted;
+    el._prevNumVal = target;
+    return;
+  }
+
+  if (el._animFrame) {
+    cancelAnimationFrame(el._animFrame);
+    el._animFrame = null;
+  }
+
+  let startValue = typeof el._prevNumVal === 'number' ? el._prevNumVal : parseFloat((el.textContent || '').replace(/[^0-9.-]+/g, ''));
+  if (isNaN(startValue)) startValue = target;
+
+  if (startValue === target) {
+    el.textContent = formatted;
+    el._prevNumVal = target;
+    return;
+  }
+
   const startTime = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
   const diff = target - startValue;
 
   function update(now) {
     const elapsed = now - startTime;
     const progress = Math.min(elapsed / duration, 1);
-    const ease = 1 - Math.pow(1 - progress, 3);
+    // Quartic ease-out: ultra-smooth decay like precision digital hardware
+    const ease = 1 - Math.pow(1 - progress, 4);
     const current = Math.round(startValue + diff * ease);
     el.textContent = (current < 0 ? '-' + prefix + Math.abs(current).toLocaleString('en-IN') : prefix + current.toLocaleString('en-IN')) + suffix;
+
     if (progress < 1) {
-      if (typeof requestAnimationFrame === 'function') requestAnimationFrame(update);
+      if (typeof requestAnimationFrame === 'function') {
+        el._animFrame = requestAnimationFrame(update);
+      }
     } else {
-      el.textContent = (target < 0 ? '-' + prefix + Math.abs(target).toLocaleString('en-IN') : prefix + target.toLocaleString('en-IN')) + suffix;
+      el.textContent = formatted;
+      el._prevNumVal = target;
+      el._animFrame = null;
     }
   }
+
   if (typeof requestAnimationFrame === 'function') {
-    requestAnimationFrame(update);
+    el._animFrame = requestAnimationFrame(update);
   } else {
-    el.textContent = (target < 0 ? '-' + prefix + Math.abs(target).toLocaleString('en-IN') : prefix + target.toLocaleString('en-IN')) + suffix;
+    el.textContent = formatted;
+    el._prevNumVal = target;
   }
 }
 window.animateNumber = animateNumber;
