@@ -73,6 +73,12 @@ body[data-theme="light"] {
   -webkit-tap-highlight-color: transparent;
 }
 
+html {
+  overflow-x: hidden;
+  max-width: 100%;
+  width: 100%;
+}
+
 body {
   font-family: var(--body);
   font-size: 14px;
@@ -81,6 +87,8 @@ body {
   padding-bottom: 96px;
   position: relative;
   overflow-x: hidden;
+  max-width: 100%;
+  width: 100%;
   -webkit-font-smoothing: antialiased;
   background:
     radial-gradient(600px 400px at 10% -4%, rgba(16, 185, 129, 0.06), transparent 64%),

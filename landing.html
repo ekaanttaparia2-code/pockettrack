@@ -48,6 +48,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="PocketTrack"/>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="icons.css">
 <link rel="stylesheet" href="website/style.css">
@@ -73,6 +74,18 @@ function launchPocketTrackApp(e) {
   var repoPath = path.substring(0, path.lastIndexOf('/'));
   loc.href = (repoPath ? repoPath : '') + '/app.html';
   return false;
+}
+
+function toggleMobileNav(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  var d = document.getElementById('mobile-menu-drawer');
+  if (!d) return;
+  var isOpen = (d.style.display === 'flex');
+  d.style.display = isOpen ? 'none' : 'flex';
+  var icon = document.getElementById('nav-toggle-icon');
+  if (icon) {
+    icon.className = isOpen ? 'ti ti-menu-2' : 'ti ti-x';
+  }
 }
 </script>
 </head>
@@ -102,10 +115,25 @@ function launchPocketTrackApp(e) {
       <li><a href="index.html" class="nav-link active">Home</a></li>
       <li><a href="website/features.html" class="nav-link">Features</a></li>
       <li><a href="website/pricing.html" class="nav-link">Pricing &amp; Simulator</a></li>
-      <li><a href="website/privacy.html" class="nav-link">Privacy</a></li>
-      <li><a href="#" onclick="launchPocketTrackApp(event);return false;" class="btn btn-primary" style="padding:10px 22px;font-size:14px;">Launch App →</a></li>
+      <li><a href="privacy.html" class="nav-link">Privacy</a></li>
+      <li><a href="#" onclick="launchPocketTrackApp(event);return false;" class="btn btn-primary btn-launch-nav" style="padding:10px 22px;font-size:14px;">Launch App →</a></li>
     </ul>
+    <button class="nav-toggle-btn" id="nav-toggle-btn" onclick="toggleMobileNav(event)" aria-label="Toggle Navigation Menu">
+      <i class="ti ti-menu-2" id="nav-toggle-icon"></i>
+    </button>
   </header>
+
+  <nav class="mobile-menu-drawer" id="mobile-menu-drawer" style="display:none;" aria-label="Mobile Navigation Menu">
+    <a href="index.html" class="active"><span>🏠 Home</span> <i class="ti ti-chevron-right"></i></a>
+    <a href="website/features.html"><span>⚡ Features &amp; Architecture</span> <i class="ti ti-chevron-right"></i></a>
+    <a href="website/pricing.html"><span>💰 Pricing &amp; Simulator</span> <i class="ti ti-chevron-right"></i></a>
+    <a href="privacy.html"><span>🛡️ Privacy Policy</span> <i class="ti ti-chevron-right"></i></a>
+    <a href="#" onclick="launchPocketTrackApp(event);return false;" style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-weight:700;"><span>🚀 Launch Web App</span> <i class="ti ti-arrow-right"></i></a>
+    <div style="padding-top:10px;border-top:1px solid rgba(255,255,255,0.1);display:flex;justify-content:space-between;font-size:13px;color:var(--text-muted);">
+      <a href="tel:+916375444595" style="background:none;padding:0;color:var(--accent-green);"><i class="ti ti-phone"></i> +91 63754 44595</a>
+      <a href="mailto:support@pockettrack.app" style="background:none;padding:0;color:var(--text-muted);"><i class="ti ti-mail"></i> Email</a>
+    </div>
+  </nav>
 
   <main>
     <!-- 1. Hero Section -->
@@ -351,12 +379,12 @@ function launchPocketTrackApp(e) {
       </div>
     </section>
 
-    <!-- 6. Infinite Testimonials Marquee -->
+    <!-- 6. Early Beta Feedback & Previews -->
     <section class="superpowers-section" style="padding:40px 0;">
       <div class="section-head">
-        <div class="pill-badge">❤️ Community Love</div>
-        <h2 class="section-title">Loved by thousands of everyday Indians</h2>
-        <p class="section-subtitle">From college students splitting hostel rent to families tracking household budgets.</p>
+        <div class="pill-badge">✨ Early Beta Feedback &amp; Prototype Previews</div>
+        <h2 class="section-title">Tested by Real Everyday Savers</h2>
+        <p class="section-subtitle">Real feedback and simulated workflows from our early beta testing cohort.</p>
       </div>
 
       <div class="testimonials-marquee-wrap">
@@ -364,19 +392,19 @@ function launchPocketTrackApp(e) {
           <!-- Card 1 -->
           <div class="testimonial-card">
             <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
-            <div class="testimonial-text">"Finally an expense tracker that understands Indian students. The voice entry is magic — I just say what I spent and it logs it instantly!"</div>
+            <blockquote class="testimonial-text" style="margin:0;padding:0;border:none;font-style:italic;">"Finally an expense tracker that understands Indian students. The voice entry is magic — I just say what I spent and it logs it instantly!"</blockquote>
             <div class="testimonial-author">
               <div class="testimonial-avatar">P</div>
-              <div><div class="testimonial-name">Priya Sharma</div><div class="testimonial-location">Delhi University</div></div>
+              <div><div class="testimonial-name">Priya Sharma</div><div class="testimonial-location">Beta Tester · Delhi</div></div>
             </div>
           </div>
           <!-- Card 2 -->
           <div class="testimonial-card">
             <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
-            <div class="testimonial-text">"I track hostel expenses with my roommates using the Ledger. No more awkward 'tune kitna diya tha' conversations at month end."</div>
+            <blockquote class="testimonial-text" style="margin:0;padding:0;border:none;font-style:italic;">"I track hostel expenses with my roommates using the Ledger. No more awkward 'tune kitna diya tha' conversations at month end."</blockquote>
             <div class="testimonial-author">
               <div class="testimonial-avatar">R</div>
-              <div><div class="testimonial-name">Rahul Verma</div><div class="testimonial-location">Mumbai IIT</div></div>
+              <div><div class="testimonial-name">Rahul Verma</div><div class="testimonial-location">Beta Tester · Mumbai</div></div>
             </div>
           </div>
           <!-- Card 3 -->
@@ -403,7 +431,7 @@ function launchPocketTrackApp(e) {
             <blockquote class="testimonial-text" style="margin:0;padding:0;border:none;font-style:italic;">"Finally an expense tracker that understands Indian students. The voice entry is magic — I just say what I spent and it logs it instantly!"</blockquote>
             <div class="testimonial-author">
               <div class="testimonial-avatar">P</div>
-              <div><div class="testimonial-name">Priya Sharma</div><div class="testimonial-location">Delhi University</div></div>
+              <div><div class="testimonial-name">Priya Sharma</div><div class="testimonial-location">Beta Tester · Delhi</div></div>
             </div>
           </div>
           <div class="testimonial-card">
@@ -411,7 +439,7 @@ function launchPocketTrackApp(e) {
             <blockquote class="testimonial-text" style="margin:0;padding:0;border:none;font-style:italic;">"I track hostel expenses with my roommates using the Ledger. No more awkward 'tune kitna diya tha' conversations at month end."</blockquote>
             <div class="testimonial-author">
               <div class="testimonial-avatar">R</div>
-              <div><div class="testimonial-name">Rahul Verma</div><div class="testimonial-location">Mumbai IIT</div></div>
+              <div><div class="testimonial-name">Rahul Verma</div><div class="testimonial-location">Beta Tester · Mumbai</div></div>
             </div>
           </div>
         </div>

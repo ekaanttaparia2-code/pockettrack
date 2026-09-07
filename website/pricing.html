@@ -5,9 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <title>Pricing &amp; Future Money Simulator — PocketTrack</title>
 <meta name="description" content="Transparent pricing and interactive wealth savings simulator with PocketTrack."/>
+<link rel="canonical" href="https://ekaanttaparia2-code-pockettrack.vercel.app/website/pricing.html"/>
 <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png"/>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="../icons.css">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../icons.css">
 <link rel="stylesheet" href="style.css">
 <script>
 function launchPocketTrackApp(e) {
@@ -28,6 +31,18 @@ function launchPocketTrackApp(e) {
   var repoPath = path.substring(0, path.lastIndexOf('/'));
   loc.href = (repoPath ? repoPath : '') + '/app.html';
   return false;
+}
+
+function toggleMobileNav(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  var d = document.getElementById('mobile-menu-drawer');
+  if (!d) return;
+  var isOpen = (d.style.display === 'flex');
+  d.style.display = isOpen ? 'none' : 'flex';
+  var icon = document.getElementById('nav-toggle-icon');
+  if (icon) {
+    icon.className = isOpen ? 'ti ti-menu-2' : 'ti ti-x';
+  }
 }
 </script>
 <style>
@@ -99,10 +114,25 @@ function launchPocketTrackApp(e) {
       <li class="nav-item-link"><a href="index.html" class="nav-link">Home</a></li>
       <li class="nav-item-link"><a href="features.html" class="nav-link">Features</a></li>
       <li class="nav-item-link"><a href="pricing.html" class="nav-link active">Pricing &amp; Simulator</a></li>
-      <li class="nav-item-link"><a href="privacy.html" class="nav-link">Privacy</a></li>
+      <li class="nav-item-link"><a href="../privacy.html" class="nav-link">Privacy</a></li>
       <li class="nav-item-launch"><a href="#" onclick="launchPocketTrackApp(event);return false;" class="btn btn-primary btn-launch-nav" style="padding:9px 18px;font-size:13.5px;border-radius:12px;">Launch App →</a></li>
     </ul>
+    <button class="nav-toggle-btn" id="nav-toggle-btn" onclick="toggleMobileNav(event)" aria-label="Toggle Navigation Menu">
+      <i class="ti ti-menu-2" id="nav-toggle-icon"></i>
+    </button>
   </header>
+
+  <nav class="mobile-menu-drawer" id="mobile-menu-drawer" style="display:none;" aria-label="Mobile Navigation Menu">
+    <a href="index.html"><span>🏠 Home</span> <i class="ti ti-chevron-right"></i></a>
+    <a href="features.html"><span>⚡ Features &amp; Architecture</span> <i class="ti ti-chevron-right"></i></a>
+    <a href="pricing.html" class="active"><span>💰 Pricing &amp; Simulator</span> <i class="ti ti-chevron-right"></i></a>
+    <a href="../privacy.html"><span>🛡️ Privacy Policy</span> <i class="ti ti-chevron-right"></i></a>
+    <a href="#" onclick="launchPocketTrackApp(event);return false;" style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-weight:700;"><span>🚀 Launch Web App</span> <i class="ti ti-arrow-right"></i></a>
+    <div style="padding-top:10px;border-top:1px solid rgba(255,255,255,0.1);display:flex;justify-content:space-between;font-size:13px;color:var(--text-muted);">
+      <a href="tel:+916375444595" style="background:none;padding:0;color:var(--accent-green);"><i class="ti ti-phone"></i> +91 63754 44595</a>
+      <a href="mailto:support@pockettrack.app" style="background:none;padding:0;color:var(--text-muted);"><i class="ti ti-mail"></i> Email</a>
+    </div>
+  </nav>
 
   <main>
     <!-- Hero -->
@@ -307,10 +337,14 @@ function launchPocketTrackApp(e) {
       <a href="index.html">Home</a>
       <a href="features.html">Features</a>
       <a href="pricing.html">Pricing &amp; Simulator</a>
-      <a href="privacy.html">Privacy Policy</a>
+      <a href="../privacy.html">Privacy Policy</a>
       <a href="#" onclick="launchPocketTrackApp(event);return false;">Launch App</a>
     </div>
-    <p>© 2026 PocketTrack. Built for financial freedom. Synced securely to Google Cloud.</p>
+    <div style="margin-top:12px;display:flex;justify-content:center;gap:18px;font-size:13px;flex-wrap:wrap;">
+      <a href="tel:+916375444595" style="color:var(--accent-green);text-decoration:none;font-weight:600;"><i class="ti ti-phone"></i> +91 63754 44595</a>
+      <a href="mailto:support@pockettrack.app" style="color:var(--text-muted);text-decoration:none;"><i class="ti ti-mail"></i> support@pockettrack.app</a>
+    </div>
+    <p style="margin-top:10px;">© 2026 PocketTrack. Built for financial freedom. Synced securely to Google Cloud.</p>
   </footer>
 </div>
 

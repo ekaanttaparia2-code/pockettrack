@@ -48,6 +48,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="PocketTrack"/>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="icons.css">
@@ -167,6 +168,10 @@
       </div>
     </div>
     <div class="brand-actions">
+      <a href="privacy.html" class="pill nav-privacy-pill" id="nav-privacy-btn" title="Privacy Policy & Security" style="text-decoration:none;font-weight:700;font-size:11.5px;color:var(--text);display:inline-flex;align-items:center;gap:4px;">
+        <i class="ti ti-shield-lock" style="color:var(--green);font-size:13.5px;"></i>
+        <span>Privacy</span>
+      </a>
       <button class="pill theme-toggle-pill" id="theme-toggle-pill" onclick="toggleTheme()" title="Toggle Light / Dark Mode" aria-label="Toggle Theme">
         <span id="theme-icon">☀️</span>
       </button>
@@ -292,26 +297,6 @@
     <div class="recent-card card" id="home-recent-activity" style="padding:4px 14px;border-radius:20px;">
       <div class="empty-mini" style="padding:24px 0;text-align:center;color:var(--text-dim);font-size:13px;">No entries logged yet. Tap <strong>Expense</strong> or <strong>Income</strong> above!</div>
     </div>
-
-    <!-- 🌟 SOCIAL PROOF & TESTIMONIALS -->
-    <section class="testimonials-section card" style="padding:16px 18px;border-radius:22px;margin:16px 0 10px;background:var(--card);border:1px solid var(--border);" aria-label="Customer Reviews & Ratings">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <div style="display:flex;align-items:center;gap:6px;">
-          <span style="font-size:16px;">💬</span>
-          <span style="font-size:11px;font-weight:800;letter-spacing:0.8px;color:var(--text-dim);text-transform:uppercase;">User Review &amp; Rating</span>
-        </div>
-        <span style="color:#f59e0b;font-weight:800;font-size:12px;">★★★★★ 5.0</span>
-      </div>
-      <blockquote style="margin:0;padding:12px 14px;border-left:3.5px solid var(--green);background:rgba(16,185,129,0.05);border-radius:12px;">
-        <p style="font-size:13px;line-height:1.45;color:var(--text);margin:0 0 8px;font-style:italic;">
-          "PocketTrack's daily safe-to-spend allowance is brilliant. I stopped overspending by mid-month, and the UPI SMS paste logs transactions in 2 seconds without manual typing."
-        </p>
-        <footer style="font-size:11.5px;font-weight:700;color:var(--text-dim);display:flex;align-items:center;justify-content:space-between;">
-          <span>— Priya Sharma, Product Designer (Bengaluru)</span>
-          <span style="font-size:11px;color:var(--green);font-weight:700;">Verified User</span>
-        </footer>
-      </blockquote>
-    </section>
   </div>
 
   <!-- ==========================================
@@ -570,6 +555,18 @@
         <input type="file" id="import-json-file" accept=".json" onchange="restoreAppDataJSON(this)" style="display:none;" />
       </div>
     </div>
+
+    <!-- 🛡️ Privacy Policy & Security Architecture -->
+    <a href="privacy.html" class="card" style="text-decoration:none;display:flex;justify-content:space-between;align-items:center;padding:16px 18px;border-radius:22px;margin-bottom:14px;background:var(--card);border:1px solid var(--border);color:var(--text);">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:20px;">🛡️</span>
+        <div>
+          <h3 style="font-size:14.5px;font-weight:700;margin:0;color:var(--text);">Privacy Policy &amp; Security</h3>
+          <p style="font-size:11.5px;color:var(--text-dim);margin:2px 0 0;">Zero-knowledge architecture, data rights &amp; contact info</p>
+        </div>
+      </div>
+      <i class="ti ti-chevron-right" style="color:var(--text-dim);font-size:16px;"></i>
+    </a>
 
     <!-- Clear All Data / Reset Demo -->
     <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;border:1px solid rgba(239,68,68,0.25);background:rgba(239,68,68,0.03);">

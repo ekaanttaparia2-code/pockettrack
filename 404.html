@@ -1,35 +1,171 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>PocketTrack — Redirecting...</title>
-  <script>
-    (function() {
-      var path = window.location.pathname;
-      var segments = path.split('/').filter(Boolean);
-      
-      // If deployed on GitHub Pages (e.g. /repo-name/something)
-      if (segments.length > 0 && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')) {
-        var repoName = segments[0];
-        if (repoName !== 'website' && repoName !== 'index.html' && repoName !== 'landing.html' && repoName !== 'app.html') {
-          window.location.replace('/' + repoName + '/app.html');
-          return;
-        }
-      }
-      
-      // Default redirect
-      window.location.replace('app.html');
-    })();
-  </script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>404 — Page Not Found | PocketTrack</title>
+<meta name="description" content="The page you are looking for does not exist or has been moved. Return to PocketTrack personal finance app."/>
+<meta name="robots" content="noindex, follow"/>
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="icons.css">
+<style>
+  :root {
+    --bg-deep: #070414;
+    --card: rgba(255, 255, 255, 0.05);
+    --border: rgba(255, 255, 255, 0.1);
+    --green: #10b981;
+    --green-glow: rgba(16, 185, 129, 0.25);
+    --text: #f8fafc;
+    --text-muted: #94a3b8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg-deep);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    overflow-x: hidden;
+    background-image: 
+      radial-gradient(800px 400px at 50% -10%, rgba(16, 185, 129, 0.18), transparent 75%),
+      radial-gradient(600px 400px at 80% 90%, rgba(139, 92, 246, 0.14), transparent 70%);
+  }
+  .card-404 {
+    max-width: 520px;
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 24px;
+    padding: 36px 28px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  }
+  .badge-404 {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    font-size: 12px;
+    font-weight: 800;
+    padding: 5px 12px;
+    border-radius: 999px;
+    margin-bottom: 16px;
+    letter-spacing: 0.5px;
+  }
+  h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(38px, 8vw, 56px);
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #ffffff 30%, #34d399 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  p {
+    font-size: 13.5px;
+    color: var(--text-muted);
+    line-height: 1.55;
+    margin-bottom: 24px;
+  }
+  .action-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: 14px;
+    font-size: 13.5px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 18px var(--green-glow);
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(16, 185, 129, 0.35);
+  }
+  .btn-glass {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-glass:hover {
+    background: rgba(255, 255, 255, 0.12);
+  }
+  .links-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    font-size: 12.5px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+  }
+  .links-row a {
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+  .links-row a:hover {
+    color: var(--green);
+  }
+</style>
 </head>
-<body style="background:#0e0924;color:#f5f3ff;font-family:'Inter',sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;text-align:center;padding:20px;">
-  <div style="max-width:400px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);padding:30px;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
-    <div style="font-size:42px;margin-bottom:12px;">🚀</div>
-    <h2 style="font-size:20px;margin-bottom:10px;color:#fff;">Taking you to PocketTrack...</h2>
-    <p style="font-size:13px;color:#b9aee3;line-height:1.5;margin-bottom:20px;">If you are not redirected automatically, tap the button below.</p>
-    <a href="app.html" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#8b5cf6,#ec4899);color:#fff;text-decoration:none;border-radius:12px;font-weight:600;font-size:14px;">Open PocketTrack App →</a>
+<body>
+
+<div class="card-404">
+  <div class="badge-404">⚠️ Error 404</div>
+  <h1>404</h1>
+  <div class="subtitle">Page Not Found</div>
+  <p>The page you are looking for does not exist, was renamed, or has moved to a new destination.</p>
+
+  <div class="action-grid">
+    <a href="index.html" class="btn btn-primary">
+      <i class="ti ti-smart-home"></i> Return to PocketTrack App
+    </a>
+    <a href="landing.html" class="btn btn-glass">
+      <i class="ti ti-compass"></i> Explore Features &amp; Simulator
+    </a>
   </div>
+
+  <div class="links-row">
+    <a href="privacy.html">Privacy Policy</a>
+    <span style="color:var(--border);">•</span>
+    <a href="tel:+916375444595">+91 63754 44595</a>
+    <span style="color:var(--border);">•</span>
+    <a href="mailto:support@pockettrack.app">support@pockettrack.app</a>
+  </div>
+</div>
+
 </body>
 </html>
-
