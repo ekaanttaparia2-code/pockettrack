@@ -187,12 +187,12 @@
        ========================================== -->
   <div id="tab-home" class="tab-content active">
     
-    <!-- 🎯 1. HERO TOTAL BALANCE CARD (The Core Hero of PocketTrack) -->
+    <!-- 🎯 1. HERO BALANCE CARD (The Core Hero of PocketTrack) -->
     <div class="hero-card hero-card-modern" id="hero-balance-card">
       <div class="hero-top">
         <div class="balance-hero-badge">
           <span style="font-size:16px;">👛</span>
-          <span style="font-size:11px;font-weight:800;letter-spacing:0.8px;color:var(--text-dim);text-transform:uppercase;">TOTAL BALANCE</span>
+          <span style="font-size:11px;font-weight:800;letter-spacing:0.8px;color:var(--text-dim);text-transform:uppercase;">BALANCE</span>
         </div>
         <div style="display:flex;align-items:center;gap:6px;">
           <button class="privacy-eye-btn" onclick="event.stopPropagation();toggleBalancePrivacy();" id="privacy-eye-btn" title="Toggle Hide Numbers">
@@ -206,22 +206,22 @@
         <div class="hero-balance-number-wrap">
           <span class="hero-balance-val" id="hdr-balance">₹0</span>
         </div>
-        <p class="hero-balance-sub" id="hero-balance-sub">Net across your wallets</p>
+        <p class="hero-balance-sub" id="hero-balance-sub">Spent <span id="hero-spent" style="font-weight:700;">₹0</span> this month · <span id="hero-income" style="font-weight:700;">₹0</span> income</p>
       </div>
 
-      <!-- Secondary Safe-to-Spend Slice Bar inside Card -->
-      <div class="hero-safe-slice-bar" onclick="onSafeToSpendCardClick()" style="cursor:pointer;" title="Tap to adjust monthly savings goal">
+      <!-- Secondary Safe-to-Spend Row inside Hero Card -->
+      <div class="hero-safe-slice-bar" onclick="openSafeToSpendBreakdown()" style="cursor:pointer;" title="Tap to view formula breakdown">
         <div style="display:flex;align-items:center;gap:8px;">
           <span class="pulse-dot"></span>
           <div>
-            <span style="font-size:10px;font-weight:800;color:var(--green);letter-spacing:0.5px;text-transform:uppercase;display:block;">DAILY SAFE-TO-SPEND</span>
+            <span style="font-size:10px;font-weight:800;color:var(--green);letter-spacing:0.5px;text-transform:uppercase;display:block;">SAFE-TO-SPEND</span>
             <div style="display:flex;align-items:baseline;gap:4px;">
               <strong style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:800;color:var(--text);" id="safe-to-spend-val">₹0</strong>
               <span style="font-size:11px;color:var(--text-dim);font-weight:700;">/ day</span>
             </div>
           </div>
         </div>
-        <div style="display:flex;align-items:center;gap:6px;">
+        <div style="display:flex;align-items:center;gap:6px;" onclick="event.stopPropagation();openSavingsTargetModal();" title="Set or adjust monthly savings goal">
           <span id="hero-target-display" style="font-size:11px;font-weight:700;color:var(--text-dim);">+ Set goal</span>
           <span class="pill" style="font-size:10px;font-weight:800;padding:4px 8px;border-radius:10px;color:var(--green);">🎯 Goal</span>
         </div>
@@ -250,31 +250,8 @@
       </div>
     </div>
 
-    <!-- 2. DISTINCT INCOME & SPENT BLOCKS (Replacing Entries Chip) -->
-    <div class="hero-cashflow-grid">
-      <!-- Income Block -->
-      <div class="cashflow-block income" onclick="setTab('activity');setActivityFilter('income');" style="cursor:pointer;" title="View Income in Passbook">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-          <span class="cashflow-block-label" style="color:var(--green);">INCOME</span>
-          <span style="font-size:14px;">💵</span>
-        </div>
-        <div class="cashflow-block-val" id="hero-income" style="color:var(--green);">₹0</div>
-        <span class="cashflow-block-sub">This month</span>
-      </div>
-
-      <!-- Spent Block -->
-      <div class="cashflow-block expense" onclick="setTab('activity');setActivityFilter('expense');" style="cursor:pointer;" title="View Expenses in Passbook">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-          <span class="cashflow-block-label" style="color:var(--red);">SPENT</span>
-          <span style="font-size:14px;">💸</span>
-        </div>
-        <div class="cashflow-block-val" id="hero-spent" style="color:var(--red);">₹0</div>
-        <span class="cashflow-block-sub">This month</span>
-      </div>
-    </div>
-
-    <!-- 3. ⚡ QUICK SPEND SPEED DIAL BAR -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin:0 2px 8px;">
+    <!-- 2. ⚡ QUICK SPEND SPEED DIAL BAR -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin:4px 2px 8px;">
       <p class="section-kicker" style="font-size:10px;font-weight:800;color:var(--text-dim);letter-spacing:1px;margin:0;">⚡ QUICK SPEND</p>
       <button class="text-action" onclick="openAddPresetModal()" style="background:none;border:none;color:var(--green);font-weight:700;font-size:11.5px;cursor:pointer;display:flex;align-items:center;gap:3px;" title="Add Custom Quick Preset">
         <span>+ Add</span>
@@ -296,7 +273,7 @@
     </div>
 
     <div class="recent-card card" id="home-recent-activity" style="padding:4px 14px;border-radius:20px;">
-      <div class="empty-mini" style="padding:24px 0;text-align:center;color:var(--text-dim);font-size:13px;">No entries logged yet. Tap <strong>Expense</strong> or <strong>Income</strong> above!</div>
+      <div class="empty-mini" style="padding:24px 0;text-align:center;color:var(--text-dim);font-size:13px;">No entries yet. Tap Expense or Income to start.</div>
     </div>
   </div>
 
@@ -340,16 +317,16 @@
           <input type="text" id="activity-search-input" placeholder="Search notes, merchants, amounts..." oninput="onActivitySearch(this.value)" style="padding-left:38px;border-radius:16px;"/>
         </div>
 
-        <!-- Segmented Type Filter Tabs -->
+        <!-- Segmented Type Filter Tabs (All / Expense / Income) -->
         <div class="filter-chips-bar" id="activity-type-chips" style="margin-bottom:8px;">
           <button class="filter-chip active" onclick="setActivityFilter('all', this)">All</button>
           <button class="filter-chip" onclick="setActivityFilter('expense', this)">💸 Expenses</button>
           <button class="filter-chip" onclick="setActivityFilter('income', this)">💵 Income</button>
-          <button class="filter-chip" onclick="setActivityFilter('transfer', this)">⇄ Transfers</button>
+          <button class="filter-chip" style="display:none;" onclick="setActivityFilter('transfer', this)">⇄ Transfers</button>
         </div>
 
-        <!-- Horizontal Category Filter Chips -->
-        <div class="activity-cat-scroll" id="activity-category-filter-chips">
+        <!-- Horizontal Category Filter Chips (Secondary / Hidden by default) -->
+        <div class="activity-cat-scroll" id="activity-category-filter-chips" style="display:none;">
           <button class="activity-cat-chip active" onclick="setActivityCategoryFilter('all', this)">All Categories</button>
           <button class="activity-cat-chip" onclick="setActivityCategoryFilter('food', this)">🍔 Food</button>
           <button class="activity-cat-chip" onclick="setActivityCategoryFilter('transport', this)">🚗 Transport</button>
@@ -375,7 +352,7 @@
     <!-- 1. Passbook List Container -->
     <div class="card" id="entries-list" style="padding:4px 14px;border-radius:20px;">
       <!-- Populated via transactions.js -->
-      <div class="empty-mini" style="padding:32px 0;text-align:center;color:var(--text-dim);font-size:13px;">No transactions found.</div>
+      <div class="empty-mini" style="padding:32px 0;text-align:center;color:var(--text-dim);font-size:13px;">Nothing logged yet.</div>
     </div>
 
     <!-- 2. Friends Ledger Container -->
@@ -392,8 +369,8 @@
   <div id="tab-settings" class="tab-content" style="display:none;">
     <h2 style="font-size:20px;font-weight:800;margin:0 0 14px;">Settings & Preferences</h2>
 
-    <!-- User Profile Name Card -->
-    <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;">
+    <!-- 1. Profile Name -->
+    <div class="card" style="padding:18px;border-radius:22px;margin-bottom:12px;">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
         <span style="font-size:20px;">👤</span>
         <div>
@@ -407,64 +384,38 @@
       </div>
     </div>
 
-    <!-- Wallets Card -->
-    <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:20px;">👛</span>
-          <h3 style="font-size:15.5px;font-weight:700;margin:0;">Wallets & Accounts</h3>
+    <!-- 2. App Theme (Light / Dark) -->
+    <div class="card" style="padding:18px;border-radius:22px;margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <h3 style="font-size:15px;font-weight:700;margin:0;">App Theme</h3>
+          <p style="font-size:11.5px;color:var(--text-dim);margin:2px 0 0;">Toggle between clean Light and dark mode</p>
         </div>
-        <button class="btn btn-sm" onclick="openNewWalletModal()" style="font-size:11.5px;padding:4px 10px;border-radius:10px;">
-          <i class="ti ti-plus"></i> Add
-        </button>
-      </div>
-      <div id="settings-wallets-list" style="display:flex;flex-direction:column;gap:8px;">
-        <!-- Populated via wallets.js -->
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-sm" onclick="setAppTheme('light')" style="padding:6px 12px;font-weight:700;">☀️ Light</button>
+          <button class="btn btn-sm" onclick="setAppTheme('dark')" style="padding:6px 12px;font-weight:700;">🌙 Dark</button>
+        </div>
       </div>
     </div>
 
-    <!-- 🔁 Recurring Transactions & Subscriptions Card -->
-    <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+    <!-- 3. Senior / Large Text Mode Toggle -->
+    <div class="card" style="padding:18px;border-radius:22px;margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
         <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:20px;">🔁</span>
+          <span style="font-size:20px;">👴</span>
           <div>
-            <h3 style="font-size:15.5px;font-weight:700;margin:0;">Recurring Payments & Rules</h3>
-            <p style="font-size:11px;color:var(--text-dim);margin:2px 0 0;">Automated monthly bills, rent & salary</p>
+            <h3 style="font-size:15px;font-weight:700;margin:0;">Senior / Large Text Mode</h3>
+            <p style="font-size:11.5px;color:var(--text-dim);margin:2px 0 0;">Larger text, bigger buttons, and high contrast</p>
           </div>
         </div>
-        <button class="btn btn-sm" onclick="openRecurringModal()" style="font-size:11.5px;padding:4px 10px;border-radius:10px;">
-          <span>Manage</span>
-        </button>
-      </div>
-      <div id="settings-recurring-list" style="display:flex;flex-direction:column;gap:6px;">
-        <!-- Populated via transactions.js -->
+        <label style="display:flex;align-items:center;cursor:pointer;">
+          <input type="checkbox" id="setting-senior-toggle" onchange="toggleSeniorMode(this.checked)" style="width:20px;height:20px;accent-color:var(--accent);cursor:pointer;"/>
+        </label>
       </div>
     </div>
 
-    <!-- Monthly Savings Target Card -->
-    <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;background:linear-gradient(135deg,rgba(16,185,129,0.06) 0%,rgba(6,182,212,0.06) 100%);border:1.5px solid rgba(16,185,129,0.25);">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-        <span style="font-size:20px;">🎯</span>
-        <div>
-          <h3 style="font-size:15.5px;font-weight:700;margin:0;">Monthly Savings Target</h3>
-          <p style="font-size:11px;color:var(--text-dim);margin:2px 0 0;">Protects money from daily safe-to-spend calculation</p>
-        </div>
-      </div>
-      <div style="display:flex;gap:8px;">
-        <select id="settings-savings-wallet" onchange="onSettingsSavingsWalletChange(this.value)" style="flex:0.9;font-size:12px;font-weight:700;">
-          <option value="all">🌐 Overall (All)</option>
-          <option value="cash">💵 Cash</option>
-          <option value="bank">🏦 Bank / UPI</option>
-          <option value="card">💳 Credit Card</option>
-        </select>
-        <input type="number" id="settings-savings-input" placeholder="e.g. 5000" style="flex:1;font-size:15px;font-weight:700;"/>
-        <button class="btn btn-primary" onclick="saveSavingsTargetFromSettings()" style="padding:0 16px;font-weight:700;">Save</button>
-      </div>
-    </div>
-
-    <!-- 🔒 Privacy Mode & PIN Lock -->
-    <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;">
+    <!-- 4. 🔒 Privacy Mode & PIN Lock -->
+    <div class="card" style="padding:18px;border-radius:22px;margin-bottom:12px;">
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div style="display:flex;align-items:center;gap:8px;">
           <span style="font-size:20px;">🔒</span>
@@ -484,38 +435,8 @@
       </div>
     </div>
 
-    <!-- Simple / Senior Mode Toggle -->
-    <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:20px;">👴</span>
-          <div>
-            <h3 style="font-size:15px;font-weight:700;margin:0;">Senior / Large Text Mode</h3>
-            <p style="font-size:11.5px;color:var(--text-dim);margin:2px 0 0;">Larger text, bigger buttons, and high contrast</p>
-          </div>
-        </div>
-        <label style="display:flex;align-items:center;cursor:pointer;">
-          <input type="checkbox" id="setting-senior-toggle" onchange="toggleSeniorMode(this.checked)" style="width:20px;height:20px;accent-color:var(--accent);cursor:pointer;"/>
-        </label>
-      </div>
-    </div>
-
-    <!-- Appearance / Theme -->
-    <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <div>
-          <h3 style="font-size:15px;font-weight:700;margin:0;">App Theme</h3>
-          <p style="font-size:11.5px;color:var(--text-dim);margin:2px 0 0;">Toggle between clean Light and dark mode</p>
-        </div>
-        <div style="display:flex;gap:6px;">
-          <button class="btn btn-sm" onclick="setAppTheme('light')" style="padding:6px 12px;font-weight:700;">☀️ Light</button>
-          <button class="btn btn-sm" onclick="setAppTheme('dark')" style="padding:6px 12px;font-weight:700;">🌙 Dark</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Account & Cloud Sync -->
-    <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;">
+    <!-- 5. Account & Cloud Sync -->
+    <div class="card" style="padding:18px;border-radius:22px;margin-bottom:12px;">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
         <div>
           <h3 style="font-size:15px;font-weight:700;margin:0;" id="settings-user-email">Guest User</h3>
@@ -529,63 +450,7 @@
       </div>
     </div>
 
-    <!-- 💾 Data Management & Statement Exports -->
-    <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-        <span style="font-size:20px;">💾</span>
-        <div>
-          <h3 style="font-size:15px;font-weight:700;margin:0;">Data & Statement Exports</h3>
-          <p style="font-size:11.5px;color:var(--text-dim);margin:2px 0 0;">Export statements or backup your device data</p>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
-        <button class="btn btn-sm" onclick="downloadMonthlyPDFStatement()" style="font-size:11.5px;padding:7px 10px;font-weight:700;border-radius:11px;">
-          📄 PDF Statement
-        </button>
-        <button class="btn btn-sm" onclick="exportCSV()" style="font-size:11.5px;padding:7px 10px;font-weight:700;border-radius:11px;">
-          📊 CSV Spreadsheet
-        </button>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <button class="btn btn-sm" onclick="backupAppDataJSON()" style="font-size:11.5px;padding:7px 10px;font-weight:700;border-radius:11px;" title="Save a copy of all local data">
-          💾 Backup JSON
-        </button>
-        <button class="btn btn-sm" onclick="document.getElementById('import-json-file').click()" style="font-size:11.5px;padding:7px 10px;font-weight:700;border-radius:11px;" title="Restore data from a JSON backup">
-          🔄 Restore JSON
-        </button>
-        <input type="file" id="import-json-file" accept=".json" onchange="restoreAppDataJSON(this)" style="display:none;" />
-      </div>
-      <p style="font-size:11px;color:var(--text-dim);margin:8px 0 0;line-height:1.4;">
-        💾 <strong>Backup JSON:</strong> Downloads a full copy of all your transactions and wallets onto this device.<br/>
-        🔄 <strong>Restore JSON:</strong> Loads a previously saved backup file to restore all your records instantly.
-      </p>
-    </div>
-
-    <!-- 🛡️ Privacy Policy & Security Architecture -->
-    <a href="privacy.html" class="card" style="text-decoration:none;display:flex;justify-content:space-between;align-items:center;padding:16px 18px;border-radius:22px;margin-bottom:14px;background:var(--card);border:1px solid var(--border);color:var(--text);">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <span style="font-size:20px;">🛡️</span>
-        <div>
-          <h3 style="font-size:14.5px;font-weight:700;margin:0;color:var(--text);">Privacy Policy &amp; Security</h3>
-          <p style="font-size:11.5px;color:var(--text-dim);margin:2px 0 0;">Zero-knowledge architecture, data rights &amp; contact info</p>
-        </div>
-      </div>
-      <i class="ti ti-chevron-right" style="color:var(--text-dim);font-size:16px;"></i>
-    </a>
-
-    <!-- 📜 Terms of Service -->
-    <a href="terms.html" class="card" style="text-decoration:none;display:flex;justify-content:space-between;align-items:center;padding:16px 18px;border-radius:22px;margin-bottom:14px;background:var(--card);border:1px solid var(--border);color:var(--text);">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <span style="font-size:20px;">📜</span>
-        <div>
-          <h3 style="font-size:14.5px;font-weight:700;margin:0;color:var(--text);">Terms of Service</h3>
-          <p style="font-size:11.5px;color:var(--text-dim);margin:2px 0 0;">User rights, data ownership &amp; usage conditions</p>
-        </div>
-      </div>
-      <i class="ti ti-chevron-right" style="color:var(--text-dim);font-size:16px;"></i>
-    </a>
-
-    <!-- Clear All Data / Reset Demo -->
+    <!-- 6. Clear All Data / Reset Demo -->
     <div class="card" style="padding:18px;border-radius:22px;margin-bottom:14px;border:1px solid rgba(239,68,68,0.25);background:rgba(239,68,68,0.03);">
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
@@ -597,6 +462,128 @@
         </button>
       </div>
     </div>
+
+    <!-- ── DE-EMPHASIZED / LOWER TOOLS (Wallets, Recurring Rules, Export/Backup, Legal) ── -->
+    <details class="settings-advanced-details" style="margin-bottom:14px;background:rgba(0,0,0,0.02);border-radius:20px;border:1px solid var(--border);padding:14px 16px;">
+      <summary style="font-size:13px;font-weight:800;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;">
+        <span>⚙️ Advanced Options (Wallets, Rules, Export)</span>
+        <i class="ti ti-chevron-down" style="font-size:14px;"></i>
+      </summary>
+
+      <div style="margin-top:16px;display:flex;flex-direction:column;gap:14px;">
+        <!-- Wallets Card -->
+        <div class="card" style="padding:16px;border-radius:18px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:18px;">👛</span>
+              <h3 style="font-size:14.5px;font-weight:700;margin:0;">Wallets & Accounts</h3>
+            </div>
+            <button class="btn btn-sm" onclick="openNewWalletModal()" style="font-size:11px;padding:4px 10px;border-radius:10px;">
+              <i class="ti ti-plus"></i> Add
+            </button>
+          </div>
+          <div id="settings-wallets-list" style="display:flex;flex-direction:column;gap:8px;">
+            <!-- Populated via wallets.js -->
+          </div>
+        </div>
+
+        <!-- Recurring Payments & Rules Card -->
+        <div class="card" style="padding:16px;border-radius:18px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:18px;">🔁</span>
+              <div>
+                <h3 style="font-size:14.5px;font-weight:700;margin:0;">Recurring Payments & Rules</h3>
+                <p style="font-size:10.5px;color:var(--text-dim);margin:2px 0 0;">Automated monthly bills, rent & salary</p>
+              </div>
+            </div>
+            <button class="btn btn-sm" onclick="openRecurringModal()" style="font-size:11px;padding:4px 10px;border-radius:10px;">
+              <span>Manage</span>
+            </button>
+          </div>
+          <div id="settings-recurring-list" style="display:flex;flex-direction:column;gap:6px;">
+            <!-- Populated via transactions.js -->
+          </div>
+        </div>
+
+        <!-- Monthly Savings Target Card -->
+        <div class="card" style="padding:16px;border-radius:18px;background:linear-gradient(135deg,rgba(16,185,129,0.06) 0%,rgba(6,182,212,0.06) 100%);border:1.5px solid rgba(16,185,129,0.25);">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <span style="font-size:18px;">🎯</span>
+            <div>
+              <h3 style="font-size:14.5px;font-weight:700;margin:0;">Monthly Savings Target</h3>
+              <p style="font-size:10.5px;color:var(--text-dim);margin:2px 0 0;">Protects money from daily safe-to-spend calculation</p>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <select id="settings-savings-wallet" onchange="onSettingsSavingsWalletChange(this.value)" style="flex:0.9;font-size:12px;font-weight:700;">
+              <option value="all">🌐 Overall (All)</option>
+              <option value="cash">💵 Cash</option>
+              <option value="bank">🏦 Bank / UPI</option>
+              <option value="card">💳 Credit Card</option>
+            </select>
+            <input type="number" id="settings-savings-input" placeholder="e.g. 5000" style="flex:1;font-size:14px;font-weight:700;"/>
+            <button class="btn btn-primary" onclick="saveSavingsTargetFromSettings()" style="padding:0 14px;font-weight:700;font-size:13px;">Save</button>
+          </div>
+        </div>
+
+        <!-- 💾 Data Management & Statement Exports -->
+        <div class="card" style="padding:16px;border-radius:18px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <span style="font-size:18px;">💾</span>
+            <div>
+              <h3 style="font-size:14.5px;font-weight:700;margin:0;">Data & Statement Exports</h3>
+              <p style="font-size:10.5px;color:var(--text-dim);margin:2px 0 0;">Export statements or backup your device data</p>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+            <button class="btn btn-sm" onclick="downloadMonthlyPDFStatement()" style="font-size:11px;padding:7px 10px;font-weight:700;border-radius:11px;">
+              📄 PDF Statement
+            </button>
+            <button class="btn btn-sm" onclick="exportCSV()" style="font-size:11px;padding:7px 10px;font-weight:700;border-radius:11px;">
+              📊 CSV Spreadsheet
+            </button>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <button class="btn btn-sm" onclick="backupAppDataJSON()" style="font-size:11px;padding:7px 10px;font-weight:700;border-radius:11px;" title="Save a copy of all local data">
+              💾 Backup JSON
+            </button>
+            <button class="btn btn-sm" onclick="document.getElementById('import-json-file').click()" style="font-size:11px;padding:7px 10px;font-weight:700;border-radius:11px;" title="Restore data from a JSON backup">
+              🔄 Restore JSON
+            </button>
+            <input type="file" id="import-json-file" accept=".json" onchange="restoreAppDataJSON(this)" style="display:none;" />
+          </div>
+          <p style="font-size:10.5px;color:var(--text-dim);margin:8px 0 0;line-height:1.4;">
+            💾 <strong>Backup JSON:</strong> Downloads a full copy of all your transactions and wallets onto this device.<br/>
+            🔄 <strong>Restore JSON:</strong> Loads a previously saved backup file to restore all your records instantly.
+          </p>
+        </div>
+
+        <!-- 🛡️ Privacy Policy & Security Architecture -->
+        <a href="privacy.html" class="card" style="text-decoration:none;display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-radius:18px;background:var(--card);border:1px solid var(--border);color:var(--text);">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:18px;">🛡️</span>
+            <div>
+              <h3 style="font-size:13.5px;font-weight:700;margin:0;color:var(--text);">Privacy Policy &amp; Security</h3>
+              <p style="font-size:10.5px;color:var(--text-dim);margin:2px 0 0;">Zero-knowledge architecture, data rights &amp; contact info</p>
+            </div>
+          </div>
+          <i class="ti ti-chevron-right" style="color:var(--text-dim);font-size:14px;"></i>
+        </a>
+
+        <!-- 📜 Terms of Service -->
+        <a href="terms.html" class="card" style="text-decoration:none;display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-radius:18px;background:var(--card);border:1px solid var(--border);color:var(--text);">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:18px;">📜</span>
+            <div>
+              <h3 style="font-size:13.5px;font-weight:700;margin:0;color:var(--text);">Terms of Service</h3>
+              <p style="font-size:10.5px;color:var(--text-dim);margin:2px 0 0;">User rights, data ownership &amp; usage conditions</p>
+            </div>
+          </div>
+          <i class="ti ti-chevron-right" style="color:var(--text-dim);font-size:14px;"></i>
+        </a>
+      </div>
+    </details>
 
     <!-- 📞 FOOTER CONTACT, PHONE & PRIVACY -->
     <footer class="app-global-footer" style="padding:20px 10px 84px;text-align:center;font-size:12px;color:var(--text-dim);display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--border);margin-top:20px;">
@@ -978,6 +965,65 @@
     <input type="text" id="friend-note-input" placeholder="e.g. Pizza dinner split, Auto ride" style="margin-bottom:18px;"/>
 
     <button class="btn btn-primary" onclick="submitAddFriend()" style="width:100%;padding:14px;font-size:15px;font-weight:800;border-radius:16px;">Save Friend Split 👥</button>
+  </div>
+</div>
+
+<!-- 11. Safe-to-Spend Breakdown Sheet Modal -->
+<div class="modal-overlay" id="safe-to-spend-breakdown-modal" style="display:none;" onclick="if(event.target===this)closeSafeToSpendBreakdown()">
+  <div class="modal-sheet" style="padding:22px 20px 30px;">
+    <div class="modal-sheet-handle"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:22px;">📊</span>
+        <h3 style="font-size:18px;font-weight:800;margin:0;">Safe-to-Spend Breakdown</h3>
+      </div>
+      <button class="icon-btn" onclick="closeSafeToSpendBreakdown()"><i class="ti ti-x"></i></button>
+    </div>
+    <p style="font-size:12.5px;color:var(--text-dim);margin:0 0 16px;">
+      Calculated daily so you know exactly what you can spend today without dipping into savings or bills.
+    </p>
+
+    <!-- Formula Box -->
+    <div class="card" style="padding:14px;border-radius:16px;background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);margin-bottom:16px;">
+      <span style="font-size:10px;font-weight:800;color:var(--green);letter-spacing:0.5px;text-transform:uppercase;display:block;margin-bottom:4px;">FORMULA</span>
+      <p style="font-size:12px;font-weight:700;color:var(--text);margin:0;line-height:1.4;">
+        (Balance − remaining fixed bills − savings goal) ÷ days left in month
+      </p>
+    </div>
+
+    <!-- Real Numbers Breakdown -->
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--card);border-radius:12px;border:1px solid var(--border);">
+        <span style="font-size:13px;color:var(--text-dim);font-weight:600;">Total Balance</span>
+        <strong style="font-size:14px;color:var(--text);" id="breakdown-balance-val">₹0</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--card);border-radius:12px;border:1px solid var(--border);">
+        <span style="font-size:13px;color:var(--text-dim);font-weight:600;">Remaining Fixed Bills</span>
+        <strong style="font-size:14px;color:var(--red);" id="breakdown-bills-val">₹0</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--card);border-radius:12px;border:1px solid var(--border);">
+        <span style="font-size:13px;color:var(--text-dim);font-weight:600;">Monthly Savings Goal</span>
+        <strong style="font-size:14px;color:var(--green);" id="breakdown-goal-val">₹0</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--card);border-radius:12px;border:1px solid var(--border);">
+        <span style="font-size:13px;color:var(--text-dim);font-weight:600;">Days Left in Month</span>
+        <strong style="font-size:14px;color:var(--text);" id="breakdown-days-val">1 day</strong>
+      </div>
+    </div>
+
+    <!-- Result Summary Banner -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--green-soft);border-radius:16px;border:1.5px solid rgba(16,185,129,0.3);margin-bottom:16px;">
+      <div>
+        <span style="font-size:11px;font-weight:800;color:var(--green);text-transform:uppercase;display:block;">DAILY SAFE-TO-SPEND</span>
+        <span style="font-size:11.5px;color:var(--text-dim);">Available for today</span>
+      </div>
+      <strong style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800;color:var(--green);" id="breakdown-result-val">₹0 / day</strong>
+    </div>
+
+    <div style="display:flex;gap:10px;">
+      <button class="btn" onclick="closeSafeToSpendBreakdown()" style="flex:1;border-radius:14px;font-weight:700;">Close</button>
+      <button class="btn btn-primary" onclick="closeSafeToSpendBreakdown();openSavingsTargetModal();" style="flex:1.4;border-radius:14px;font-weight:800;">🎯 Set / Edit Goal</button>
+    </div>
   </div>
 </div>
 

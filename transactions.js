@@ -204,12 +204,66 @@ window.setPrivacyModeFromSettings = setPrivacyModeFromSettings;
 
 function onSafeToSpendCardClick() {
   if (isPrivacyActive()) {
-    openUnlockPinModal(() => openSavingsTargetModal());
+    openUnlockPinModal(() => openSafeToSpendBreakdown());
   } else {
-    openSavingsTargetModal();
+    openSafeToSpendBreakdown();
   }
 }
 window.onSafeToSpendCardClick = onSafeToSpendCardClick;
+
+function openSafeToSpendBreakdown() {
+  if (isPrivacyActive()) {
+    openUnlockPinModal(() => openSafeToSpendBreakdown());
+    return;
+  }
+  const m = document.getElementById('safe-to-spend-breakdown-modal');
+  if (!m) return;
+  const today = new Date();
+  const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+  const daysLeft = Math.max(1, daysInMonth - today.getDate() + 1);
+  const savingsTarget = parseFloat(localStorage.getItem('pocketTrackSavingsTarget')) || 0;
+  const list = window.entries || [];
+  const income = list.filter(e => e.type === 'income').reduce((s, e) => s + (parseFloat(e.amt) || 0), 0);
+  const spent = list.filter(e => e.type === 'expense').reduce((s, e) => s + (parseFloat(e.amt) || 0), 0);
+  const balance = income - spent;
+  const todayStr = today.toISOString().split('T')[0];
+  const monthEndStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(daysInMonth).padStart(2, '0')}`;
+  const recurringRules = typeof getRecurringRules === 'function' ? getRecurringRules() : [];
+  const fixedBills = recurringRules
+    .filter(r => r.active && r.type === 'expense' && r.nextDueDate && r.nextDueDate >= todayStr && r.nextDueDate <= monthEndStr)
+    .reduce((sum, r) => sum + (parseFloat(r.amt) || 0), 0);
+  const spendable = Math.max(0, balance - fixedBills - savingsTarget);
+  const safePerDay = balance <= 0 ? 0 : Math.floor(spendable / daysLeft);
+
+  const bEl = document.getElementById('breakdown-balance-val');
+  const fEl = document.getElementById('breakdown-bills-val');
+  const sEl = document.getElementById('breakdown-goal-val');
+  const dEl = document.getElementById('breakdown-days-val');
+  const resEl = document.getElementById('breakdown-result-val');
+
+  if (bEl) bEl.textContent = '₹' + Math.max(0, balance).toLocaleString('en-IN');
+  if (fEl) fEl.textContent = '₹' + fixedBills.toLocaleString('en-IN');
+  if (sEl) sEl.textContent = '₹' + savingsTarget.toLocaleString('en-IN');
+  if (dEl) dEl.textContent = `${daysLeft} days`;
+  if (resEl) resEl.textContent = '₹' + safePerDay.toLocaleString('en-IN') + ' / day';
+
+  m.style.display = 'flex';
+  if (typeof document !== 'undefined' && document.body && document.body.style) {
+    document.body.style.overflow = 'hidden';
+  }
+}
+window.openSafeToSpendBreakdown = openSafeToSpendBreakdown;
+
+function closeSafeToSpendBreakdown() {
+  const m = document.getElementById('safe-to-spend-breakdown-modal');
+  if (m) {
+    m.style.display = 'none';
+    if (typeof document !== 'undefined' && document.body && document.body.style) {
+      document.body.style.overflow = '';
+    }
+  }
+}
+window.closeSafeToSpendBreakdown = closeSafeToSpendBreakdown;
 
 function onBalanceCardClick() {
   if (isPrivacyActive()) {
@@ -248,22 +302,32 @@ function updateHeaderStats() {
   }
   if (cnt) cnt.textContent = String(list.length);
 
-  // Calculate Daily Safe-to-Spend with Monthly Savings Target
+  // Calculate Daily Safe-to-Spend with Monthly Savings Target & Remaining Fixed Bills
   const today = new Date();
   const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
   const daysLeft = Math.max(1, daysInMonth - today.getDate() + 1);
   const savingsTarget = parseFloat(localStorage.getItem('pocketTrackSavingsTarget')) || 0;
+  const todayStr = today.toISOString().split('T')[0];
+  const monthEndStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(daysInMonth).padStart(2, '0')}`;
+  const recurringRules = typeof getRecurringRules === 'function' ? getRecurringRules() : [];
+  const fixedBills = recurringRules
+    .filter(r => r.active && r.type === 'expense' && r.nextDueDate && r.nextDueDate >= todayStr && r.nextDueDate <= monthEndStr)
+    .reduce((sum, r) => sum + (parseFloat(r.amt) || 0), 0);
   
-  // Spendable balance protects the savings target
-  const spendable = Math.max(0, balance - savingsTarget);
-  const safePerDay = Math.floor(spendable / daysLeft);
+  // Spendable balance protects remaining fixed bills and savings goal: (Balance - fixed bills - savings goal) / days left
+  const spendable = Math.max(0, balance - fixedBills - savingsTarget);
+  const safePerDay = balance <= 0 ? 0 : Math.floor(spendable / daysLeft);
 
   const safeEl = document.getElementById('safe-to-spend-val');
   const targetEl = document.getElementById('hero-target-display');
   const balSub = document.getElementById('hero-balance-sub');
 
   if (balSub) {
-    balSub.textContent = locked ? 'Protected by PIN lock' : 'Net across your wallets';
+    if (locked) {
+      balSub.innerHTML = 'Spent <span id="hero-spent" style="font-weight:700;">₹••••</span> this month · <span id="hero-income" style="font-weight:700;">₹••••</span> income';
+    } else {
+      balSub.innerHTML = 'Spent <span id="hero-spent" style="font-weight:700;">₹' + spent.toLocaleString('en-IN') + '</span> this month · <span id="hero-income" style="font-weight:700;">₹' + income.toLocaleString('en-IN') + '</span> income';
+    }
   }
 
   if (safeEl) {
@@ -591,7 +655,7 @@ function renderHomeRecent() {
   const locked = isPrivacyActive();
 
   if (!list.length) {
-    container.innerHTML = `<div class="empty-mini" style="padding:24px 0;text-align:center;color:var(--text-dim);font-size:13px;">No entries logged yet. Tap <strong>Expense</strong> or <strong>Income</strong> above!</div>`;
+    container.innerHTML = `<div class="empty-mini" style="padding:24px 0;text-align:center;color:var(--text-dim);font-size:13px;">No entries yet. Tap Expense or Income to start.</div>`;
     return;
   }
 
@@ -657,8 +721,8 @@ function renderActivityList() {
     container.innerHTML = `
       <div class="empty-mini" style="padding:40px 16px;text-align:center;">
         <span style="font-size:32px;display:block;margin-bottom:8px;">📋</span>
-        <h3 style="font-size:16px;font-weight:800;color:var(--text);margin:0 0 6px;">Nothing logged yet</h3>
-        <p style="font-size:12.5px;color:var(--text-dim);margin:0 0 16px;">Tap <strong>Expense</strong> on Home to start tracking your daily spend.</p>
+        <h3 style="font-size:16px;font-weight:800;color:var(--text);margin:0 0 6px;">Nothing logged yet.</h3>
+        <p style="font-size:12.5px;color:var(--text-dim);margin:0 0 16px;">Tap <strong>Expense</strong> or <strong>Income</strong> to start tracking.</p>
         <button class="btn btn-primary" onclick="openQuickComposer('expense')" style="padding:10px 20px;font-size:13px;border-radius:12px;font-weight:700;">+ Add Expense</button>
       </div>
     `;
@@ -1125,7 +1189,7 @@ window.pasteFromClipboardAndLog = async function() {
         toast(`📋 Detected ${parsed.type === 'income' ? '+' : '-'}₹${parsed.amt} for ${parsed.merchant}!`, 'success');
       } else {
         openQuickComposer('expense', { desc: text.slice(0, 60) });
-        toast('Opened composer with copied text', 'info');
+        toast("Couldn't detect amount from text. Please enter amount below.", 'info');
       }
     } else {
       openQuickComposer('expense');
@@ -1190,12 +1254,12 @@ function parseVoiceTranscript(text) {
     wallet = 'cash';
   }
 
-  // 5. Clean Note
+  // 5. Clean Note (Hinglish supported: pe, par, me, ko, se, etc.)
   let cleanDesc = text
     .replace(/(?:rs\.?|inr|₹)\s*[\d,]+/gi, '')
     .replace(/\b\d+\s*k\b/gi, '')
     .replace(/\b\d+\b/g, '')
-    .replace(/\b(?:rupees|rupaye|spent|on|via|paid|for|ko|se|via cash|via card|via upi|via bank|kharch kiya|mile)\b/gi, '')
+    .replace(/\b(?:rupees|rupaye|spent|on|via|paid|for|ko|se|pe|par|me|via cash|via card|via upi|via bank|kharch kiya|mile)\b/gi, '')
     .trim();
 
   if (!cleanDesc || cleanDesc.length < 2) {
@@ -1217,7 +1281,7 @@ function startVoiceForComposer() {
   const voiceModal = document.getElementById('voice-listening-modal');
   const transcriptEl = document.getElementById('voice-live-transcript');
   if (voiceModal) voiceModal.style.display = 'flex';
-  if (transcriptEl) transcriptEl.innerHTML = '<span>🎙️ Listening... speak now</span>';
+  if (transcriptEl) transcriptEl.innerHTML = '<span>🎙️ Listening... speak naturally</span>';
 
   try {
     const rec = new SpeechRecognition();
@@ -1245,7 +1309,7 @@ function startVoiceForComposer() {
           if (wSel && parsed.wallet) wSel.value = parsed.wallet;
           if (parsed.cat) selectComposerCategory(parsed.cat);
 
-          toast(`🎙️ Recorded: ₹${parsed.amt || 0} (${parsed.cat})!`, 'success');
+          toast(`🎙️ Logged ${parsed.amt} rupees for ${parsed.desc || parsed.cat}`, 'success');
         } else {
           openQuickComposer('expense', { desc: transcript });
         }
@@ -1255,7 +1319,7 @@ function startVoiceForComposer() {
     rec.onerror = function(err) {
       console.warn('Speech recognition error:', err);
       stopVoiceRecording();
-      toast('Could not hear clearly. Opened composer.', 'info');
+      toast('Voice unavailable or mic permission denied. Opened composer.', 'info');
       openQuickComposer('expense');
     };
 

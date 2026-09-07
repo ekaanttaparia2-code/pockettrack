@@ -73,7 +73,10 @@ function setTab(tabName) {
   ['home', 'insights', 'activity', 'settings'].forEach(t => {
     const el = document.getElementById('tab-' + t);
     const btn = document.getElementById('btn-tab-' + t);
-    if (el) el.style.display = (t === tabName) ? 'block' : 'none';
+    if (el) {
+      el.style.display = (t === tabName) ? 'block' : 'none';
+      el.classList.toggle('active', t === tabName);
+    }
     if (btn) btn.classList.toggle('active', t === tabName);
   });
   if (tabName === 'insights' && typeof renderInsightsTab === 'function') {
