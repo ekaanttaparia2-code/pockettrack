@@ -117,6 +117,7 @@
       <div>
         <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;margin:0;letter-spacing:-0.5px;color:var(--text);">PocketTrack</div>
         <p style="font-size:11.5px;color:var(--text-dim);margin:2px 0 0;">Sign in to sync your data across devices</p>
+        <p style="font-size:12px;color:var(--text-dim);margin:8px 0 0 0;text-align:center;">✓ Free forever · ✓ Works offline · ✓ Your data stays yours</p>
       </div>
     </div>
     
@@ -124,7 +125,13 @@
     <input type="email" id="auth-email" placeholder="you@example.com" style="margin-bottom:12px;"/>
     
     <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px;">Password</label>
-    <input type="password" id="auth-pass" placeholder="At least 6 characters" style="margin-bottom:8px;"/>
+    <div style="position:relative;margin-bottom:8px;">
+      <input type="password" id="auth-pass" placeholder="At least 6 characters" style="padding-right:44px;width:100%;box-sizing:border-box;"/>
+      <button type="button" id="auth-pass-toggle" onclick="togglePasswordVisibility()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;padding:4px 8px;color:var(--text-dim);">👁️</button>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:4px;">
+      <a onclick="forgotPassword()" style="font-size:12px;color:var(--accent);cursor:pointer;text-decoration:none;">Forgot password?</a>
+    </div>
     
     <p id="auth-error" style="color:var(--red);font-size:12px;display:none;margin:4px 0 8px;"></p>
     
@@ -1034,5 +1041,6 @@
 <script src="transactions.js"></script>
 <script src="insights.js"></script>
 <script src="auth.js"></script>
+<script src="onboarding.js"></script>
 </body>
 </html>

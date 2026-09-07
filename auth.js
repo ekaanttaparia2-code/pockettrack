@@ -240,3 +240,35 @@ function triggerManualSync() {
   setTimeout(() => toast('Cloud backup synced! ☁️', 'success'), 350);
 }
 window.triggerManualSync = triggerManualSync;
+
+function forgotPassword() {
+  const email = document.getElementById('auth-email').value.trim();
+  if (!email) {
+    document.getElementById('auth-error').textContent = 'Please enter your email address first.';
+    document.getElementById('auth-error').style.display = 'block';
+    return;
+  }
+  auth.sendPasswordResetEmail(email)
+    .then(() => {
+      toast('Password reset email sent! Check your inbox.', 'success');
+      document.getElementById('auth-error').style.display = 'none';
+    })
+    .catch((err) => {
+      document.getElementById('auth-error').textContent = err.message;
+      document.getElementById('auth-error').style.display = 'block';
+    });
+}
+window.forgotPassword = forgotPassword;
+
+function togglePasswordVisibility() {
+  const passInput = document.getElementById('auth-pass');
+  const toggleBtn = document.getElementById('auth-pass-toggle');
+  if (passInput.type === 'password') {
+    passInput.type = 'text';
+    toggleBtn.textContent = '🙈';
+  } else {
+    passInput.type = 'password';
+    toggleBtn.textContent = '👁️';
+  }
+}
+window.togglePasswordVisibility = togglePasswordVisibility;
