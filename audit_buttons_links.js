@@ -10,7 +10,7 @@ jsFiles.forEach(f => {
 });
 
 const htmlFiles = [
-  'index.html', 'app.html', 'landing.html', 'privacy.html',
+  'index.html', 'app.html', 'landing.html', 'privacy.html', 'terms.html',
   'website/index.html', 'website/features.html', 'website/pricing.html', 'website/privacy.html'
 ];
 

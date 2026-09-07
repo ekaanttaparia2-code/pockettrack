@@ -25,6 +25,12 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://ekaanttaparia2-code-pockettrack.vercel.app/terms.html</loc>
+    <lastmod>2026-09-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://ekaanttaparia2-code-pockettrack.vercel.app/website/features.html</loc>
     <lastmod>2026-09-07</lastmod>
     <changefreq>monthly</changefreq>

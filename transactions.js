@@ -97,7 +97,12 @@ function openUnlockPinModal(callback = null) {
   pendingUnlockCallback = callback;
   const pin = localStorage.getItem('pocketTrackPrivacyPin');
   if (!pin) {
-    openSetPinModal();
+    // If user has not set a PIN, unmask instantly without forcing PIN creation
+    window.isPrivacyUnlockedSession = true;
+    localStorage.setItem('pocketTrackPrivacyMode', 'false');
+    updateHeaderStats();
+    if (typeof callback === 'function') callback();
+    toast('Balance unmasked 👁️', 'info');
     return;
   }
   const m = document.getElementById('privacy-unlock-modal');
@@ -147,13 +152,21 @@ function submitUnlockPin() {
 window.submitUnlockPin = submitUnlockPin;
 
 function toggleBalancePrivacy() {
+  const pin = localStorage.getItem('pocketTrackPrivacyPin');
   if (isPrivacyActive()) {
-    openUnlockPinModal();
+    if (pin) {
+      openUnlockPinModal();
+    } else {
+      window.isPrivacyUnlockedSession = true;
+      localStorage.setItem('pocketTrackPrivacyMode', 'false');
+      updateHeaderStats();
+      toast('Balance visible 👁️', 'info');
+    }
   } else {
     window.isPrivacyUnlockedSession = false;
     localStorage.setItem('pocketTrackPrivacyMode', 'true');
     updateHeaderStats();
-    toast('Privacy lock engaged 🔒', 'info');
+    toast('Balance hidden 🙈', 'info');
   }
 }
 window.toggleBalancePrivacy = toggleBalancePrivacy;
