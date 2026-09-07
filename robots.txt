@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ekaanttaparia2-code-pockettrack.vercel.app/sitemap.xml

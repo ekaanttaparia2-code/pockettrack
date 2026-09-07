@@ -1,0 +1,11 @@
+# PocketTrack
+
+PocketTrack is a personal finance and budgeting web application designed for tracking daily income, expenses, and wallet balances. The system operates offline-first using client-side storage, calculates a daily safe-to-spend allowance based on monthly savings targets, parses banking UPI SMS notifications, and provides optional cloud synchronization via Google Firebase.
+
+## Core Pages and Resources
+
+- [Homepage and Web Application](https://ekaanttaparia2-code-pockettrack.vercel.app/): Main application dashboard for logging transactions, viewing total balances, and calculating daily safe-to-spend allowances.
+- [Features Overview](https://ekaanttaparia2-code-pockettrack.vercel.app/website/features.html): Technical details of offline storage, voice entry, UPI paste parsing, multi-wallet transfers, and passbook statements.
+- [Pricing and Simulator](https://ekaanttaparia2-code-pockettrack.vercel.app/website/pricing.html): Free and tier details along with an interactive financial simulator.
+- [Privacy Policy](https://ekaanttaparia2-code-pockettrack.vercel.app/privacy.html): Plain-language documentation on data collection practices, local storage usage, optional cloud synchronization, and privacy contacts.
+- [Contact and Support](https://ekaanttaparia2-code-pockettrack.vercel.app/privacy.html#contact): Support channels including email (support@pockettrack.app) and telephone (+91 80009 22440).
