@@ -8,4 +8,4 @@ PocketTrack is a personal finance and budgeting web application designed for tra
 - [Features Overview](https://ekaanttaparia2-code-pockettrack.vercel.app/website/features.html): Technical details of offline storage, voice entry, UPI paste parsing, multi-wallet transfers, and passbook statements.
 - [Pricing and Simulator](https://ekaanttaparia2-code-pockettrack.vercel.app/website/pricing.html): Free and tier details along with an interactive financial simulator.
 - [Privacy Policy](https://ekaanttaparia2-code-pockettrack.vercel.app/privacy.html): Plain-language documentation on data collection practices, local storage usage, optional cloud synchronization, and privacy contacts.
-- [Contact and Support](https://ekaanttaparia2-code-pockettrack.vercel.app/privacy.html#contact): Support channels including email (support@pockettrack.app) and telephone (+91 80009 22440).
+- [Contact and Support](https://ekaanttaparia2-code-pockettrack.vercel.app/privacy.html#contact): Support channels including email (support@pockettrack.app) and telephone (+91 63754 44595).
