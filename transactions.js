@@ -924,17 +924,70 @@ window.renderEntries = renderActivityList;
 function setActivityFilter(filter, btn) {
   currentActivityFilter = filter;
   window.currentActivityFilter = filter;
-  document.querySelectorAll('#activity-type-chips .filter-chip').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('#activity-type-chips .filter-chip').forEach(c => {
+    if (c.id !== 'btn-toggle-cat-filters') c.classList.remove('active');
+  });
   if (btn) btn.classList.add('active');
   renderActivityList();
 }
 window.setActivityFilter = setActivityFilter;
+
+function toggleActivityCategoryFilters() {
+  const container = document.getElementById('activity-category-filter-chips');
+  const btn = document.getElementById('btn-toggle-cat-filters');
+  if (!container) return;
+  const isHidden = container.style.display === 'none' || !container.style.display;
+  if (isHidden) {
+    container.style.display = 'flex';
+    if (btn) {
+      btn.classList.add('active');
+      const activeCat = window.currentActivityCategoryFilter;
+      if (activeCat && activeCat !== 'all') {
+        const catName = typeof getCategoryName === 'function' ? getCategoryName(activeCat) : activeCat;
+        const catIcon = typeof getCategoryIcon === 'function' ? getCategoryIcon(activeCat) : '🏷️';
+        btn.innerHTML = `${catIcon} ${catName} ▴`;
+      } else {
+        btn.innerHTML = '🏷️ Category ▴';
+      }
+    }
+  } else {
+    container.style.display = 'none';
+    if (btn) {
+      const activeCat = window.currentActivityCategoryFilter;
+      if (!activeCat || activeCat === 'all') {
+        btn.classList.remove('active');
+        btn.innerHTML = '🏷️ Category ▾';
+      } else {
+        btn.classList.add('active');
+        const catName = typeof getCategoryName === 'function' ? getCategoryName(activeCat) : activeCat;
+        const catIcon = typeof getCategoryIcon === 'function' ? getCategoryIcon(activeCat) : '🏷️';
+        btn.innerHTML = `${catIcon} ${catName} ▾`;
+      }
+    }
+  }
+}
+window.toggleActivityCategoryFilters = toggleActivityCategoryFilters;
 
 function setActivityCategoryFilter(cat, btn) {
   currentActivityCategoryFilter = cat;
   window.currentActivityCategoryFilter = cat;
   document.querySelectorAll('.activity-cat-chip').forEach(c => c.classList.remove('active'));
   if (btn) btn.classList.add('active');
+  const toggleBtn = document.getElementById('btn-toggle-cat-filters');
+  const container = document.getElementById('activity-category-filter-chips');
+  const isHidden = container && (container.style.display === 'none' || !container.style.display);
+  const arrow = isHidden ? '▾' : '▴';
+  if (toggleBtn) {
+    if (cat === 'all') {
+      toggleBtn.innerHTML = `🏷️ Category ${arrow}`;
+      if (isHidden) toggleBtn.classList.remove('active');
+    } else {
+      const catName = typeof getCategoryName === 'function' ? getCategoryName(cat) : cat;
+      const catIcon = typeof getCategoryIcon === 'function' ? getCategoryIcon(cat) : '🏷️';
+      toggleBtn.innerHTML = `${catIcon} ${catName} ${arrow}`;
+      toggleBtn.classList.add('active');
+    }
+  }
   renderActivityList();
 }
 window.setActivityCategoryFilter = setActivityCategoryFilter;
