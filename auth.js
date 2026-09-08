@@ -203,7 +203,18 @@ function syncEntriesToCloud() {
     entries: list,
     wallets: window.wallets || [],
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-  }, { merge: true }).catch(err => console.warn('Cloud sync parent error:', err));
+  }, { merge: true }).catch(err => {
+    console.warn('Cloud sync parent error:', err);
+    if (err && err.code === 'permission-denied') {
+      const syncStatus = document.getElementById('sync-status');
+      const syncDot = document.querySelector('#sync-pill-btn .dot');
+      if (syncStatus) syncStatus.textContent = 'Rules Needed';
+      if (syncDot) {
+        syncDot.style.background = '#f59e0b';
+        syncDot.style.boxShadow = '0 0 6px #f59e0b';
+      }
+    }
+  });
 
   // Also sync individual documents to entries subcollection
   list.forEach(e => {
@@ -275,7 +286,40 @@ function listenToCloudEntries() {
         }).catch(err => console.warn('Cloud parent read error:', err));
       }
     }
-  }, err => console.warn('Cloud subcollection listen error:', err));
+  }, err => {
+    console.warn('Cloud subcollection listen error:', err);
+    // Fallback to local device cache so offline experience is seamless
+    const cached = localStorage.getItem('pockettrack_entries_cache_' + currentUser.uid) || 
+                   localStorage.getItem('pocketTrackEntries') || 
+                   localStorage.getItem('pockettrack_entries');
+    if (cached && (!window.entries || window.entries.length === 0)) {
+      try {
+        window.entries = JSON.parse(cached);
+        if (typeof updateHeaderStats === 'function') updateHeaderStats();
+      } catch (e) {}
+    }
+    const syncStatus = document.getElementById('sync-status');
+    const syncDot = document.querySelector('#sync-pill-btn .dot');
+    if (err && err.code === 'permission-denied') {
+      if (syncStatus) {
+        syncStatus.textContent = 'Rules Needed';
+        syncStatus.title = 'Firestore rules in Firebase Console need to be published from firestore.rules';
+      }
+      if (syncDot) {
+        syncDot.style.background = '#f59e0b';
+        syncDot.style.boxShadow = '0 0 6px #f59e0b';
+      }
+    } else {
+      if (syncStatus) {
+        syncStatus.textContent = 'Local (Offline)';
+        syncStatus.title = 'Network or ad-blocker blocked Cloud sync. Data saved locally.';
+      }
+      if (syncDot) {
+        syncDot.style.background = '#f59e0b';
+        syncDot.style.boxShadow = '0 0 6px #f59e0b';
+      }
+    }
+  });
 }
 
 function triggerManualSync() {
@@ -286,7 +330,14 @@ function triggerManualSync() {
   }
   toast('Syncing with cloud...', 'info');
   syncEntriesToCloud();
-  setTimeout(() => toast('Cloud backup synced! ☁️', 'success'), 350);
+  setTimeout(() => {
+    const syncStatus = document.getElementById('sync-status');
+    if (syncStatus && syncStatus.textContent === 'Rules Needed') {
+      toast('⚠️ Cloud rules not published in Firebase Console yet. Data saved locally.', 'warning');
+    } else {
+      toast('Cloud backup synced! ☁️', 'success');
+    }
+  }, 400);
 }
 window.triggerManualSync = triggerManualSync;
 
