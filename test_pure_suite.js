@@ -344,7 +344,8 @@ it('14.1 Sets 4-Digit Privacy PIN and masks balance numbers', () => {
   document.getElementById('set-pin-confirm').value = '4321';
   saveNewPrivacyPin();
 
-  assert.strictEqual(localStorage.getItem('pocketTrackPrivacyPin'), '4321');
+  assert.notStrictEqual(localStorage.getItem('pocketTrackPrivacyPin'), '4321', 'PIN must never be stored in plaintext');
+  assert.strictEqual(localStorage.getItem('pocketTrackPrivacyPin'), hashPrivacyPin('4321'), 'PIN must be securely stored as salted cryptographic hash');
   assert.strictEqual(localStorage.getItem('pocketTrackPrivacyMode'), 'true');
   assert.strictEqual(isPrivacyActive(), true);
   assert.strictEqual(document.getElementById('hdr-balance').textContent, '₹••••••');

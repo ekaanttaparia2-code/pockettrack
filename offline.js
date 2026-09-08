@@ -51,18 +51,24 @@ function computeSyncLabel() {
 
 function computeSyncDetail() {
   const lang = getAppLang();
+  let detail = '';
   if (!navigator.onLine) {
-    return lang === 'hi' 
+    detail = lang === 'hi' 
       ? 'ऑफ़लाइन हैं — सभी बदलाव सुरक्षित हैं, कनेक्ट होते ही सिंक होंगे' 
       : 'Offline — all changes are cached locally and will sync when reconnected';
-  }
-  if (isAnyWritePending()) {
+  } else if (isAnyWritePending()) {
     const pendingSystems = Object.keys(pendingWriteState).filter(k => pendingWriteState[k]);
-    return lang === 'hi' 
+    detail = lang === 'hi' 
       ? `क्लाउड पर सिंक हो रहा है (${pendingSystems.join(', ')})…` 
       : `Syncing pending changes to cloud (${pendingSystems.join(', ')})…`;
+  } else {
+    detail = lang === 'hi' ? 'सब कुछ क्लाउड से सिंक है' : 'All systems synced to the cloud';
   }
-  return lang === 'hi' ? 'सब कुछ क्लाउड से सिंक है' : 'All systems synced to the cloud';
+
+  if (window.offlinePersistenceState && window.offlinePersistenceState.code === 'failed-precondition') {
+    detail += ' (Multi-tab: in-memory cache active)';
+  }
+  return detail;
 }
 
 function updateSyncIndicator() {

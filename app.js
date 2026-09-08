@@ -2,19 +2,33 @@
 // POCKETTRACK PURE — CORE APP CONTROLLER
 // =====================================================================
 
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/[&<>"']/g, m => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[m]));
+}
+window.escapeHtml = escapeHtml;
+
+/**
+ * Canonical Schema Validator & Ingestion Adapter.
+ * Guarantees that any record loaded from localStorage, cloud cache, or legacy backups
+ * is strictly cast to the canonical immutable schema:
+ * { id, amt, type, cat, desc, note, date, wallet, transferGroupId, createdAt }
+ */
 function normalizeEntry(e) {
   if (!e) return null;
   return {
-    id: e.id || e._id || ('pt_' + Math.random().toString(36).substr(2, 9)),
-    amt: parseFloat(e.amt || e.amount || 0),
-    type: e.type || 'expense',
-    cat: e.cat || e.category || 'other',
-    desc: e.desc || e.label || e.note || e.title || 'Transaction',
-    note: e.note || e.desc || e.label || '',
-    date: e.date || new Date().toISOString().split('T')[0],
-    wallet: e.wallet || e.walletId || 'cash',
-    transferGroupId: e.transferGroupId || null,
-    createdAt: e.createdAt || Date.now()
+    id: String(e.id || e._id || ('pt_' + Math.random().toString(36).substr(2, 9))),
+    amt: Math.abs(parseFloat(e.amt || e.amount || 0)),
+    type: (e.type === 'income' ? 'income' : 'expense'),
+    cat: String(e.cat || e.category || 'other'),
+    desc: escapeHtml(String(e.desc || e.label || e.note || e.title || 'Transaction')).slice(0, 100),
+    note: escapeHtml(String(e.note || e.desc || e.label || '')).slice(0, 200),
+    date: String(e.date || new Date().toISOString().split('T')[0]),
+    wallet: String(e.wallet || e.walletId || 'cash'),
+    transferGroupId: e.transferGroupId ? String(e.transferGroupId) : null,
+    createdAt: Number(e.createdAt || Date.now())
   };
 }
 window.normalizeEntry = normalizeEntry;

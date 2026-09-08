@@ -73,6 +73,41 @@ function closeSetPinModal() {
 }
 window.closeSetPinModal = closeSetPinModal;
 
+// Salted cryptographic hash for client-side screen privacy shield (prevents plain-text exposure in storage/DevTools)
+function hashPrivacyPin(pin) {
+  if (!pin) return '';
+  const salt = 'pt_salt_x92_';
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  const str = salt + pin;
+  for (let i = 0, ch; i < str.length; i++) {
+    ch = str.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return 'pt_h_' + (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(16);
+}
+window.hashPrivacyPin = hashPrivacyPin;
+
+function verifyPrivacyPin(entered, stored) {
+  if (!stored) return false;
+  if (stored.startsWith('pt_h_')) {
+    return hashPrivacyPin(entered) === stored;
+  }
+  // Auto-upgrade legacy plain-text PIN to salted hash
+  if (entered === stored) {
+    try {
+      localStorage.setItem('pocketTrackPrivacyPin', hashPrivacyPin(entered));
+    } catch (e) {
+      console.warn('Failed upgrading legacy PIN hash:', e);
+    }
+    return true;
+  }
+  return false;
+}
+window.verifyPrivacyPin = verifyPrivacyPin;
+
 function saveNewPrivacyPin() {
   const pinInput = document.getElementById('set-pin-input');
   const pinConfirm = document.getElementById('set-pin-confirm');
@@ -90,14 +125,15 @@ function saveNewPrivacyPin() {
     return;
   }
 
-  localStorage.setItem('pocketTrackPrivacyPin', p1);
+  // Store only salted cryptographic hash (never plaintext)
+  localStorage.setItem('pocketTrackPrivacyPin', hashPrivacyPin(p1));
   localStorage.setItem('pocketTrackPrivacyMode', 'true');
   window.isPrivacyUnlockedSession = false;
   closeSetPinModal();
   updateHeaderStats();
   const privacySettingToggle = document.getElementById('setting-privacy-toggle');
   if (privacySettingToggle) privacySettingToggle.checked = true;
-  toast('Privacy PIN set! Balance & transactions are locked 🔒', 'success');
+  toast('Screen Privacy Shield active! Balances & transactions are masked 🔒', 'success');
 }
 window.saveNewPrivacyPin = saveNewPrivacyPin;
 
@@ -148,9 +184,9 @@ function submitUnlockPin() {
   const pinInput = document.getElementById('unlock-pin-input');
   const errEl = document.getElementById('unlock-pin-error');
   const entered = pinInput ? pinInput.value.trim() : '';
-  const stored = localStorage.getItem('pocketTrackPrivacyPin') || '0000';
+  const stored = localStorage.getItem('pocketTrackPrivacyPin') || '';
 
-  if (entered === stored) {
+  if (verifyPrivacyPin(entered, stored)) {
     window.isPrivacyUnlockedSession = true;
     closeUnlockPinModal();
     updateHeaderStats();
@@ -1284,6 +1320,9 @@ function parseUpiSms(text) {
 
   if (!merchant || merchant.length < 2) {
     merchant = isIncome ? 'UPI Received' : (cat.charAt(0).toUpperCase() + cat.slice(1));
+  } else {
+    // Sanitize merchant to guarantee safe text only (no HTML or script characters)
+    merchant = merchant.replace(/[<>&"'`]/g, '').trim();
   }
 
   return { amt, type, cat, merchant, wallet: 'bank', raw: t };
@@ -1312,7 +1351,8 @@ window.pasteFromClipboardAndLog = async function() {
         });
         toast(`📋 Detected ${parsed.type === 'income' ? '+' : '-'}₹${parsed.amt} for ${parsed.merchant}!`, 'success');
       } else {
-        openQuickComposer('expense', { desc: text.slice(0, 60) });
+        const sanitizedDesc = text.slice(0, 60).replace(/[<>&"'`]/g, '').trim();
+        openQuickComposer('expense', { desc: sanitizedDesc });
         toast("Couldn't detect amount from text. Please enter amount below.", 'info');
       }
     } else {

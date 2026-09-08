@@ -56,12 +56,11 @@ pocket-tracker/
 ├── manifest.json        # Web App Manifest for mobile installation
 ├── sitemap.xml          # Search engine sitemap
 ├── llms.txt             # Machine-readable product index
-├── website/             # Standalone marketing website pages
-│   ├── index.html       # Marketing homepage
-│   ├── features.html    # Features overview
-│   ├── pricing.html     # Pricing & simulator
-│   └── style.css        # Marketing stylesheet
-└── future/              # Archived experimental modules (AI coach, voice, P2P ledger, recurring)
+└── website/             # Standalone marketing website pages
+    ├── index.html       # Marketing homepage
+    ├── features.html    # Features overview
+    ├── pricing.html     # Pricing & simulator
+    └── style.css        # Marketing stylesheet
 ```
 
 ---
