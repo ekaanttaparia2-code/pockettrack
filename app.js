@@ -35,26 +35,46 @@ window.normalizeEntry = normalizeEntry;
 
 function loadLocalEntries() {
   try {
-    const keys = ['pockettrack_entries', 'pockettrack_entries_cache', 'pocketTrackEntries'];
-    for (const k of keys) {
-      const raw = localStorage.getItem(k);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.map(normalizeEntry).filter(Boolean);
-        }
+    // 1. Primary canonical store
+    const raw = localStorage.getItem('pocketTrackEntries');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.map(normalizeEntry).filter(Boolean);
       }
     }
-    for (let i = 0; i < localStorage.length; i++) {
+    // 2. One-time migration from legacy key names
+    const legacyKeys = ['pockettrack_entries', 'pockettrack_entries_cache'];
+    for (const k of legacyKeys) {
+      const legacyRaw = localStorage.getItem(k);
+      if (legacyRaw) {
+        try {
+          const parsed = JSON.parse(legacyRaw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const normalized = parsed.map(normalizeEntry).filter(Boolean);
+            localStorage.setItem('pocketTrackEntries', JSON.stringify(normalized));
+            localStorage.removeItem(k);
+            return normalized;
+          }
+        } catch (e) {}
+        localStorage.removeItem(k);
+      }
+    }
+    // 3. One-time purge of legacy per-user cache keys
+    for (let i = localStorage.length - 1; i >= 0; i--) {
       const key = localStorage.key(i);
       if (key && key.startsWith('pockettrack_entries_cache_')) {
-        const raw = localStorage.getItem(key);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            return parsed.map(normalizeEntry).filter(Boolean);
-          }
+        const legacyRaw = localStorage.getItem(key);
+        if (legacyRaw) {
+          try {
+            const parsed = JSON.parse(legacyRaw);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              const normalized = parsed.map(normalizeEntry).filter(Boolean);
+              localStorage.setItem('pocketTrackEntries', JSON.stringify(normalized));
+            }
+          } catch (e) {}
         }
+        localStorage.removeItem(key);
       }
     }
   } catch (err) {}
@@ -63,10 +83,22 @@ function loadLocalEntries() {
 
 function loadLocalWallets() {
   try {
-    const raw = localStorage.getItem('pockettrack_wallets') || localStorage.getItem('pocketTrackWallets');
+    const raw = localStorage.getItem('pocketTrackWallets');
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+    const legacy = localStorage.getItem('pockettrack_wallets');
+    if (legacy) {
+      try {
+        const parsed = JSON.parse(legacy);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          localStorage.setItem('pocketTrackWallets', JSON.stringify(parsed));
+          localStorage.removeItem('pockettrack_wallets');
+          return parsed;
+        }
+      } catch (e) {}
+      localStorage.removeItem('pockettrack_wallets');
     }
   } catch (err) {}
   return [

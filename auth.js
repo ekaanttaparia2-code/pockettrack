@@ -6,29 +6,26 @@ let currentUser = null;
 window.currentUser = null;
 window.isGuestMode = false;
 
+function closeAuthScreen() {
+  const authScreen = document.getElementById('auth-screen');
+  if (authScreen) authScreen.style.display = 'none';
+}
+window.closeAuthScreen = closeAuthScreen;
+
 function initAuth() {
   if (typeof auth === 'undefined') return;
 
   auth.onAuthStateChanged(user => {
-    const syncStatus = document.getElementById('sync-status');
-    const syncDot = document.querySelector('#sync-pill-btn .dot');
-
     if (user) {
       currentUser = user;
       window.currentUser = user;
       window.isGuestMode = false;
-      const authScreen = document.getElementById('auth-screen');
+      closeAuthScreen();
       const emailEl = document.getElementById('settings-user-email');
 
-      if (authScreen) authScreen.style.display = 'none';
       if (emailEl) emailEl.textContent = user.email || 'Signed in User';
-      if (syncStatus) syncStatus.textContent = 'Cloud';
-      if (syncDot) {
-        syncDot.style.background = 'var(--green)';
-        syncDot.style.boxShadow = '0 0 6px var(--green)';
-      }
-
       updateSettingsAuthUI();
+      if (typeof updateSyncIndicator === 'function') updateSyncIndicator();
       listenToCloudEntries();
     } else {
       // Cleanly unsubscribe from any previous Firestore cloud listener immediately
@@ -41,12 +38,8 @@ function initAuth() {
       if (!window.isGuestMode) {
         startGuestSandboxMode();
       }
-      if (syncStatus) syncStatus.textContent = 'Local';
-      if (syncDot) {
-        syncDot.style.background = '#f59e0b';
-        syncDot.style.boxShadow = '0 0 6px #f59e0b';
-      }
       updateSettingsAuthUI();
+      if (typeof updateSyncIndicator === 'function') updateSyncIndicator();
     }
   });
 }
@@ -185,8 +178,7 @@ function startGuestSandboxMode() {
   currentUser = { uid: 'guest_user', email: 'guest@pockettrack.local', isGuest: true };
   window.currentUser = currentUser;
 
-  const authScreen = document.getElementById('auth-screen');
-  if (authScreen) authScreen.style.display = 'none';
+  closeAuthScreen();
 
   // Fresh user starts clean - NO automatic sample demo data!
   if (!window.entries) {
@@ -194,6 +186,7 @@ function startGuestSandboxMode() {
   }
 
   updateSettingsAuthUI();
+  if (typeof updateSyncIndicator === 'function') updateSyncIndicator();
   if (typeof updateHeaderStats === 'function') updateHeaderStats();
 }
 window.startGuestSandboxMode = startGuestSandboxMode;
@@ -221,42 +214,45 @@ function syncEntriesToCloud() {
     }
   });
 
-  // Also sync individual documents to entries subcollection
-  list.forEach(e => {
-    if (e.id) {
-      db.collection('users').doc(currentUser.uid).collection('entries').doc(String(e.id)).set(e, { merge: true })
-        .catch(err => console.warn('Cloud entry write error:', err));
-    }
+  // Sync subcollection atomically
+  const entriesCol = db.collection('users').doc(currentUser.uid).collection('entries');
+  list.forEach(entry => {
+    entriesCol.doc(entry.id).set(entry, { merge: true }).catch(err => {
+      console.warn('Cloud entry write error:', err);
+    });
   });
 }
 window.syncEntriesToCloud = syncEntriesToCloud;
 window.syncWalletsToCloud = syncEntriesToCloud;
 
-function deleteCloudEntry(id) {
-  if (!id || !currentUser || currentUser.isGuest || typeof db === 'undefined') return;
-  try {
-    db.collection('users').doc(currentUser.uid).collection('entries').doc(String(id)).delete()
-      .catch(err => console.warn('Cloud entry delete error:', err));
-    // Keep parent document array in sync
-    db.collection('users').doc(currentUser.uid).set({
-      entries: window.entries || [],
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge: true }).catch(() => {});
-  } catch (err) {
-    console.warn('deleteCloudEntry failed:', err);
-  }
+function deleteEntryFromCloud(entryId) {
+  if (!currentUser || currentUser.isGuest || typeof db === 'undefined' || !entryId) return;
+  
+  db.collection('users').doc(currentUser.uid).collection('entries').doc(entryId).delete().catch(err => {
+    console.warn('Cloud entry delete error:', err);
+  });
+
+  // Update parent doc snapshot
+  const list = window.entries || [];
+  db.collection('users').doc(currentUser.uid).set({
+    entries: list,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge: true }).catch(err => {
+    console.warn('Cloud parent update on delete error:', err);
+  });
 }
-window.deleteCloudEntry = deleteCloudEntry;
+window.deleteEntryFromCloud = deleteEntryFromCloud;
+window.deleteCloudEntry = deleteEntryFromCloud;
 
 function listenToCloudEntries() {
   if (!currentUser || currentUser.isGuest || typeof db === 'undefined') return;
-  
+
   if (cloudEntriesUnsubscribe) {
     cloudEntriesUnsubscribe();
     cloudEntriesUnsubscribe = null;
   }
 
-  // 1. Listen to subcollection entries (where all records are stored)
+  // 1. Listen to subcollection entries
   cloudEntriesUnsubscribe = db.collection('users').doc(currentUser.uid).collection('entries').onSnapshot(snap => {
     if (!currentUser || currentUser.isGuest) return;
     if (snap && snap.docs) {
@@ -268,10 +264,6 @@ function listenToCloudEntries() {
 
         window.entries = cloudEntries;
         localStorage.setItem('pocketTrackEntries', JSON.stringify(window.entries));
-        localStorage.setItem('pockettrack_entries', JSON.stringify(window.entries));
-        if (currentUser && currentUser.uid) {
-          localStorage.setItem('pockettrack_entries_cache_' + currentUser.uid, JSON.stringify(window.entries));
-        }
         if (typeof updateHeaderStats === 'function') updateHeaderStats();
       } else {
         // 2. Subcollection is empty — check parent document fallback only if local state is empty
@@ -283,13 +275,11 @@ function listenToCloudEntries() {
             if (data.entries && Array.isArray(data.entries) && data.entries.length > 0 && (!window.entries || window.entries.length === 0)) {
               window.entries = data.entries.map(normalizeEntry);
               localStorage.setItem('pocketTrackEntries', JSON.stringify(window.entries));
-              localStorage.setItem('pockettrack_entries', JSON.stringify(window.entries));
               if (typeof updateHeaderStats === 'function') updateHeaderStats();
             }
             if (data.wallets && Array.isArray(data.wallets)) {
               window.wallets = data.wallets;
               localStorage.setItem('pocketTrackWallets', JSON.stringify(window.wallets));
-              localStorage.setItem('pockettrack_wallets', JSON.stringify(window.wallets));
               if (typeof renderSettingsWallets === 'function') renderSettingsWallets();
             }
           }
@@ -299,10 +289,7 @@ function listenToCloudEntries() {
   }, err => {
     console.warn('Cloud subcollection listen error:', err);
     // Fallback to local device cache so offline experience is seamless
-    const uid = (currentUser && !currentUser.isGuest) ? currentUser.uid : '';
-    const cached = (uid ? localStorage.getItem('pockettrack_entries_cache_' + uid) : null) || 
-                   localStorage.getItem('pocketTrackEntries') || 
-                   localStorage.getItem('pockettrack_entries');
+    const cached = localStorage.getItem('pocketTrackEntries');
     if (cached && (!window.entries || window.entries.length === 0)) {
       try {
         window.entries = JSON.parse(cached);

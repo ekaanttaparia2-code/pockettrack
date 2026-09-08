@@ -110,13 +110,14 @@
 <div id="toast" class="toast"></div>
 
 <!-- AUTH OVERLAY -->
-<div id="auth-screen" style="position:fixed;inset:0;background:radial-gradient(900px 500px at 12% -8%, rgba(79,70,229,0.25), transparent 60%),linear-gradient(170deg,var(--bg1),var(--bg2) 52%,var(--bg3) 100%);z-index:999999;display:flex;align-items:center;justify-content:center;padding:20px;">
-  <div id="auth-main-view" class="card" style="width:100%;max-width:380px;padding:28px;border-radius:24px;">
+<div id="auth-screen" style="position:fixed;inset:0;background:radial-gradient(900px 500px at 12% -8%, rgba(79,70,229,0.25), transparent 60%),linear-gradient(170deg,var(--bg1),var(--bg2) 52%,var(--bg3) 100%);z-index:999999;display:none;align-items:center;justify-content:center;padding:20px;">
+  <div id="auth-main-view" class="card" style="position:relative;width:100%;max-width:380px;padding:28px;border-radius:24px;">
+    <button type="button" onclick="closeAuthScreen()" aria-label="Close sign in dialog" style="position:absolute;top:16px;right:16px;background:none;border:none;color:var(--text-dim);font-size:18px;cursor:pointer;line-height:1;padding:4px 8px;border-radius:8px;">✕</button>
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
       <div class="brand-icon brand-logo-wrap"><img class="brand-logo-img" src="icon-192.png" alt="PocketTrack" width="44" height="44"></div>
       <div>
         <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;margin:0;letter-spacing:-0.5px;color:var(--text);">PocketTrack</div>
-        <p style="font-size:11.5px;color:var(--text-dim);margin:2px 0 0;">Sign in to sync your data across devices</p>
+        <p style="font-size:11.5px;color:var(--text-dim);margin:2px 0 0;">Want your data on another device? Sign in to sync across devices.</p>
         <p style="font-size:12px;color:var(--text-dim);margin:8px 0 0 0;text-align:center;">✓ Free forever · ✓ Works offline · ✓ Your data stays yours</p>
       </div>
     </div>
@@ -207,7 +208,7 @@
         <span id="theme-icon">☀️</span>
       </button>
       <button class="pill sync-pill-btn" id="sync-pill-btn" onclick="triggerManualSync()" title="Cloud Sync Status">
-        <span class="dot"></span><span id="sync-status">Synced</span>
+        <span class="dot" style="background:#f59e0b;box-shadow:0 0 6px #f59e0b;"></span><span id="sync-status">Local</span>
       </button>
     </div>
   </header>
