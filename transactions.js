@@ -1345,7 +1345,7 @@ function parseVoiceTranscript(text) {
   }
 
   // 2. Detect Type (Income vs Expense)
-  const isIncome = /salary|income|credited|received|earned|bonus|interest|freelance|kamaya|mile|aaye|aaya|pension/i.test(lower);
+  const isIncome = /\b(?:salary|income|credited|received|earned|bonus|interest|freelance|kamaya|mile|mila|aaye|aaya|pension)\b/i.test(lower);
   const type = isIncome ? 'income' : 'expense';
 
   // 3. Detect Category
@@ -1364,7 +1364,13 @@ function parseVoiceTranscript(text) {
     cat = 'health';
   } else if (/amazon|flipkart|clothes|shopping|shoes|shirt|dress/i.test(lower)) {
     cat = 'shopping';
-  } else if (/salary|allowance|pocket money|freelance|bonus/i.test(lower)) {
+  } else if (/\b(?:freelance|client|upwork|fiverr|consulting)\b/i.test(lower)) {
+    cat = isIncome ? 'freelance' : 'other';
+  } else if (/\b(?:gift|envelope|shagun)\b/i.test(lower)) {
+    cat = isIncome ? 'gift' : 'other';
+  } else if (/\b(?:interest|dividend|investment|stocks|returns|crypto)\b/i.test(lower)) {
+    cat = isIncome ? 'investment' : 'other';
+  } else if (/salary|allowance|pocket money|bonus/i.test(lower)) {
     cat = isIncome ? 'salary' : 'other';
   }
 
@@ -2145,12 +2151,46 @@ window.saveUserProfileName = saveUserProfileName;
 // ── CLEAR ALL DATA / RESET DEMO ──
 function clearAllAppData() {
   if (confirm('Are you sure you want to reset all data and start fresh? This cannot be undone.')) {
+    // 1. Wipe all PocketTrack localStorage keys (including per-wallet budgets, targets, presets)
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const k = localStorage.key(i);
+      if (k && (k.startsWith('pocketTrack') || k.startsWith('pockettrack_'))) {
+        localStorage.removeItem(k);
+      }
+    }
     localStorage.removeItem('pocketTrackEntries');
+    localStorage.removeItem('pockettrack_entries');
     localStorage.removeItem('pocketTrackWallets');
+    localStorage.removeItem('pockettrack_wallets');
     localStorage.removeItem('pocketTrackSavingsTarget');
+    localStorage.removeItem('pocketTrackSavingsTargets');
     localStorage.removeItem('pocketTrackBudget');
+    localStorage.removeItem('pocketTrackBudgets');
+    localStorage.removeItem('pocketTrackQuickPresets');
     localStorage.removeItem('pocketTrackRecurringRules');
     localStorage.removeItem('pocketTrackFriendsLedger');
+    localStorage.removeItem('pocketTrackUserName');
+    localStorage.removeItem('pocketTrackPrivacyMode');
+    localStorage.removeItem('pocketTrackPrivacyPin');
+
+    // 2. Wipe Firestore cloud data if user is signed in to cloud sync
+    if (typeof currentUser !== 'undefined' && currentUser && !currentUser.isGuest && typeof db !== 'undefined') {
+      try {
+        db.collection('users').doc(currentUser.uid).set({
+          entries: [],
+          wallets: [],
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }).catch(err => console.warn('Cloud reset parent error:', err));
+
+        db.collection('users').doc(currentUser.uid).collection('entries').get().then(snap => {
+          snap.forEach(doc => doc.ref.delete().catch(() => {}));
+        }).catch(err => console.warn('Cloud reset subcollection error:', err));
+      } catch (err) {
+        console.warn('Cloud wipe error during reset:', err);
+      }
+    }
+
+    // 3. Reset in-memory state
     window.entries = [];
     window.wallets = [
       { id: 'cash', name: 'Cash', icon: '💵', balance: 0 },
@@ -2161,7 +2201,9 @@ function clearAllAppData() {
     if (typeof renderActivityList === 'function') renderActivityList();
     if (typeof renderSettingsWallets === 'function') renderSettingsWallets();
     if (typeof renderFriendsLedger === 'function') renderFriendsLedger();
-    toast('All data cleared. Starting fresh! 🧹', 'info');
+    if (typeof renderRecurringRules === 'function') renderRecurringRules();
+    if (typeof renderQuickPresetsBar === 'function') renderQuickPresetsBar();
+    toast('All device & cloud data wiped. Starting fresh! 🧹', 'info');
   }
 }
 window.clearAllAppData = clearAllAppData;

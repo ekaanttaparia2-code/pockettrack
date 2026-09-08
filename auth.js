@@ -31,6 +31,11 @@ function initAuth() {
       updateSettingsAuthUI();
       listenToCloudEntries();
     } else {
+      // Cleanly unsubscribe from any previous Firestore cloud listener immediately
+      if (cloudEntriesUnsubscribe) {
+        cloudEntriesUnsubscribe();
+        cloudEntriesUnsubscribe = null;
+      }
       currentUser = null;
       window.currentUser = null;
       if (!window.isGuestMode) {
@@ -253,6 +258,7 @@ function listenToCloudEntries() {
 
   // 1. Listen to subcollection entries (where all records are stored)
   cloudEntriesUnsubscribe = db.collection('users').doc(currentUser.uid).collection('entries').onSnapshot(snap => {
+    if (!currentUser || currentUser.isGuest) return;
     if (snap && snap.docs) {
       if (snap.docs.length > 0) {
         const cloudEntries = snap.docs.map(doc => {
@@ -263,11 +269,15 @@ function listenToCloudEntries() {
         window.entries = cloudEntries;
         localStorage.setItem('pocketTrackEntries', JSON.stringify(window.entries));
         localStorage.setItem('pockettrack_entries', JSON.stringify(window.entries));
-        localStorage.setItem('pockettrack_entries_cache_' + currentUser.uid, JSON.stringify(window.entries));
+        if (currentUser && currentUser.uid) {
+          localStorage.setItem('pockettrack_entries_cache_' + currentUser.uid, JSON.stringify(window.entries));
+        }
         if (typeof updateHeaderStats === 'function') updateHeaderStats();
       } else {
         // 2. Subcollection is empty — check parent document fallback only if local state is empty
+        if (!currentUser || currentUser.isGuest) return;
         db.collection('users').doc(currentUser.uid).get().then(doc => {
+          if (!currentUser || currentUser.isGuest) return;
           if (doc.exists) {
             const data = doc.data() || {};
             if (data.entries && Array.isArray(data.entries) && data.entries.length > 0 && (!window.entries || window.entries.length === 0)) {
@@ -289,7 +299,8 @@ function listenToCloudEntries() {
   }, err => {
     console.warn('Cloud subcollection listen error:', err);
     // Fallback to local device cache so offline experience is seamless
-    const cached = localStorage.getItem('pockettrack_entries_cache_' + currentUser.uid) || 
+    const uid = (currentUser && !currentUser.isGuest) ? currentUser.uid : '';
+    const cached = (uid ? localStorage.getItem('pockettrack_entries_cache_' + uid) : null) || 
                    localStorage.getItem('pocketTrackEntries') || 
                    localStorage.getItem('pockettrack_entries');
     if (cached && (!window.entries || window.entries.length === 0)) {
