@@ -78,48 +78,54 @@ let simBalance = 42850;
 let simIncome = 28000;
 let simSpent = 12400;
 
-function simTestAddExpense() {
-  playSound('click');
-  simSpent += 350;
-  simBalance -= 350;
-  
+function updateSimSafeToSpend() {
+  const safeEl = document.getElementById('stage-sim-safe');
+  if (safeEl) {
+    const simSafe = Math.max(0, Math.floor((simBalance - 15000 - 10000) / 14));
+    safeEl.textContent = '₹' + simSafe.toLocaleString('en-IN') + '/day';
+  }
+}
+
+function simQuickAdd(amt, note, cat, type) {
+  if (typeof playSound === 'function') {
+    playSound(type === 'income' ? 'chime' : 'click');
+  }
+  if (type === 'expense') {
+    simSpent += amt;
+    simBalance -= amt;
+  } else {
+    simIncome += amt;
+    simBalance += amt;
+  }
+
   const balEl = document.getElementById('stage-sim-balance');
   const spentEl = document.getElementById('stage-sim-spent');
+  const incEl = document.getElementById('stage-sim-income');
   const feedEl = document.getElementById('stage-sim-feed');
-  
+
   if (balEl) balEl.textContent = '₹' + simBalance.toLocaleString('en-IN');
   if (spentEl) spentEl.textContent = '-₹' + simSpent.toLocaleString('en-IN') + ' Spent';
-  
+  if (incEl) incEl.textContent = '+₹' + simIncome.toLocaleString('en-IN') + ' Income';
+  updateSimSafeToSpend();
+
   if (feedEl) {
+    const isExp = (type === 'expense');
     feedEl.insertAdjacentHTML('afterbegin', `
-      <div style="background:rgba(248,113,113,0.12);padding:10px 14px;border-radius:12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;border:1px solid rgba(248,113,113,0.3);animation:popIn 0.2s ease;">
-        <div><b>☕ Coffee with Rahul</b> · <i>Auto-connected to Rahul's Ledger</i></div>
-        <div style="font-weight:700;color:#f87171">-₹350</div>
+      <div style="background:${isExp ? 'rgba(248,113,113,0.12)' : 'rgba(52,211,153,0.12)'};padding:10px 14px;border-radius:12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;border:1px solid ${isExp ? 'rgba(248,113,113,0.3)' : 'rgba(52,211,153,0.3)'};animation:popIn 0.2s ease;">
+        <div><b>${note}</b> · <span style="font-size:12px;color:rgba(255,255,255,0.7);">${cat}</span></div>
+        <div style="font-weight:700;color:${isExp ? '#f87171' : 'var(--accent-green)'}">${isExp ? '-' : '+'}₹${amt.toLocaleString('en-IN')}</div>
       </div>
     `);
   }
 }
+window.simQuickAdd = simQuickAdd;
+
+function simTestAddExpense() {
+  simQuickAdd(350, '☕ Coffee & Pastry', 'Food & Dining Out 🍔', 'expense');
+}
 
 function simTestAddIncome() {
-  playSound('chime');
-  simIncome += 5000;
-  simBalance += 5000;
-
-  const balEl = document.getElementById('stage-sim-balance');
-  const incEl = document.getElementById('stage-sim-income');
-  const feedEl = document.getElementById('stage-sim-feed');
-  
-  if (balEl) balEl.textContent = '₹' + simBalance.toLocaleString('en-IN');
-  if (incEl) incEl.textContent = '+₹' + simIncome.toLocaleString('en-IN') + ' Income';
-
-  if (feedEl) {
-    feedEl.insertAdjacentHTML('afterbegin', `
-      <div style="background:rgba(52,211,153,0.12);padding:10px 14px;border-radius:12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;border:1px solid rgba(52,211,153,0.3);animation:popIn 0.2s ease;">
-        <div><b>💼 Freelance Gig Payment</b> · <i>Income Recorded</i></div>
-        <div style="font-weight:700;color:var(--accent-green)">+₹5,000</div>
-      </div>
-    `);
-  }
+  simQuickAdd(5000, '💼 Freelance Project', 'Salary & Income 💼', 'income');
 }
 
 // --- 5. Dynamic Cursor Spotlight Lighting ---

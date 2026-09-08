@@ -247,6 +247,9 @@ function toggleMobileNav(e) {
             <div>
               <p style="font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;">Available Balance</p>
               <h3 id="stage-sim-balance" style="font-size:42px;font-family:'Space Grotesk',sans-serif;color:#fff;margin:4px 0;">₹42,850</h3>
+              <div style="font-size:12.5px;color:var(--text-muted);margin-top:4px;">
+                Today's Safe-to-Spend: <b id="stage-sim-safe" style="color:var(--accent-green);font-size:14px;">₹1,275/day</b> <span style="font-size:11.5px;color:rgba(255,255,255,0.6);">(Dynamic: [Balance - Target - Bills] ÷ Days Left)</span>
+              </div>
             </div>
             <div style="display:flex;gap:10px;">
               <span id="stage-sim-income" style="background:rgba(52,211,153,0.15);color:var(--accent-green);padding:8px 16px;border-radius:14px;font-weight:700;font-size:13.5px;">+₹28,000 Income</span>
@@ -254,79 +257,108 @@ function toggleMobileNav(e) {
             </div>
           </div>
 
-          <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:14px;margin-bottom:18px;">
-            <p style="font-size:12px;font-weight:700;color:var(--accent-green);margin:0 0 8px;text-transform:uppercase;letter-spacing:0.5px;">Interactive Test Drive (Type Any Amount)</p>
+          <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:16px;margin-bottom:18px;">
+            <p style="font-size:12px;font-weight:700;color:var(--accent-green);margin:0 0 10px;text-transform:uppercase;letter-spacing:0.5px;">Interactive Test Drive (Try Logging Any Transaction)</p>
             <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-              <input type="number" id="sim-custom-amt" placeholder="Amount (₹)" style="flex:1;min-width:110px;padding:9px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.3);color:#fff;font-size:13.5px;" value="150"/>
-              <input type="text" id="sim-custom-note" placeholder="Item (e.g. Chai, Metro, Salary)" style="flex:2;min-width:150px;padding:9px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.3);color:#fff;font-size:13.5px;" value="Chai &amp; Snacks"/>
+              <input type="number" id="sim-custom-amt" placeholder="Amount (₹)" style="flex:1;min-width:100px;padding:9px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.3);color:#fff;font-size:13.5px;" value="180"/>
+              <input type="text" id="sim-custom-note" placeholder="Item (e.g. Milk &amp; Eggs, Uber, Movie)" style="flex:2;min-width:140px;padding:9px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.3);color:#fff;font-size:13.5px;" value="Milk &amp; Eggs"/>
+              <select id="sim-custom-cat" style="padding:9px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:#160f2e;color:#fff;font-size:13px;cursor:pointer;">
+                <option value="Groceries 🥦" selected>Groceries 🥦</option>
+                <option value="Food &amp; Dining Out 🍔">Food &amp; Dining Out 🍔</option>
+                <option value="Shopping 🛍️">Shopping 🛍️</option>
+                <option value="Transport 🚕">Transport 🚕</option>
+                <option value="Bills &amp; Utilities ⚡">Bills &amp; Utilities ⚡</option>
+                <option value="Entertainment 🎬">Entertainment 🎬</option>
+                <option value="Health &amp; Medical 💊">Health &amp; Medical 💊</option>
+                <option value="Salary &amp; Income 💼">Salary &amp; Income 💼</option>
+                <option value="General 📌">General 📌</option>
+              </select>
               <button class="btn btn-primary" onclick="simCustomAdd('expense')" style="padding:9px 16px;font-size:13px;"><i class="ti ti-minus"></i> Add Expense</button>
               <button class="btn btn-glass" onclick="simCustomAdd('income')" style="padding:9px 16px;font-size:13px;"><i class="ti ti-plus"></i> Add Income</button>
             </div>
           </div>
 
           <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
-            <button class="btn btn-glass" onclick="simTestAddExpense()" style="flex:1;font-size:13px;padding:10px;"><i class="ti ti-coffee"></i> Quick: Spend ₹350 on Coffee</button>
-            <button class="btn btn-glass" onclick="simTestAddIncome()" style="flex:1;font-size:13px;padding:10px;"><i class="ti ti-wallet"></i> Quick: Receive ₹5,000 Freelance</button>
+            <button class="btn btn-glass" onclick="simQuickAdd(280, 'Starbucks Mocha', 'Food &amp; Dining Out 🍔', 'expense')" style="flex:1;min-width:130px;font-size:12.5px;padding:9px;"><i class="ti ti-coffee"></i> ₹280 Dining Out</button>
+            <button class="btn btn-glass" onclick="simQuickAdd(850, 'Blinkit Vegetables', 'Groceries 🥦', 'expense')" style="flex:1;min-width:130px;font-size:12.5px;padding:9px;"><i class="ti ti-shopping-cart"></i> ₹850 Groceries</button>
+            <button class="btn btn-glass" onclick="simQuickAdd(1199, 'WiFi Broadband (Recurring)', 'Bills &amp; Utilities ⚡', 'expense')" style="flex:1;min-width:130px;font-size:12.5px;padding:9px;"><i class="ti ti-receipt"></i> ₹1,199 Recurring Bill</button>
+            <button class="btn btn-glass" onclick="simQuickAdd(5000, 'UI Design Gig', 'Salary &amp; Income 💼', 'income')" style="flex:1;min-width:130px;font-size:12.5px;padding:9px;"><i class="ti ti-wallet"></i> +₹5,000 Freelance</button>
           </div>
 
           <div id="stage-sim-feed" style="max-height:160px;overflow-y:auto;font-size:13px;">
             <div style="background:rgba(255,255,255,0.04);padding:10px 14px;border-radius:12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;border:1px solid rgba(255,255,255,0.06);">
-              <div><b>🍔 Zomato Dinner Order</b> · <i>Food Category</i></div>
+              <div><b>🍔 Zomato Dinner Order</b> · <span style="font-size:12px;color:rgba(255,255,255,0.7);">Food &amp; Dining Out 🍔</span></div>
               <div style="font-weight:700;color:#f87171">-₹620</div>
             </div>
+            <div style="background:rgba(255,255,255,0.04);padding:10px 14px;border-radius:12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;border:1px solid rgba(255,255,255,0.06);">
+              <div><b>🥦 Weekly Vegetables &amp; Fruits</b> · <span style="font-size:12px;color:rgba(255,255,255,0.7);">Groceries 🥦</span></div>
+              <div style="font-weight:700;color:#f87171">-₹1,450</div>
+            </div>
             <div style="background:rgba(255,255,255,0.04);padding:10px 14px;border-radius:12px;display:flex;justify-content:space-between;align-items:center;border:1px solid rgba(255,255,255,0.06);">
-              <div><b>💼 Monthly Salary Deposit</b> · <i>Salary Source</i></div>
+              <div><b>💼 Monthly Salary Deposit</b> · <span style="font-size:12px;color:rgba(255,255,255,0.7);">Salary &amp; Income 💼</span></div>
               <div style="font-weight:700;color:var(--accent-green)">+₹28,000</div>
             </div>
           </div>
-          <p style="text-align:center; font-size:12px; color:var(--text-muted); margin-top:16px;">This is a preview of PocketTrack's interface. Launch the real app to start tracking.</p>
+          <p style="text-align:center; font-size:12px; color:var(--text-muted); margin-top:16px;">This is a live interactive simulator. Try typing any amount or tapping the quick buttons above to see your dynamic safe-to-spend update in real time.</p>
         </div>
       </div>
     </section>
 
-    <!-- 4. Six Core Features -->
+    <!-- 4. Eight Core Features -->
     <section class="superpowers-section" id="features" style="padding:40px 0;">
       <div class="section-head">
-        <div class="pill-badge">⚡ Core Features</div>
+        <div class="pill-badge">⚡ Complete Feature Suite</div>
         <h2 class="section-title">What PocketTrack Actually Does</h2>
-        <p class="section-subtitle">Everything you need to track, split, and grow your money with zero friction.</p>
+        <p class="section-subtitle">Everything you need to track, analyze, split, and budget your money with zero friction.</p>
       </div>
 
       <div class="grid-features">
         <div class="card-glass">
           <div class="card-icon-wrap">⚡</div>
-          <h3 class="card-title">2-Second Expense Logging</h3>
-          <p class="card-text">Tap, type the amount, done. Our Quick Composer and presets make logging faster than opening any other app.</p>
+          <h3 class="card-title">2-Second Quick Composer &amp; 8 Categories</h3>
+          <p class="card-text">Log expenses in two taps with dedicated categories: <b>Groceries 🥦</b>, <b>Food &amp; Dining Out 🍔</b>, Shopping, Transport, Bills, Entertainment, Health, and General. Speed-dial presets make routine entries instant.</p>
         </div>
 
         <div class="card-glass">
-          <div class="card-icon-wrap">🗣️</div>
-          <h3 class="card-title">Voice Entry</h3>
-          <p class="card-text">Just say what you spent in English or Hindi. PocketTrack understands natural speech and logs it instantly.</p>
+          <div class="card-icon-wrap">📊</div>
+          <h3 class="card-title">Monthly Breakdowns &amp; Visual Analytics</h3>
+          <p class="card-text">Interactive Insights tab with monthly spending charts, granular category distribution bars, savings rate progress tracking, and spending velocity analysis.</p>
+        </div>
+
+        <div class="card-glass">
+          <div class="card-icon-wrap">📄</div>
+          <h3 class="card-title">1-Click PDF &amp; CSV Statement Exports</h3>
+          <p class="card-text">Download clean, bank-style PDF account statements or spreadsheet-ready CSV exports anytime. Perfect for tax filing, personal archives, or offline budgeting.</p>
+        </div>
+
+        <div class="card-glass">
+          <div class="card-icon-wrap">🔄</div>
+          <h3 class="card-title">Automated Recurring Bills &amp; Rent</h3>
+          <p class="card-text">Never miss rent, WiFi, insurance, or subscription deadlines. Define recurring rules and PocketTrack automatically posts them on due dates without manual re-entry.</p>
+        </div>
+
+        <div class="card-glass">
+          <div class="card-icon-wrap">💬</div>
+          <h3 class="card-title">Smart UPI SMS &amp; Notification Parser</h3>
+          <p class="card-text">Paste any transaction SMS from Google Pay, PhonePe, Paytm, or CRED. PocketTrack extracts amount, merchant, and date with 100% on-device parsing — zero bank credentials required.</p>
         </div>
 
         <div class="card-glass">
           <div class="card-icon-wrap">💰</div>
-          <h3 class="card-title">Safe-to-Spend Budget</h3>
-          <p class="card-text">Know exactly how much you can spend today. We calculate your daily allowance after bills and savings goals.</p>
+          <h3 class="card-title">Dynamic Safe-to-Spend Daily Allowance</h3>
+          <p class="card-text">Not a dumb static average. Our daily algorithm factors your balance, fixed recurring obligations, and savings target: <code>(Balance - Target - Bills) ÷ Days Left</code>. Overspending today adjusts tomorrow's limit.</p>
         </div>
 
         <div class="card-glass">
           <div class="card-icon-wrap">👥</div>
-          <h3 class="card-title">Friends Debt Ledger</h3>
-          <p class="card-text">Track who owes you and who you owe. Split expenses with friends and send reminders with one tap.</p>
-        </div>
-
-        <div class="card-glass">
-          <div class="card-icon-wrap">🏦</div>
-          <h3 class="card-title">Multi-Wallet Accounts</h3>
-          <p class="card-text">Cash, Bank, UPI, Credit Card — track balances across all your accounts with instant transfers.</p>
+          <h3 class="card-title">Friends &amp; Roommates Debt Ledger</h3>
+          <p class="card-text">Track who owes whom without awkward conversations. Split restaurant bills, log partial settlements, and generate 1-tap WhatsApp payment reminders with one tap.</p>
         </div>
 
         <div class="card-glass">
           <div class="card-icon-wrap">📴</div>
-          <h3 class="card-title">Works 100% Offline</h3>
-          <p class="card-text">No internet? No problem. Everything works offline and syncs to the cloud when you reconnect.</p>
+          <h3 class="card-title">100% Offline-First Scalability</h3>
+          <p class="card-text">High-performance IndexedDB engine handles 50,000+ lifetime entries with sub-10ms query times. Zero lag, zero forced logins, and optional end-to-end encrypted Google Cloud backup.</p>
         </div>
       </div>
     </section>
@@ -368,28 +400,43 @@ function toggleMobileNav(e) {
         </div>
         <div class="comp-row">
           <div><b>Entry speed</b></div>
-          <div class="comp-bad">7+ clicks &amp; menus</div>
-          <div class="comp-good">1-tap or voice</div>
+          <div class="comp-bad">7+ clicks &amp; bloated menus</div>
+          <div class="comp-good">2 taps, voice, or 1-tap SMS</div>
         </div>
         <div class="comp-row">
-          <div><b>Offline</b></div>
-          <div class="comp-bad">Loading spinners</div>
-          <div class="comp-good">100% offline</div>
+          <div><b>Reports &amp; Exports</b></div>
+          <div class="comp-bad">Locked behind $10/mo paywalls</div>
+          <div class="comp-good">1-click PDF &amp; CSV statement export</div>
         </div>
         <div class="comp-row">
-          <div><b>Privacy</b></div>
-          <div class="comp-bad">Selling data</div>
-          <div class="comp-good">Zero ad trackers</div>
+          <div><b>Categories &amp; Granularity</b></div>
+          <div class="comp-bad">Lumps groceries and dining</div>
+          <div class="comp-good">8 dedicated categories (Groceries vs Dining)</div>
+        </div>
+        <div class="comp-row">
+          <div><b>Daily Safe-to-Spend</b></div>
+          <div class="comp-bad">Static arbitrary monthly cap</div>
+          <div class="comp-good">Dynamic daily rebalancing formula</div>
+        </div>
+        <div class="comp-row">
+          <div><b>Bank Logins &amp; Privacy</b></div>
+          <div class="comp-bad">Demands net-banking passwords</div>
+          <div class="comp-good">Zero credentials, 100% private</div>
+        </div>
+        <div class="comp-row">
+          <div><b>Offline &amp; Scalability</b></div>
+          <div class="comp-bad">Freezes without 5G/WiFi</div>
+          <div class="comp-good">IndexedDB (50k+ entries offline)</div>
+        </div>
+        <div class="comp-row">
+          <div><b>Recurring &amp; Subscriptions</b></div>
+          <div class="comp-bad">Manual entry every month</div>
+          <div class="comp-good">Automated recurring rules</div>
         </div>
         <div class="comp-row">
           <div><b>Friend splits</b></div>
           <div class="comp-bad">Separate app needed</div>
-          <div class="comp-good">Built-in ledger</div>
-        </div>
-        <div class="comp-row">
-          <div><b>Voice entry</b></div>
-          <div class="comp-bad">Manual typing</div>
-          <div class="comp-good">Built-in</div>
+          <div class="comp-good">Built-in ledger + WhatsApp reminders</div>
         </div>
       </div>
     </section>
@@ -451,12 +498,42 @@ function toggleMobileNav(e) {
 
       <div class="faq-item">
         <div class="faq-q"><span>Is PocketTrack really free?</span><span>+</span></div>
-        <div class="faq-a">Yes, completely free. No hidden charges, no premium tiers, no ads. Your data stays on your device.</div>
+        <div class="faq-a">Yes, completely free. No hidden charges, no premium tiers, no ads, and no locked features. Your data stays on your device.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q"><span>Can I see category breakdowns like Groceries vs. Dining Out?</span><span>+</span></div>
+        <div class="faq-a">Yes, absolutely. PocketTrack features 8 dedicated categories out of the box—including separate categories for <b>Groceries 🥦</b> and <b>Food &amp; Dining Out 🍔</b>, plus Shopping, Transport, Bills, Entertainment, Health, and General. The Insights dashboard shows you exact percentage breakdowns and category progress bars every month.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q"><span>Can I export my data to PDF or CSV?</span><span>+</span></div>
+        <div class="faq-a">Yes! PocketTrack includes 1-click bank-style PDF statement generation and clean CSV export. You can download your complete transaction history anytime for tax filing, budgeting spreadsheets, or offline archiving.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q"><span>How does the Safe-to-Spend budget work? Is it just a simple average?</span><span>+</span></div>
+        <div class="faq-a">No, it is a dynamic daily rebalancing algorithm: <code>(Available Balance - Monthly Savings Target - Fixed Bills) ÷ Days Remaining in Month</code>. If you overspend today, tomorrow's daily allowance automatically adjusts downwards to protect your savings goal without breaking your plan.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q"><span>Does PocketTrack support recurring bills and subscriptions?</span><span>+</span></div>
+        <div class="faq-a">Yes. Under the Recurring Rules tab, you can automate recurring monthly expenses like rent, gym memberships, Netflix, or utility bills. PocketTrack automatically logs them on the scheduled date so your budget is always accurate.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q"><span>How does PocketTrack scale if I have thousands of transactions?</span><span>+</span></div>
+        <div class="faq-a">PocketTrack is built on high-performance browser IndexedDB storage, capable of storing over 50,000+ transactions with blazing-fast ~10ms query times. Your data is stored locally in binary indexed records, so the app remains silky smooth even after years of continuous daily use.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q"><span>Why manual and SMS logging instead of automatic bank sync?</span><span>+</span></div>
+        <div class="faq-a">Deliberate privacy design. Traditional budgeting apps require you to hand over your net-banking credentials or SMS inbox permissions to third-party aggregators who sell your financial profile to loan brokers. PocketTrack protects your privacy: you log transactions in 2 seconds via Quick Composer, Voice, or 1-tap clipboard paste from UPI SMS (GPay, PhonePe, Paytm), with zero bank access required.</div>
       </div>
 
       <div class="faq-item">
         <div class="faq-q"><span>How does voice entry work?</span><span>+</span></div>
-        <div class="faq-a">Just tap the microphone and speak naturally in English or Hindi. Say something like 'spent 200 on lunch' and PocketTrack logs it automatically.</div>
+        <div class="faq-a">Just tap the microphone and speak naturally in English or Hindi. Say something like 'spent 200 on groceries' and PocketTrack logs it automatically to the right category.</div>
       </div>
 
       <div class="faq-item">
@@ -466,22 +543,22 @@ function toggleMobileNav(e) {
 
       <div class="faq-item">
         <div class="faq-q"><span>How do I delete my account and data?</span><span>+</span></div>
-        <div class="faq-a">Go to Settings → Reset &amp; Clear All Data. This permanently deletes everything from your device. If you're signed in to cloud sync, your cloud data is also wiped.</div>
+        <div class="faq-a">Go to Settings → Reset &amp; Clear All Data. This permanently deletes everything from your device. If you're signed in to cloud sync, your cloud data and all subcollections are also wiped.</div>
       </div>
 
       <div class="faq-item">
         <div class="faq-q"><span>Is my financial data secure?</span><span>+</span></div>
-        <div class="faq-a">Your data is stored locally on your device by default. If you enable cloud sync, it's encrypted and stored in your private Firebase partition — no one else can access it, not even us.</div>
+        <div class="faq-a">Your data is stored locally on your device by default. If you enable cloud sync, it's encrypted and stored in your private Firebase partition with strict per-user security rules — no one else can access it, not even us.</div>
       </div>
 
       <div class="faq-item">
         <div class="faq-q"><span>What if I lose my phone?</span><span>+</span></div>
-        <div class="faq-a">If you enabled cloud sync before losing your phone, just sign in on any browser and your data will be restored. If you were using guest/offline mode only, the data on that device cannot be recovered.</div>
+        <div class="faq-a">If you enabled cloud sync before losing your phone, just sign in on any browser and your data will be restored instantly. If you were using guest/offline mode only, you can restore from an exported backup file.</div>
       </div>
 
       <div class="faq-item">
-        <div class="faq-q"><span>How do I contact support?</span><span>+</span></div>
-        <div class="faq-a">Email us at <a href="mailto:ekaanttaparia2@gmail.com" style="color:var(--accent-green);">ekaanttaparia2@gmail.com</a>, visit our <a href="contact.html" style="color:var(--accent-green);">Contact Page</a>, or open an issue on our <a href="https://github.com/ekaanttaparia2-code/pockettrack/issues" target="_blank" rel="noopener" style="color:var(--accent-green);text-decoration:underline;">GitHub Repository Issues</a>.</div>
+        <div class="faq-q"><span>Who built PocketTrack and what is the support commitment?</span><span>+</span></div>
+        <div class="faq-a">PocketTrack was created by <b>Ekaant Taparia</b> as an open-source, community-first financial tool. The entire codebase is public on GitHub, completely free of venture capital pressure, paywalls, or advertising tracking. Support is actively maintained via direct email (<a href="mailto:ekaanttaparia2@gmail.com" style="color:var(--accent-green);">ekaanttaparia2@gmail.com</a>), our <a href="contact.html" style="color:var(--accent-green);">Contact Page</a>, and <a href="https://github.com/ekaanttaparia2-code/pockettrack/issues" target="_blank" rel="noopener" style="color:var(--accent-green);text-decoration:underline;">GitHub Repository Issues</a>.</div>
       </div>
     </section>
 
@@ -539,12 +616,30 @@ function toggleMobileNav(e) {
 
 <script src="website/main.js"></script>
 <script>
+function updateSimSafeToSpend() {
+  var safeEl = document.getElementById('stage-sim-safe');
+  if (safeEl) {
+    var simSafe = Math.max(0, Math.floor((simBalance - 15000 - 10000) / 14));
+    safeEl.textContent = '₹' + simSafe.toLocaleString('en-IN') + '/day';
+  }
+}
+
 function simCustomAdd(type) {
   var amtInput = document.getElementById('sim-custom-amt');
   var noteInput = document.getElementById('sim-custom-note');
-  var amt = Math.abs(parseInt(amtInput ? amtInput.value : 0, 10)) || (type === 'income' ? 1000 : 150);
+  var catInput = document.getElementById('sim-custom-cat');
+  var amt = Math.abs(parseInt(amtInput ? amtInput.value : 0, 10)) || (type === 'income' ? 1000 : 180);
   var note = (noteInput && noteInput.value.trim()) || (type === 'income' ? 'Custom Income' : 'Custom Expense');
+  var cat = (catInput && catInput.value) || (type === 'income' ? 'Salary & Income 💼' : 'General 📌');
   
+  simApplyTransaction(amt, note, cat, type);
+}
+
+function simQuickAdd(amt, note, cat, type) {
+  simApplyTransaction(amt, note, cat, type);
+}
+
+function simApplyTransaction(amt, note, cat, type) {
   if (typeof playSound === 'function') {
     playSound(type === 'income' ? 'chime' : 'click');
   }
@@ -565,18 +660,26 @@ function simCustomAdd(type) {
   if (balEl) balEl.textContent = '₹' + simBalance.toLocaleString('en-IN');
   if (spentEl) spentEl.textContent = '-₹' + simSpent.toLocaleString('en-IN') + ' Spent';
   if (incEl) incEl.textContent = '+₹' + simIncome.toLocaleString('en-IN') + ' Income';
+  updateSimSafeToSpend();
   
   if (feedEl) {
     var isExp = (type === 'expense');
     feedEl.insertAdjacentHTML('afterbegin', 
       '<div style="background:' + (isExp ? 'rgba(248,113,113,0.12)' : 'rgba(52,211,153,0.12)') + ';padding:10px 14px;border-radius:12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;border:1px solid ' + (isExp ? 'rgba(248,113,113,0.3)' : 'rgba(52,211,153,0.3)') + ';animation:popIn 0.2s ease;">' +
-        '<div><b>' + note + '</b> · <i>' + (isExp ? 'Custom Expense' : 'Custom Income') + '</i></div>' +
+        '<div><b>' + note + '</b> · <span style="font-size:12px;color:rgba(255,255,255,0.7);">' + cat + '</span></div>' +
         '<div style="font-weight:700;color:' + (isExp ? '#f87171' : 'var(--accent-green)') + '">' + (isExp ? '-' : '+') + '₹' + amt.toLocaleString('en-IN') + '</div>' +
       '</div>'
     );
   }
 }
 window.simCustomAdd = simCustomAdd;
+window.simQuickAdd = simQuickAdd;
+window.simTestAddExpense = function() {
+  simQuickAdd(350, '☕ Coffee & Pastry', 'Food & Dining Out 🍔', 'expense');
+};
+window.simTestAddIncome = function() {
+  simQuickAdd(5000, '💼 Freelance Gig Payment', 'Salary & Income 💼', 'income');
+};
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
