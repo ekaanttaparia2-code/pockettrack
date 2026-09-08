@@ -109,6 +109,20 @@ body {
   width: 100%;
 }
 
+@media (min-width: 768px) {
+  .shell {
+    max-width: 680px;
+    padding: 1.5rem 24px 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .shell {
+    max-width: 820px;
+    padding: 2rem 32px 0;
+  }
+}
+
 /* =====================================================================
    HEADER & BRANDING
    ===================================================================== */

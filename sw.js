@@ -1,8 +1,12 @@
-const CACHE = 'pockettrack-v43-restore-hardened';
+const CACHE = 'pockettrack-v44-production-hardened';
 const SHELL = [
   './',
   './index.html',
   './app.html',
+  './landing.html',
+  './privacy.html',
+  './terms.html',
+  './contact.html',
   './styles.css',
   './icons.css',
   './manifest.json',
@@ -14,7 +18,8 @@ const SHELL = [
   './wallets.js',
   './transactions.js',
   './insights.js',
-  './auth.js'
+  './auth.js',
+  './onboarding.js'
 ];
 
 self.addEventListener('install', (e) => {

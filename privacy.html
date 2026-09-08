@@ -117,9 +117,10 @@
         <strong>You own 100% of your data.</strong>
       </p>
       <ul style="padding-left:20px;font-size:14px;color:var(--text-muted);margin:0 0 12px;line-height:1.7;">
-        <li><strong>Local Persistence:</strong> All transactions are stored locally using the browser's native IndexedDB standard.</li>
-        <li><strong>Cloud Encryption:</strong> Cloud-synced records are transferred using industry-standard TLS 1.3 encryption and stored in Google Cloud Firestore with strict per-user authentication rules.</li>
-        <li><strong>Full Data Export:</strong> You can export your complete financial history at any time as a CSV or JSON file from the Settings tab.</li>
+        <li><strong>Local Persistence:</strong> In Guest/offline mode, records and preferences are stored locally in your browser's sandboxed <code>localStorage</code> for lightning-fast responsiveness, with Firestore offline caching utilizing browser IndexedDB.</li>
+        <li><strong>Screen Privacy Shield:</strong> The optional 4-digit PIN Privacy Shield provides a visual screen-masking layer to hide sensitive balances and transaction values from shoulder-surfers in public spaces. It is an on-screen obfuscation barrier, not cryptographic device filesystem encryption.</li>
+        <li><strong>Cloud Encryption:</strong> When cloud sync is enabled, records are transmitted via TLS 1.3 encryption directly to Google Cloud Firestore with authenticated, per-user security rules ensuring only your account can access your data.</li>
+        <li><strong>Full Data Export &amp; Safe Wipe:</strong> You can export your complete financial history at any time as a CSV or JSON file, or permanently erase all local and cloud records with two-step typed confirmation in Settings.</li>
       </ul>
     </div>
 

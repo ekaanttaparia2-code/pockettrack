@@ -394,3 +394,23 @@ document.addEventListener('DOMContentLoaded', () => {
     applySeniorMode();
   }
 });
+
+// ── GLOBAL ACCESSIBILITY: ESCAPE KEY CLOSES ACTIVE MODALS ──
+if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      if (typeof closeQuickComposer === 'function') closeQuickComposer();
+      if (typeof closeAuthScreen === 'function') closeAuthScreen();
+      if (typeof closeUnlockPinModal === 'function') closeUnlockPinModal();
+      if (typeof closeSetPinModal === 'function') closeSetPinModal();
+      if (typeof closeGuestMigrationModal === 'function') closeGuestMigrationModal();
+      if (typeof closeSafeResetModal === 'function') closeSafeResetModal();
+      if (typeof closeTransferModal === 'function') closeTransferModal();
+      if (typeof closeNewWalletModal === 'function') closeNewWalletModal();
+      if (typeof closeSavingsTargetModal === 'function') closeSavingsTargetModal();
+      if (typeof closeAddPresetModal === 'function') closeAddPresetModal();
+      if (typeof closeAddFriendModal === 'function') closeAddFriendModal();
+      if (typeof closeSafeToSpendBreakdown === 'function') closeSafeToSpendBreakdown();
+    }
+  });
+}

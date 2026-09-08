@@ -7,8 +7,8 @@ By accessing or using PocketTrack, you agree to these terms:
 ### 1. Intended Use
 PocketTrack is an independent personal finance tool intended for personal budgeting, expense tracking, and debt calculations. It does not provide certified financial, investment, legal, or tax advice.
 
-### 2. 100% Free Forever & Open Access
-PocketTrack is 100% free to use. There are no paid subscriptions, locked premium tiers, hidden fees, or in-app purchases. All features—including offline tracking, multi-wallet accounts, voice logging, and cloud synchronization—are accessible to all users free of charge.
+### 2. Pricing & Service Availability
+PocketTrack is currently free to use with no subscription required. All core features—including offline tracking, multi-wallet accounts, voice logging, and cloud synchronization—are accessible to all users free of charge. Service availability, features, and limits may change in the future with prior notice.
 
 ### 3. User Accounts & Data Ownership
 You retain 100% ownership of your data. You may use PocketTrack as a Guest without creating an account (storing data solely on your device) or sign in to synchronize your data via your private, encrypted cloud partition. You may wipe all your data at any time via Settings.

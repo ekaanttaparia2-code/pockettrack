@@ -180,13 +180,25 @@ function closeUnlockPinModal() {
 }
 window.closeUnlockPinModal = closeUnlockPinModal;
 
+let pinFailedAttempts = 0;
+let pinLockoutUntil = 0;
+
 function submitUnlockPin() {
   const pinInput = document.getElementById('unlock-pin-input');
   const errEl = document.getElementById('unlock-pin-error');
   const entered = pinInput ? pinInput.value.trim() : '';
   const stored = localStorage.getItem('pocketTrackPrivacyPin') || '';
 
+  const now = Date.now();
+  if (now < pinLockoutUntil) {
+    const secLeft = Math.ceil((pinLockoutUntil - now) / 1000);
+    if (errEl) errEl.textContent = `Too many incorrect attempts. Locked for ${secLeft}s.`;
+    return;
+  }
+
   if (verifyPrivacyPin(entered, stored)) {
+    pinFailedAttempts = 0;
+    pinLockoutUntil = 0;
     window.isPrivacyUnlockedSession = true;
     closeUnlockPinModal();
     updateHeaderStats();
@@ -197,7 +209,14 @@ function submitUnlockPin() {
       cb();
     }
   } else {
-    if (errEl) errEl.textContent = 'Incorrect PIN. Try again.';
+    pinFailedAttempts++;
+    if (pinFailedAttempts >= 5) {
+      pinLockoutUntil = Date.now() + 30000;
+      if (errEl) errEl.textContent = 'Too many incorrect attempts. Locked for 30 seconds.';
+    } else {
+      const remaining = 5 - pinFailedAttempts;
+      if (errEl) errEl.textContent = `Incorrect PIN. (${remaining} ${remaining === 1 ? 'attempt' : 'attempts'} remaining)`;
+    }
     if (pinInput) { pinInput.value = ''; pinInput.focus(); }
   }
 }
@@ -632,23 +651,28 @@ function checkAndProcessRecurring() {
 
   rules.forEach(r => {
     if (!r.active) return;
-    const dueDate = r.nextDueDate || todayStr;
-    if (dueDate <= todayStr && r.lastProcessedDate !== todayStr) {
-      const newEntry = {
-        id: 'rec_entry_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
-        amt: parseFloat(r.amt),
-        type: r.type || 'expense',
-        cat: r.cat || 'other',
-        desc: `🔁 ${r.desc || 'Recurring Payment'}`,
-        date: todayStr,
-        wallet: r.wallet || 'cash',
-        recurringRuleId: r.id,
-        createdAt: Date.now()
-      };
-      window.entries.unshift(newEntry);
+    if (!r.lastProcessedDate || r.nextDueDate <= todayStr) {
+      const dueDate = r.nextDueDate || todayStr;
+      const occId = 'rec_' + r.id + '_' + dueDate;
+      const alreadyExists = (window.entries || []).some(e => e.id === occId || e.recurringOccId === occId);
+      if (!alreadyExists) {
+        const newEntry = {
+          id: occId,
+          recurringOccId: occId,
+          amt: parseFloat(r.amt),
+          type: r.type || 'expense',
+          cat: r.cat || 'other',
+          desc: `🔁 ${r.desc || 'Recurring Payment'}`,
+          date: todayStr,
+          wallet: r.wallet || 'cash',
+          recurringRuleId: r.id,
+          createdAt: Date.now()
+        };
+        window.entries.unshift(newEntry);
+        processed++;
+      }
       r.lastProcessedDate = todayStr;
       r.nextDueDate = advanceDueDate(todayStr, r.frequency || 'monthly');
-      processed++;
     }
   });
 
@@ -1078,6 +1102,17 @@ function openQuickComposer(type='expense', editEntry=null) {
   if (recCheck) recCheck.checked = Boolean(editEntry && editEntry.isRecurring);
   if (recFreqWrap) recFreqWrap.style.display = (recCheck && recCheck.checked) ? 'block' : 'none';
 
+  const detectedBanner = document.getElementById('comp-detected-banner');
+  if (detectedBanner) {
+    if (editEntry && editEntry.isUpiDetected) {
+      detectedBanner.style.display = 'block';
+      detectedBanner.textContent = `📋 Detected from UPI: ${editEntry.desc || ''} (₹${editEntry.amt || 0}) — Review & tap Save`;
+    } else {
+      detectedBanner.style.display = 'none';
+      detectedBanner.textContent = '';
+    }
+  }
+
   if (typeof smoothOpenModal === 'function') {
     smoothOpenModal(m);
   } else {
@@ -1090,6 +1125,8 @@ window.openQuickComposer = openQuickComposer;
 
 function closeQuickComposer() {
   currentEditingId = null;
+  const detectedBanner = document.getElementById('comp-detected-banner');
+  if (detectedBanner) detectedBanner.style.display = 'none';
   if (typeof smoothCloseModal === 'function') {
     smoothCloseModal('modal-composer');
   } else {
@@ -1347,7 +1384,8 @@ window.pasteFromClipboardAndLog = async function() {
           amt: parsed.amt,
           desc: parsed.merchant,
           cat: parsed.cat,
-          wallet: parsed.wallet
+          wallet: parsed.wallet,
+          isUpiDetected: true
         });
         toast(`📋 Detected ${parsed.type === 'income' ? '+' : '-'}₹${parsed.amt} for ${parsed.merchant}!`, 'success');
       } else {
@@ -1878,6 +1916,11 @@ function restoreAppDataJSON(inputEl) {
         return;
       }
 
+      // Check if existing entries exist to offer Merge vs Replace
+      const doMerge = (window.entries && window.entries.length > 0 && typeof confirm === 'function')
+        ? confirm('Found existing transactions! Click OK to MERGE backup with current records (no duplicates), or Cancel to REPLACE them completely.')
+        : false;
+
       // 3. Sanitize and Validate Entries
       if (hasEntries) {
         const validEntries = parsed.entries.filter(item => {
@@ -1897,8 +1940,15 @@ function restoreAppDataJSON(inputEl) {
           isTransfer: Boolean(item.isTransfer)
         }));
 
-        window.entries = validEntries;
-        localStorage.setItem('pocketTrackEntries', JSON.stringify(validEntries));
+        if (doMerge) {
+          const entryMap = new Map();
+          (window.entries || []).forEach(e => { if (e && e.id) entryMap.set(String(e.id), e); });
+          validEntries.forEach(e => { if (e && e.id && !entryMap.has(String(e.id))) entryMap.set(String(e.id), e); });
+          window.entries = Array.from(entryMap.values()).sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+        } else {
+          window.entries = validEntries;
+        }
+        localStorage.setItem('pocketTrackEntries', JSON.stringify(window.entries));
       }
 
       // 4. Sanitize and Validate Wallets
@@ -2188,61 +2238,132 @@ function saveUserProfileName(name) {
 }
 window.saveUserProfileName = saveUserProfileName;
 
-// ── CLEAR ALL DATA / RESET DEMO ──
+// ── CLEAR ALL DATA / SAFE RESET FLOW ──
+function openSafeResetModal() {
+  const m = document.getElementById('safe-reset-modal');
+  const input = document.getElementById('safe-reset-input');
+  const btn = document.getElementById('safe-reset-confirm-btn');
+  const statusEl = document.getElementById('safe-reset-status');
+  if (input) input.value = '';
+  if (btn) btn.disabled = true;
+  if (statusEl) statusEl.textContent = '';
+  if (m) {
+    if (typeof smoothOpenModal === 'function') smoothOpenModal(m);
+    else m.style.display = 'flex';
+    if (input) setTimeout(() => input.focus(), 100);
+  }
+}
+window.openSafeResetModal = openSafeResetModal;
+
+function closeSafeResetModal() {
+  if (typeof smoothCloseModal === 'function') {
+    smoothCloseModal('safe-reset-modal');
+  } else {
+    const m = document.getElementById('safe-reset-modal');
+    if (m) m.style.display = 'none';
+  }
+}
+window.closeSafeResetModal = closeSafeResetModal;
+
+function checkSafeResetInput() {
+  const input = document.getElementById('safe-reset-input');
+  const btn = document.getElementById('safe-reset-confirm-btn');
+  if (input && btn) {
+    btn.disabled = (input.value.trim() !== 'DELETE');
+  }
+}
+window.checkSafeResetInput = checkSafeResetInput;
+
+function downloadBackupBeforeReset() {
+  if (typeof backupAppDataJSON === 'function') {
+    backupAppDataJSON();
+    const statusEl = document.getElementById('safe-reset-status');
+    if (statusEl) statusEl.textContent = '✅ Safety backup downloaded! Type DELETE to confirm wipe.';
+  }
+}
+window.downloadBackupBeforeReset = downloadBackupBeforeReset;
+
+async function executeSafeResetImmediate() {
+  // 1. Wipe all local keys
+  for (let i = localStorage.length - 1; i >= 0; i--) {
+    const k = localStorage.key(i);
+    if (k && (k.startsWith('pocketTrack') || k.startsWith('pockettrack_'))) {
+      localStorage.removeItem(k);
+    }
+  }
+  localStorage.removeItem('pocketTrackEntries');
+  localStorage.removeItem('pocketTrackWallets');
+  localStorage.removeItem('pocketTrackSavingsTarget');
+  localStorage.removeItem('pocketTrackSavingsTargets');
+  localStorage.removeItem('pocketTrackBudget');
+  localStorage.removeItem('pocketTrackBudgets');
+  localStorage.removeItem('pocketTrackQuickPresets');
+  localStorage.removeItem('pocketTrackRecurringRules');
+  localStorage.removeItem('pocketTrackFriendsLedger');
+  localStorage.removeItem('pocketTrackUserName');
+  localStorage.removeItem('pocketTrackPrivacyMode');
+  localStorage.removeItem('pocketTrackPrivacyPin');
+
+  // 2. Wipe Firestore cloud data if signed in
+  let cloudSuccess = true;
+  if (typeof currentUser !== 'undefined' && currentUser && !currentUser.isGuest && typeof db !== 'undefined') {
+    try {
+      const snap = await db.collection('users').doc(currentUser.uid).collection('entries').get();
+      const deletePromises = snap.docs.map(doc => doc.ref.delete());
+      const parentPromise = db.collection('users').doc(currentUser.uid).set({
+        wallets: [],
+        updatedAt: (typeof firebase !== 'undefined' && firebase.firestore && firebase.firestore.FieldValue)
+          ? firebase.firestore.FieldValue.serverTimestamp()
+          : Date.now()
+      });
+      await Promise.allSettled([...deletePromises, parentPromise]);
+    } catch (err) {
+      console.warn('Cloud wipe error:', err);
+      cloudSuccess = false;
+    }
+  }
+
+  // 3. Reset in-memory state
+  window.entries = [];
+  window.wallets = [
+    { id: 'cash', name: 'Cash', icon: '💵', balance: 0 },
+    { id: 'bank', name: 'Bank / UPI', icon: '🏦', balance: 0 },
+    { id: 'card', name: 'Credit Card', icon: '💳', balance: 0 }
+  ];
+  updateHeaderStats();
+  if (typeof renderActivityList === 'function') renderActivityList();
+  if (typeof renderSettingsWallets === 'function') renderSettingsWallets();
+  if (typeof renderFriendsLedger === 'function') renderFriendsLedger();
+  if (typeof renderRecurringRules === 'function') renderRecurringRules();
+  if (typeof renderQuickPresetsBar === 'function') renderQuickPresetsBar();
+
+  return cloudSuccess;
+}
+
+async function executeSafeReset() {
+  const input = document.getElementById('safe-reset-input');
+  if (!input || input.value.trim() !== 'DELETE') return;
+
+  const statusEl = document.getElementById('safe-reset-status');
+  if (statusEl) statusEl.textContent = 'Wiping local & cloud records...';
+
+  const cloudSuccess = await executeSafeResetImmediate();
+  closeSafeResetModal();
+
+  if (cloudSuccess) {
+    toast('All device & cloud data wiped. Starting fresh! 🧹', 'info');
+  } else {
+    toast('Local device data wiped. Cloud deletion had partial issues.', 'warning');
+  }
+}
+window.executeSafeReset = executeSafeReset;
+
 function clearAllAppData() {
-  if (confirm('Are you sure you want to reset all data and start fresh? This cannot be undone.')) {
-    // 1. Wipe all PocketTrack localStorage keys (including per-wallet budgets, targets, presets)
-    for (let i = localStorage.length - 1; i >= 0; i--) {
-      const k = localStorage.key(i);
-      if (k && (k.startsWith('pocketTrack') || k.startsWith('pockettrack_'))) {
-        localStorage.removeItem(k);
-      }
-    }
-    localStorage.removeItem('pocketTrackEntries');
-    localStorage.removeItem('pockettrack_entries');
-    localStorage.removeItem('pocketTrackWallets');
-    localStorage.removeItem('pockettrack_wallets');
-    localStorage.removeItem('pocketTrackSavingsTarget');
-    localStorage.removeItem('pocketTrackSavingsTargets');
-    localStorage.removeItem('pocketTrackBudget');
-    localStorage.removeItem('pocketTrackBudgets');
-    localStorage.removeItem('pocketTrackQuickPresets');
-    localStorage.removeItem('pocketTrackRecurringRules');
-    localStorage.removeItem('pocketTrackFriendsLedger');
-    localStorage.removeItem('pocketTrackUserName');
-    localStorage.removeItem('pocketTrackPrivacyMode');
-    localStorage.removeItem('pocketTrackPrivacyPin');
-
-    // 2. Wipe Firestore cloud data if user is signed in to cloud sync
-    if (typeof currentUser !== 'undefined' && currentUser && !currentUser.isGuest && typeof db !== 'undefined') {
-      try {
-        db.collection('users').doc(currentUser.uid).set({
-          entries: [],
-          wallets: [],
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }).catch(err => console.warn('Cloud reset parent error:', err));
-
-        db.collection('users').doc(currentUser.uid).collection('entries').get().then(snap => {
-          snap.forEach(doc => doc.ref.delete().catch(() => {}));
-        }).catch(err => console.warn('Cloud reset subcollection error:', err));
-      } catch (err) {
-        console.warn('Cloud wipe error during reset:', err);
-      }
-    }
-
-    // 3. Reset in-memory state
-    window.entries = [];
-    window.wallets = [
-      { id: 'cash', name: 'Cash', icon: '💵', balance: 0 },
-      { id: 'bank', name: 'Bank / UPI', icon: '🏦', balance: 0 },
-      { id: 'card', name: 'Credit Card', icon: '💳', balance: 0 }
-    ];
-    updateHeaderStats();
-    if (typeof renderActivityList === 'function') renderActivityList();
-    if (typeof renderSettingsWallets === 'function') renderSettingsWallets();
-    if (typeof renderFriendsLedger === 'function') renderFriendsLedger();
-    if (typeof renderRecurringRules === 'function') renderRecurringRules();
-    if (typeof renderQuickPresetsBar === 'function') renderQuickPresetsBar();
+  const m = document.getElementById('safe-reset-modal');
+  if (m) {
+    openSafeResetModal();
+  } else {
+    executeSafeResetImmediate();
     toast('All device & cloud data wiped. Starting fresh! 🧹', 'info');
   }
 }

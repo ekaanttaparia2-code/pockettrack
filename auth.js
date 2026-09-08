@@ -26,7 +26,7 @@ function initAuth() {
       if (emailEl) emailEl.textContent = user.email || 'Signed in User';
       updateSettingsAuthUI();
       if (typeof updateSyncIndicator === 'function') updateSyncIndicator();
-      listenToCloudEntries();
+      checkGuestMigration(user);
     } else {
       // Cleanly unsubscribe from any previous Firestore cloud listener immediately
       if (cloudEntriesUnsubscribe) {
@@ -191,55 +191,128 @@ function startGuestSandboxMode() {
 }
 window.startGuestSandboxMode = startGuestSandboxMode;
 
-// ── FIRESTORE CLOUD REALTIME SYNC ──
-function syncEntriesToCloud() {
-  if (!currentUser || currentUser.isGuest || typeof db === 'undefined') return;
-  const list = window.entries || [];
-  
-  // Save parent snapshot
-  db.collection('users').doc(currentUser.uid).set({
-    entries: list,
-    wallets: window.wallets || [],
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-  }, { merge: true }).catch(err => {
-    console.warn('Cloud sync parent error:', err);
-    if (err && err.code === 'permission-denied') {
-      const syncStatus = document.getElementById('sync-status');
-      const syncDot = document.querySelector('#sync-pill-btn .dot');
-      if (syncStatus) syncStatus.textContent = 'Rules Needed';
-      if (syncDot) {
-        syncDot.style.background = '#f59e0b';
-        syncDot.style.boxShadow = '0 0 6px #f59e0b';
-      }
+// ── FIRESTORE CLOUD REALTIME SYNC & SETTINGS PERSISTENCE ──
+function getSettingsSnapshot() {
+  const parseSafe = (key, fallback) => {
+    try {
+      const v = localStorage.getItem(key);
+      return v ? JSON.parse(v) : fallback;
+    } catch (e) {
+      return fallback;
     }
-  });
+  };
 
-  // Sync subcollection atomically
-  const entriesCol = db.collection('users').doc(currentUser.uid).collection('entries');
-  list.forEach(entry => {
-    entriesCol.doc(entry.id).set(entry, { merge: true }).catch(err => {
-      console.warn('Cloud entry write error:', err);
+  return {
+    wallets: window.wallets || [],
+    budgets: parseSafe('pocketTrackBudgets', []),
+    savingsTargets: parseSafe('pocketTrackSavingsTargets', []),
+    savingsTarget: localStorage.getItem('pocketTrackSavingsTarget') || '',
+    budget: localStorage.getItem('pocketTrackBudget') || '',
+    quickPresets: parseSafe('pocketTrackQuickPresets', []),
+    recurringRules: parseSafe('pocketTrackRecurringRules', []),
+    friendsLedger: parseSafe('pocketTrackFriendsLedger', []),
+    userName: localStorage.getItem('pocketTrackUserName') || '',
+    seniorMode: localStorage.getItem('pocketTrackSeniorMode') || 'false',
+    theme: localStorage.getItem('pocketTrackTheme') || 'dark',
+    updatedAt: (typeof firebase !== 'undefined' && firebase.firestore && firebase.firestore.FieldValue)
+      ? firebase.firestore.FieldValue.serverTimestamp()
+      : Date.now()
+  };
+}
+window.getSettingsSnapshot = getSettingsSnapshot;
+
+function applySettingsSnapshot(data) {
+  if (!data || typeof data !== 'object') return;
+  if (Array.isArray(data.wallets) && data.wallets.length > 0) {
+    window.wallets = data.wallets;
+    localStorage.setItem('pocketTrackWallets', JSON.stringify(data.wallets));
+    if (typeof renderSettingsWallets === 'function') renderSettingsWallets();
+  }
+  if (Array.isArray(data.budgets)) {
+    localStorage.setItem('pocketTrackBudgets', JSON.stringify(data.budgets));
+  }
+  if (Array.isArray(data.savingsTargets)) {
+    localStorage.setItem('pocketTrackSavingsTargets', JSON.stringify(data.savingsTargets));
+  }
+  if (data.savingsTarget) {
+    localStorage.setItem('pocketTrackSavingsTarget', String(data.savingsTarget));
+  }
+  if (data.budget) {
+    localStorage.setItem('pocketTrackBudget', String(data.budget));
+  }
+  if (Array.isArray(data.quickPresets) && data.quickPresets.length > 0) {
+    localStorage.setItem('pocketTrackQuickPresets', JSON.stringify(data.quickPresets));
+    if (typeof renderQuickPresetsBar === 'function') renderQuickPresetsBar();
+  }
+  if (Array.isArray(data.recurringRules)) {
+    localStorage.setItem('pocketTrackRecurringRules', JSON.stringify(data.recurringRules));
+    if (typeof renderRecurringRules === 'function') renderRecurringRules();
+  }
+  if (Array.isArray(data.friendsLedger)) {
+    localStorage.setItem('pocketTrackFriendsLedger', JSON.stringify(data.friendsLedger));
+    if (typeof renderFriendsLedger === 'function') renderFriendsLedger();
+  }
+  if (data.userName) {
+    localStorage.setItem('pocketTrackUserName', String(data.userName));
+    const nameInput = document.getElementById('settings-user-name');
+    if (nameInput) nameInput.value = data.userName;
+  }
+  if (data.seniorMode === 'true' && typeof toggleSeniorMode === 'function') {
+    const isCurrent = document.body && document.body.classList.contains('senior-mode');
+    if (!isCurrent) toggleSeniorMode(true);
+  }
+}
+window.applySettingsSnapshot = applySettingsSnapshot;
+
+async function syncEntriesToCloud() {
+  if (!currentUser || currentUser.isGuest || typeof db === 'undefined') return { success: true };
+  const list = window.entries || [];
+  if (typeof trackPendingWrite === 'function') trackPendingWrite('entries', true);
+
+  try {
+    // 1. Sync settings & metadata to parent document (NO entries array to prevent 1MB limit)
+    const parentPromise = db.collection('users').doc(currentUser.uid).set(getSettingsSnapshot(), { merge: true });
+
+    // 2. Sync transactions exclusively to subcollection
+    const entriesCol = db.collection('users').doc(currentUser.uid).collection('entries');
+    const entryPromises = list.map(entry => {
+      if (!entry || !entry.id) return Promise.resolve();
+      return entriesCol.doc(String(entry.id)).set(entry, { merge: true });
     });
-  });
+
+    const results = await Promise.allSettled([parentPromise, ...entryPromises]);
+    const anyFailed = results.some(r => r.status === 'rejected');
+
+    if (typeof trackPendingWrite === 'function') trackPendingWrite('entries', anyFailed);
+    if (typeof updateSyncIndicator === 'function') updateSyncIndicator();
+
+    if (anyFailed) {
+      console.warn('Some cloud writes failed');
+      return { success: false, error: 'Partial write failure' };
+    }
+    return { success: true };
+  } catch (err) {
+    console.warn('syncEntriesToCloud error:', err);
+    if (typeof trackPendingWrite === 'function') trackPendingWrite('entries', true);
+    if (typeof updateSyncIndicator === 'function') updateSyncIndicator();
+    return { success: false, error: err };
+  }
 }
 window.syncEntriesToCloud = syncEntriesToCloud;
 window.syncWalletsToCloud = syncEntriesToCloud;
 
-function deleteEntryFromCloud(entryId) {
+async function deleteEntryFromCloud(entryId) {
   if (!currentUser || currentUser.isGuest || typeof db === 'undefined' || !entryId) return;
-  
-  db.collection('users').doc(currentUser.uid).collection('entries').doc(entryId).delete().catch(err => {
+  try {
+    await db.collection('users').doc(currentUser.uid).collection('entries').doc(String(entryId)).delete();
+    await db.collection('users').doc(currentUser.uid).set({
+      updatedAt: (typeof firebase !== 'undefined' && firebase.firestore && firebase.firestore.FieldValue)
+        ? firebase.firestore.FieldValue.serverTimestamp()
+        : Date.now()
+    }, { merge: true });
+  } catch (err) {
     console.warn('Cloud entry delete error:', err);
-  });
-
-  // Update parent doc snapshot
-  const list = window.entries || [];
-  db.collection('users').doc(currentUser.uid).set({
-    entries: list,
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-  }, { merge: true }).catch(err => {
-    console.warn('Cloud parent update on delete error:', err);
-  });
+  }
 }
 window.deleteEntryFromCloud = deleteEntryFromCloud;
 window.deleteCloudEntry = deleteEntryFromCloud;
@@ -252,50 +325,23 @@ function listenToCloudEntries() {
     cloudEntriesUnsubscribe = null;
   }
 
-  // 1. Listen to subcollection entries
+  // 1. Listen to subcollection entries (single canonical source of truth)
   cloudEntriesUnsubscribe = db.collection('users').doc(currentUser.uid).collection('entries').onSnapshot(snap => {
     if (!currentUser || currentUser.isGuest) return;
     if (snap && snap.docs) {
-      if (snap.docs.length > 0) {
-        const cloudEntries = snap.docs.map(doc => {
-          const d = doc.data();
-          return typeof normalizeEntry === 'function' ? normalizeEntry({ ...d, id: doc.id }) : { ...d, id: doc.id };
-        }).sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+      const cloudEntries = snap.docs.map(doc => {
+        const d = doc.data();
+        return typeof normalizeEntry === 'function' ? normalizeEntry({ ...d, id: doc.id }) : { ...d, id: doc.id };
+      }).sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
 
-        window.entries = cloudEntries;
-        localStorage.setItem('pocketTrackEntries', JSON.stringify(window.entries));
-        if (typeof updateHeaderStats === 'function') updateHeaderStats();
-      } else {
-        // 2. Subcollection is empty — check parent document fallback only if local state is empty
-        if (!currentUser || currentUser.isGuest) return;
-        db.collection('users').doc(currentUser.uid).get().then(doc => {
-          if (!currentUser || currentUser.isGuest) return;
-          if (doc.exists) {
-            const data = doc.data() || {};
-            if (data.entries && Array.isArray(data.entries) && data.entries.length > 0 && (!window.entries || window.entries.length === 0)) {
-              window.entries = data.entries.map(normalizeEntry);
-              localStorage.setItem('pocketTrackEntries', JSON.stringify(window.entries));
-              if (typeof updateHeaderStats === 'function') updateHeaderStats();
-            }
-            if (data.wallets && Array.isArray(data.wallets)) {
-              window.wallets = data.wallets;
-              localStorage.setItem('pocketTrackWallets', JSON.stringify(window.wallets));
-              if (typeof renderSettingsWallets === 'function') renderSettingsWallets();
-            }
-          }
-        }).catch(err => console.warn('Cloud parent read error:', err));
-      }
+      window.entries = cloudEntries;
+      localStorage.setItem('pocketTrackEntries', JSON.stringify(window.entries));
+      if (typeof updateHeaderStats === 'function') updateHeaderStats();
+      if (typeof renderActivityList === 'function') renderActivityList();
+      if (typeof updateSyncIndicator === 'function') updateSyncIndicator();
     }
   }, err => {
     console.warn('Cloud subcollection listen error:', err);
-    // Fallback to local device cache so offline experience is seamless
-    const cached = localStorage.getItem('pocketTrackEntries');
-    if (cached && (!window.entries || window.entries.length === 0)) {
-      try {
-        window.entries = JSON.parse(cached);
-        if (typeof updateHeaderStats === 'function') updateHeaderStats();
-      } catch (e) {}
-    }
     const syncStatus = document.getElementById('sync-status');
     const syncDot = document.querySelector('#sync-pill-btn .dot');
     if (err && err.code === 'permission-denied') {
@@ -318,24 +364,156 @@ function listenToCloudEntries() {
       }
     }
   });
+
+  // 2. Fetch parent settings snapshot once to restore user setup across devices
+  db.collection('users').doc(currentUser.uid).get().then(doc => {
+    if (!currentUser || currentUser.isGuest) return;
+    if (doc.exists) {
+      applySettingsSnapshot(doc.data());
+    }
+  }).catch(err => console.warn('Parent settings read error:', err));
 }
 
-function triggerManualSync() {
+// ── SAFE GUEST-TO-ACCOUNT MIGRATION ──
+function openGuestMigrationModal() {
+  const m = document.getElementById('guest-migration-modal');
+  if (m) {
+    if (typeof smoothOpenModal === 'function') {
+      smoothOpenModal(m);
+    } else {
+      m.style.display = 'flex';
+      if (document.body && document.body.style) document.body.style.overflow = 'hidden';
+    }
+  }
+}
+window.openGuestMigrationModal = openGuestMigrationModal;
+
+function closeGuestMigrationModal() {
+  window._pendingMigrationUser = null;
+  if (typeof smoothCloseModal === 'function') {
+    smoothCloseModal('guest-migration-modal');
+  } else {
+    const m = document.getElementById('guest-migration-modal');
+    if (m) {
+      m.style.display = 'none';
+      if (document.body && document.body.style) document.body.style.overflow = '';
+    }
+  }
+}
+window.closeGuestMigrationModal = closeGuestMigrationModal;
+
+async function checkGuestMigration(user) {
+  if (!user || user.isGuest || typeof db === 'undefined') return;
+  const localList = window.entries || [];
+  if (localList.length === 0) {
+    listenToCloudEntries();
+    return;
+  }
+
+  try {
+    const snap = await db.collection('users').doc(user.uid).collection('entries').limit(1).get();
+    if (!snap.empty) {
+      // Both local records and cloud records exist: ask user how to proceed!
+      window._pendingMigrationUser = user;
+      openGuestMigrationModal();
+    } else {
+      // Cloud is empty, automatically migrate local guest records to cloud
+      toast('Migrating local records to your new cloud account...', 'info');
+      await syncEntriesToCloud();
+      listenToCloudEntries();
+      toast('Records safely backed up to your account! ☁️', 'success');
+    }
+  } catch (err) {
+    console.warn('Error checking guest migration:', err);
+    listenToCloudEntries();
+  }
+}
+window.checkGuestMigration = checkGuestMigration;
+
+async function resolveGuestMigration(choice) {
+  const user = window._pendingMigrationUser || currentUser;
+  if (!user || user.isGuest) {
+    closeGuestMigrationModal();
+    return;
+  }
+
+  if (choice === 'cancel') {
+    closeGuestMigrationModal();
+    if (typeof auth !== 'undefined') {
+      auth.signOut().then(() => {
+        startGuestSandboxMode();
+        toast('Sign-in cancelled. Local records preserved.', 'info');
+      });
+    }
+    return;
+  }
+
+  // Pre-migration safety backup
+  if (typeof backupAppDataJSON === 'function') {
+    try {
+      backupAppDataJSON();
+    } catch (e) {
+      console.warn('Pre-migration backup notice:', e);
+    }
+  }
+
+  if (choice === 'merge') {
+    toast('Merging local and cloud records...', 'info');
+    try {
+      const snap = await db.collection('users').doc(user.uid).collection('entries').get();
+      const cloudEntries = snap.docs.map(doc => {
+        const d = doc.data();
+        return typeof normalizeEntry === 'function' ? normalizeEntry({ ...d, id: doc.id }) : { ...d, id: doc.id };
+      });
+
+      const localEntries = window.entries || [];
+      const entryMap = new Map();
+      cloudEntries.forEach(e => { if (e && e.id) entryMap.set(String(e.id), e); });
+      localEntries.forEach(e => { if (e && e.id && !entryMap.has(String(e.id))) entryMap.set(String(e.id), e); });
+
+      const merged = Array.from(entryMap.values()).sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+      window.entries = merged;
+      localStorage.setItem('pocketTrackEntries', JSON.stringify(merged));
+
+      closeGuestMigrationModal();
+      await syncEntriesToCloud();
+      listenToCloudEntries();
+      if (typeof updateHeaderStats === 'function') updateHeaderStats();
+      if (typeof renderActivityList === 'function') renderActivityList();
+      toast('Merged & backed up successfully! ☁️', 'success');
+    } catch (err) {
+      console.warn('Merge failed:', err);
+      toast('Merge encountered an issue. Local data kept safe.', 'error');
+      closeGuestMigrationModal();
+      listenToCloudEntries();
+    }
+  } else if (choice === 'cloud_only') {
+    toast('Restoring cloud account data...', 'info');
+    closeGuestMigrationModal();
+    listenToCloudEntries();
+    toast('Cloud records restored! ☁️', 'success');
+  }
+}
+window.resolveGuestMigration = resolveGuestMigration;
+
+async function triggerManualSync() {
   if (!currentUser || currentUser.isGuest) {
     toast('📱 Data is saved safely on your device! Sign in for real-time Cloud backup.', 'info');
     showAuthScreen();
     return;
   }
   toast('Syncing with cloud...', 'info');
-  syncEntriesToCloud();
-  setTimeout(() => {
-    const syncStatus = document.getElementById('sync-status');
+  const res = await syncEntriesToCloud();
+  const syncStatus = document.getElementById('sync-status');
+  if (!res.success) {
     if (syncStatus && syncStatus.textContent === 'Rules Needed') {
       toast('⚠️ Cloud rules not published in Firebase Console yet. Data saved locally.', 'warning');
     } else {
-      toast('Cloud backup synced! ☁️', 'success');
+      toast('⚠️ Cloud sync encountered an issue. Data remains safe locally.', 'warning');
     }
-  }, 400);
+  } else {
+    toast('Cloud backup synced! ☁️', 'success');
+  }
 }
 window.triggerManualSync = triggerManualSync;
 

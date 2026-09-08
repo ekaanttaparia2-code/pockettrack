@@ -515,6 +515,104 @@ it('21.1 Exports backup data and safely validates restore format', () => {
   window.toast = origToast;
 });
 
+// ── TEST 22: Production Hardening & Architecture Overhaul ──
+it('22.1 Deterministic recurring occurrence IDs prevent multi-run duplicate transactions', () => {
+  const todayStr = new Date().toISOString().split('T')[0];
+  const testRule = {
+    id: 'rule_gym_test',
+    name: 'Gym Membership',
+    desc: 'Gym Membership',
+    amt: 1500,
+    type: 'expense',
+    cat: 'fitness',
+    wallet: 'bank',
+    frequency: 'monthly',
+    nextDueDate: todayStr,
+    lastProcessedDate: '',
+    active: true
+  };
+  saveRecurringRule(testRule);
+
+  const initialCount = (window.entries || []).length;
+  const processed1 = checkAndProcessRecurring();
+  assert.strictEqual(processed1, 1, 'First run processes due rule');
+
+  const expectedOccId = 'rec_rule_gym_test_' + todayStr;
+  assert.strictEqual(window.entries[0].id, expectedOccId, 'Must generate deterministic recurring ID');
+
+  // Second run on the same day should NOT duplicate the entry
+  const processed2 = checkAndProcessRecurring();
+  assert.strictEqual(processed2, 0, 'Second run must skip already processed recurring entry');
+  assert.strictEqual(window.entries.length, initialCount + 1, 'No duplicate transaction added');
+});
+
+it('22.2 PIN unlock throttles after 5 failed attempts with cooldown', () => {
+  window.isPrivacyUnlockedSession = false;
+  document.getElementById('set-pin-input').value = '7890';
+  document.getElementById('set-pin-confirm').value = '7890';
+  saveNewPrivacyPin();
+
+  const errEl = document.getElementById('unlock-pin-error');
+  const inputEl = document.getElementById('unlock-pin-input');
+
+  // Perform 4 wrong attempts
+  for (let i = 1; i <= 4; i++) {
+    inputEl.value = '0000';
+    submitUnlockPin();
+    assert.ok(errEl.textContent.includes('remaining'), 'Shows remaining attempts');
+  }
+
+  // 5th wrong attempt triggers lockout
+  inputEl.value = '0000';
+  submitUnlockPin();
+  assert.ok(errEl.textContent.includes('Locked for 30 seconds'), 'Lockout message displayed after 5 failed attempts');
+
+  // 6th attempt is blocked immediately
+  inputEl.value = '7890'; // Even correct PIN is blocked during active lockout
+  submitUnlockPin();
+  assert.ok(errEl.textContent.includes('Too many incorrect attempts'), 'Subsequent attempts blocked by lockout');
+  assert.strictEqual(window.isPrivacyUnlockedSession, false, 'Session remains locked');
+});
+
+it('22.3 JSON backup restore supports Merge mode without overwriting existing unique entries', () => {
+  window.entries = [
+    { id: 'local_tx_1', amt: 120, type: 'expense', cat: 'food', desc: 'Lunch', wallet: 'cash', date: '2026-09-01' }
+  ];
+
+  const backupData = {
+    version: '1.0',
+    entries: [
+      { id: 'local_tx_1', amt: 120, type: 'expense', cat: 'food', desc: 'Lunch', wallet: 'cash', date: '2026-09-01' },
+      { id: 'backup_tx_2', amt: 5000, type: 'income', cat: 'freelance', desc: 'Project', wallet: 'bank', date: '2026-09-02' }
+    ],
+    wallets: [
+      { id: 'cash', name: 'Cash', balance: 500 },
+      { id: 'bank', name: 'Bank', balance: 10000 }
+    ]
+  };
+
+  class MockReader {
+    readAsText(file) {
+      this.onload({ target: { result: file._content } });
+    }
+  }
+  const origFileReader = global.FileReader;
+  const origConfirm = global.confirm;
+  global.FileReader = MockReader;
+  global.confirm = () => true; // User selects MERGE
+
+  restoreAppDataJSON({ files: [{ size: 1000, _content: JSON.stringify(backupData) }] });
+
+  // Verify merge deduplication by entry ID
+  assert.strictEqual(window.entries.length, 2, 'Merge must combine without duplicating local_tx_1');
+  assert.ok(window.entries.some(e => e.id === 'local_tx_1'), 'Local entry preserved');
+  assert.ok(window.entries.some(e => e.id === 'backup_tx_2'), 'Backup entry merged');
+
+  // Clean up
+  global.FileReader = origFileReader;
+  global.confirm = origConfirm;
+});
+
 console.log('\n═══════════════════════════════════════════════');
 console.log(`TOTAL: ${passed + failed} | PASSED: ${passed} | FAILED: ${failed}`);
 console.log('═══════════════════════════════════════════════');
