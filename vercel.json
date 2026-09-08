@@ -1,12 +1,8 @@
 {
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/", "destination": "/landing.html" },
+    { "source": "/landing", "destination": "/landing.html" },
     { "source": "/app", "destination": "/app.html" }
-  ],
-  "redirects": [
-    { "source": "/landing", "destination": "/", "statusCode": 301 },
-    { "source": "/landing.html", "destination": "/", "statusCode": 301 }
   ],
   "headers": [
     {

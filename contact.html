@@ -85,7 +85,7 @@
     <!-- Send a Message Form -->
     <div class="card" style="padding:24px;border-radius:20px;background:var(--card);border:1px solid var(--border);margin-bottom:20px;">
       <h2 style="font-size:18px;font-weight:700;margin-top:0;color:var(--text);margin-bottom:14px;">Send us a Message</h2>
-      <form action="mailto:ekaanttaparia2@gmail.com" method="POST" enctype="text/plain" style="display:flex;flex-direction:column;gap:12px;">
+      <form onsubmit="return handleContactSubmit(event)" style="display:flex;flex-direction:column;gap:12px;">
         <div>
           <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px;color:var(--text-muted);">Your Name</label>
           <input type="text" name="name" required placeholder="Enter your name" style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.05);color:#fff;font-size:14px;"/>
@@ -101,8 +101,28 @@
         <button type="submit" style="padding:12px 20px;border-radius:12px;border:none;background:var(--green);color:#fff;font-weight:700;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;margin-top:4px;">
           <i class="ti ti-send"></i> Send Message
         </button>
+        <div id="contact-sent-feedback" style="display:none;color:var(--green);font-size:13px;font-weight:600;margin-top:6px;">Opening your email client to send message to ekaanttaparia2@gmail.com...</div>
       </form>
     </div>
+    <script>
+    function handleContactSubmit(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      var form = e.target;
+      var name = (form.elements['name'] ? form.elements['name'].value : '').trim();
+      var email = (form.elements['email'] ? form.elements['email'].value : '').trim();
+      var msg = (form.elements['message'] ? form.elements['message'].value : '').trim();
+      if (!name || !email || !msg) {
+        alert('Please fill out all fields.');
+        return false;
+      }
+      var subject = encodeURIComponent('PocketTrack Support / Feedback from ' + name);
+      var body = encodeURIComponent('Hi PocketTrack Team,\n\n' + msg + '\n\nFrom: ' + name + ' (' + email + ')');
+      window.location.href = 'mailto:ekaanttaparia2@gmail.com?subject=' + subject + '&body=' + body;
+      var feedbackEl = document.getElementById('contact-sent-feedback');
+      if (feedbackEl) feedbackEl.style.display = 'block';
+      return false;
+    }
+    </script>
 
     <div class="card" style="padding:22px;border-radius:20px;background:var(--card);border:1px solid var(--border);margin-bottom:20px;">
       <h2 style="font-size:18px;font-weight:700;margin-top:0;color:var(--text);">Email Support</h2>

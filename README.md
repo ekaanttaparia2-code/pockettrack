@@ -1,35 +1,34 @@
-# 💜 PocketTrack — Smart AI Personal Finance & Expense Tracker
+# 🟢 PocketTrack — Clean Personal Finance & Safe-to-Spend Tracker
 
-[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live%20Deploy-8b5cf6.svg)](https://github.com/)
-[![PWA Ready](https://img.shields.io/badge/PWA-Installable-4ade80.svg)](manifest.json)
+[![PWA Ready](https://img.shields.io/badge/PWA-Installable-10b981.svg)](manifest.json)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Firebase](https://img.shields.io/badge/Firebase-Auth%20%7C%20Firestore-orange.svg)](https://firebase.google.com/)
 
-> **PocketTrack** is a modern, offline-first personal finance PWA built with a Cyberpunk/Neon glassmorphism design system. It combines smart voice expense logging, a context-aware AI intent engine, P2P debt ledger management, Splitwise-style group bill splitting, automated recurring expenses, and live health score insights.
+> **PocketTrack** is a clean, offline-first personal finance PWA designed for everyday pocket money tracking. Built with the simplicity of WhatsApp: total balance at a glance, secondary Safe-to-Spend daily calculations, multi-wallet transfers, UPI paste parsing, and zero intrusive clutter.
 
 ---
 
 ## ✨ Key Features
 
-- 🧠 **Phase 4 Smart Context & Intent Engine (`smart_engine.js`)**:
-  - Automatically identifies People, Ledgers, Spaces, and Subscriptions from any entry.
-  - Recognizes transaction direction (*Gave ₹* vs *Received ₹*), detects settlements/reimbursements, and prompts 1-tap balance updates.
-- 🎙️ **Smart Voice Money Log (`voice.js`)**:
-  - Tap the floating microphone button to log expenses naturally (e.g. *"Spent 350 on petrol"* or *"Got 15000 salary"*).
-- 📑 **Person-to-Person Debt Ledger (`ledger.js`)**:
-  - Track who owes you and what you owe friends and roommates with in-app history cards and real-time net balances.
-- 👥 **Spaces & Bill Splitting (`app.js`)**:
-  - Create trip or roommate groups (*Goa Trip, Flatmates*) with shared expenses and a greedy settlement minimization algorithm.
-- ⚡ **Smart UPI Notification Logger (`app.js`)**:
-  - Paste any payment notification from GPay, PhonePe, Paytm, or CRED. Automatically extracts merchant, amount, and category.
-- 🔁 **Automated Recurring Expenses (`recurring.js`)**:
-  - Auto-posts recurring rent, bills, and subscriptions (Daily, Weekly, Monthly, Yearly).
-- 🤖 **Financial Health Score & AI Coach (`aicoach.js`)**:
-  - 0–100 Financial Health Score with subscription leak detection and dynamic goal calculators (*e.g., iPhone in 2 months*).
-- ☁️ **100% Offline-First Cloud Sync (`offline.js` / `sw.js`)**:
-  - Full IndexedDB caching and offline write queue. Works on airplane mode and auto-syncs when online.
-- 🎨 **Pro Themes & Monetization (`monetization.js`)**:
-  - Unlockable themes: *Cyberpunk Neon (Default)*, *Emerald Luxury*, *Sunset Glow*, and *Midnight OLED*.
+- 💰 **Clear Balance Hierarchy**:
+  - Total balance hero card with month-to-date income and expense summary.
+  - Secondary **Safe-to-Spend** daily allowance chip based on your monthly savings targets.
+- 📱 **Fast Quick Composer**:
+  - 1-tap entry logging for Income and Expense with visual category chips and wallet selection.
+  - Full support for editing, updating, and deleting transactions.
+- ⚡ **Smart UPI SMS & Notification Parser**:
+  - Paste payment messages from GPay, PhonePe, Paytm, or CRED to automatically parse amount, merchant, and category.
+- 👛 **Multi-Wallet Support (`wallets.js`)**:
+  - Manage Cash, Bank accounts, and UPI wallets with atomic inter-wallet transfers.
+- 📊 **Visual Monthly Insights (`insights.js`)**:
+  - Category breakdown bars, highest spending areas, and daily velocity tracking.
+- 🔒 **Privacy Mode & PIN Lock**:
+  - Instantly blur sensitive balances and transaction values with optional 4-digit PIN lock.
+- 📄 **Monthly PDF Statement Export**:
+  - Generate clean, printable PDF statements for any selected month.
+- ☁️ **100% Offline-First Cloud Sync (`offline.js` / `auth.js`)**:
+  - Full IndexedDB offline persistence. Works seamlessly on airplane mode and auto-syncs when online with Firebase.
+  - Guest sandbox mode allows full usage without an account.
 
 ---
 
@@ -37,31 +36,32 @@
 
 ```text
 pocket-tracker/
-├── index.html           # Main SPA application
-├── landing.html         # Official product landing page & showcase
-├── 404.html             # GitHub Pages single-page app fallback
-├── styles.css           # Glassmorphism design tokens & styles
-├── icons.css            # Tabler/custom icon definitions
-├── smart_engine.js      # Phase 4 Smart Context & Intent Engine
-├── app.js               # Core SPA navigation, state & event splitting
-├── transactions.js      # Transaction CRUD, limits & composer
-├── voice.js             # Speech-to-text NLP voice recording
-├── ledger.js            # P2P debt ledger management
-├── recurring.js         # Recurring rules & auto-posting
-├── reports.js           # Insights, charts & PDF statement export
-├── monetization.js      # Pro subscriptions & custom themes
-├── aicoach.js           # Health score & floating AI assistant
-├── offline.js           # Offline connection & sync status monitor
-├── auth.js              # Firebase authentication & verification
-├── firebase.js          # Firebase config & service initialization
+├── index.html           # Main PWA application dashboard
+├── app.html             # Direct application mirror (identical to index.html)
+├── landing.html         # Official product landing page & live simulator
+├── contact.html         # User support and inquiries
+├── privacy.html         # Plain-language privacy policy
+├── terms.html           # Terms of service
+├── styles.css           # Clean green-accent design system (light/dark mode)
+├── icons.css            # Tabler icon glyphs & utility classes
+├── app.js               # Tab navigation, modals, and app lifecycle
+├── transactions.js      # Transaction CRUD, Quick Composer, UPI parser, and PDF export
+├── insights.js          # Monthly analytics, breakdown charts, and safe-to-spend
+├── wallets.js           # Multi-wallet management and atomic transfers
+├── auth.js              # Firebase authentication, guest sandbox, and Firestore sync
+├── firebase.js          # Firebase SDK initialization and IndexedDB persistence
+├── offline.js           # Network status and pending write subsystem tracking
+├── onboarding.js        # First-time user onboarding flow
 ├── sw.js                # Service worker for offline caching
 ├── manifest.json        # Web App Manifest for mobile installation
-├── .nojekyll            # Bypasses Jekyll processing on GitHub Pages
-├── .gitignore           # Standard production gitignore
-├── LICENSE              # MIT License
-├── PRIVACY.md           # Privacy Policy
-├── TERMS.md             # Terms of Service
-└── README.md            # Project documentation
+├── sitemap.xml          # Search engine sitemap
+├── llms.txt             # Machine-readable product index
+├── website/             # Standalone marketing website pages
+│   ├── index.html       # Marketing homepage
+│   ├── features.html    # Features overview
+│   ├── pricing.html     # Pricing & simulator
+│   └── style.css        # Marketing stylesheet
+└── future/              # Archived experimental modules (AI coach, voice, P2P ledger, recurring)
 ```
 
 ---
@@ -69,13 +69,14 @@ pocket-tracker/
 ## 🚀 Getting Started & Deployment
 
 ### 1. Run Locally
-Simply clone or download this repository and open `index.html` in any modern web browser. No `npm install` or build steps required.
+Simply open `index.html` or `landing.html` in any modern web browser or serve with a local static server (e.g. `npx serve .`). No build step or Node dependencies required.
 
-### 2. Deploy to GitHub Pages
-1. Push this folder to your GitHub repository (e.g. `main` or `gh-pages` branch).
-2. In your repository settings on GitHub, navigate to **Pages**.
-3. Under **Build and deployment** → **Branch**, select `main` (or root `/`) and click **Save**.
-4. Your app will be live at `https://<your-username>.github.io/<repo-name>/`.
+### 2. Automated Test Suite
+Verify application integrity and launch readiness:
+```bash
+node test_pure_suite.js
+node audit_launch_readiness.js
+```
 
 ---
 

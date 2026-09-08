@@ -1002,7 +1002,8 @@ window.onActivitySearch = onActivitySearch;
 // ── QUICK COMPOSER MODAL ──
 function openQuickComposer(type='expense', editEntry=null) {
   currentComposerType = type;
-  currentEditingId = editEntry ? editEntry.id : null;
+  const isEdit = Boolean(editEntry && editEntry.id);
+  currentEditingId = isEdit ? editEntry.id : null;
   const m = document.getElementById('modal-composer');
   if (!m) return;
 
@@ -1025,21 +1026,21 @@ function openQuickComposer(type='expense', editEntry=null) {
     if (noteInput) noteInput.value = editEntry.desc || editEntry.note || '';
     if (dateInput) dateInput.value = editEntry.date || new Date().toISOString().split('T')[0];
     if (wSel && editEntry.wallet) wSel.value = editEntry.wallet;
-    selectComposerCategory(editEntry.cat || 'other');
-    if (delBtn) delBtn.style.display = 'inline-flex';
-    if (saveBtn) saveBtn.textContent = 'Update Entry';
+    selectComposerCategory(editEntry.cat || (currentComposerType === 'income' ? 'salary' : 'food'));
   } else {
     if (amtInput) amtInput.value = '';
     if (noteInput) noteInput.value = '';
     if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
     selectComposerCategory(currentComposerType === 'income' ? 'salary' : 'food');
-    if (delBtn) delBtn.style.display = 'none';
-    if (saveBtn) saveBtn.textContent = 'Save Entry';
-    const recCheck = document.getElementById('comp-is-recurring');
-    const recFreqWrap = document.getElementById('comp-recurring-freq-wrap');
-    if (recCheck) recCheck.checked = false;
-    if (recFreqWrap) recFreqWrap.style.display = 'none';
   }
+
+  if (delBtn) delBtn.style.display = isEdit ? 'inline-flex' : 'none';
+  if (saveBtn) saveBtn.textContent = isEdit ? 'Update Entry' : 'Save Entry';
+
+  const recCheck = document.getElementById('comp-is-recurring');
+  const recFreqWrap = document.getElementById('comp-recurring-freq-wrap');
+  if (recCheck) recCheck.checked = Boolean(editEntry && editEntry.isRecurring);
+  if (recFreqWrap) recFreqWrap.style.display = (recCheck && recCheck.checked) ? 'block' : 'none';
 
   if (typeof smoothOpenModal === 'function') {
     smoothOpenModal(m);
@@ -1047,7 +1048,7 @@ function openQuickComposer(type='expense', editEntry=null) {
     m.style.display = 'flex';
     if (typeof document !== 'undefined' && document.body && document.body.style) document.body.style.overflow = 'hidden';
   }
-  if (amtInput && !editEntry) setTimeout(() => amtInput.focus(), 60);
+  if (amtInput && !isEdit) setTimeout(() => amtInput.focus(), 60);
 }
 window.openQuickComposer = openQuickComposer;
 
@@ -1087,7 +1088,7 @@ function renderCategoryGrid() {
   let html = '';
   cats.forEach(c => {
     const isActive = (c.id === currentComposerCategory) ? 'active' : '';
-    html += `<button type="button" class="composer-cat-chip ${isActive}" onclick="selectComposerCategory('${c.id}')">${c.icon} ${c.name}</button>`;
+    html += `<button type="button" class="composer-cat-chip ${isActive}" data-cat-id="${c.id}" onclick="selectComposerCategory('${c.id}')">${c.icon} ${c.name}</button>`;
   });
   container.innerHTML = html;
 }
@@ -1095,7 +1096,7 @@ function renderCategoryGrid() {
 function selectComposerCategory(catId) {
   currentComposerCategory = catId;
   document.querySelectorAll('.composer-cat-chip').forEach(chip => {
-    chip.classList.toggle('active', chip.textContent.toLowerCase().includes(catId));
+    chip.classList.toggle('active', chip.getAttribute('data-cat-id') === catId);
   });
 }
 window.selectComposerCategory = selectComposerCategory;
@@ -1198,15 +1199,23 @@ function deleteEntry(id) {
   const target = (window.entries || []).find(e => e.id === id);
   if (!target) return;
 
+  const removedIds = [];
   // If part of an atomic transfer, remove its paired counterpart
   if (target.transferGroupId) {
+    (window.entries || []).forEach(e => {
+      if (e.transferGroupId === target.transferGroupId && e.id) removedIds.push(e.id);
+    });
     window.entries = window.entries.filter(e => e.transferGroupId !== target.transferGroupId);
   } else {
+    removedIds.push(id);
     window.entries = window.entries.filter(e => e.id !== id);
   }
 
   localStorage.setItem('pocketTrackEntries', JSON.stringify(window.entries));
   updateHeaderStats();
+  if (typeof deleteCloudEntry === 'function') {
+    removedIds.forEach(remId => deleteCloudEntry(remId));
+  }
   if (typeof syncEntriesToCloud === 'function') syncEntriesToCloud();
   toast('Entry deleted', 'info');
 }
@@ -1752,7 +1761,7 @@ function downloadMonthlyPDFStatement(monthStr) {
   // Footer
   doc.setTextColor(148, 163, 184);
   doc.setFontSize(8);
-  doc.text('PocketTrack · Clean Personal Finance · https://pockettrack-bay.vercel.app', 297, 810, { align: 'center' });
+  doc.text('PocketTrack · Clean Personal Finance · https://ekaanttaparia2-code-pockettrack.vercel.app', 297, 810, { align: 'center' });
 
   doc.save(`PocketTrack_Statement_${targetMonth}.pdf`);
   toast('Statement PDF downloaded! 📄', 'success');

@@ -30,29 +30,39 @@ function isAnyWritePending() {
 }
 window.isAnyWritePending = isAnyWritePending;
 
+window.currentLang = window.currentLang || 'en';
+
+function getAppLang() {
+  if (typeof window !== 'undefined' && window.currentLang) return window.currentLang;
+  if (typeof currentLang !== 'undefined') return currentLang;
+  return 'en';
+}
+
 function computeSyncLabel() {
+  const lang = getAppLang();
   if (!navigator.onLine) {
-    return currentLang === 'hi' ? '📴 ऑफ़लाइन' : '📴 Offline';
+    return lang === 'hi' ? '📴 ऑफ़लाइन' : '📴 Offline';
   }
   if (isAnyWritePending()) {
-    return currentLang === 'hi' ? '⏳ सिंक हो रहा है…' : '⏳ Syncing…';
+    return lang === 'hi' ? '⏳ सिंक हो रहा है…' : '⏳ Syncing…';
   }
-  return currentLang === 'hi' ? '✅ सिंक' : '✅ Synced';
+  return lang === 'hi' ? '✅ सिंक' : '✅ Synced';
 }
 
 function computeSyncDetail() {
+  const lang = getAppLang();
   if (!navigator.onLine) {
-    return currentLang === 'hi' 
+    return lang === 'hi' 
       ? 'ऑफ़लाइन हैं — सभी बदलाव सुरक्षित हैं, कनेक्ट होते ही सिंक होंगे' 
       : 'Offline — all changes are cached locally and will sync when reconnected';
   }
   if (isAnyWritePending()) {
     const pendingSystems = Object.keys(pendingWriteState).filter(k => pendingWriteState[k]);
-    return currentLang === 'hi' 
+    return lang === 'hi' 
       ? `क्लाउड पर सिंक हो रहा है (${pendingSystems.join(', ')})…` 
       : `Syncing pending changes to cloud (${pendingSystems.join(', ')})…`;
   }
-  return currentLang === 'hi' ? 'सब कुछ क्लाउड से सिंक है' : 'All systems synced to the cloud';
+  return lang === 'hi' ? 'सब कुछ क्लाउड से सिंक है' : 'All systems synced to the cloud';
 }
 
 function updateSyncIndicator() {

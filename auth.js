@@ -74,6 +74,8 @@ function updateSettingsAuthUI() {
 }
 window.updateSettingsAuthUI = updateSettingsAuthUI;
 
+let cloudEntriesUnsubscribe = null;
+
 function authAction(mode) {
   const emailInput = document.getElementById('auth-email');
   const passInput = document.getElementById('auth-pass');
@@ -91,9 +93,18 @@ function authAction(mode) {
   }
   if (errEl) errEl.style.display = 'none';
 
-  const action = (mode === 'login') 
+  const rememberEl = document.getElementById('auth-remember');
+  const persistence = (rememberEl && rememberEl.checked)
+    ? firebase.auth.Auth.Persistence.LOCAL
+    : firebase.auth.Auth.Persistence.SESSION;
+
+  const doAuth = () => (mode === 'login') 
     ? auth.signInWithEmailAndPassword(email, pass)
     : auth.createUserWithEmailAndPassword(email, pass);
+
+  const action = (typeof auth.setPersistence === 'function')
+    ? auth.setPersistence(persistence).then(doAuth)
+    : doAuth();
 
   action.then(() => {
     const authScreen = document.getElementById('auth-screen');
@@ -112,8 +123,19 @@ function signInWithGoogle() {
   const errEl = document.getElementById('auth-error');
   if (errEl) errEl.style.display = 'none';
   const provider = new firebase.auth.GoogleAuthProvider();
+
+  const rememberEl = document.getElementById('auth-remember');
+  const persistence = (rememberEl && rememberEl.checked)
+    ? firebase.auth.Auth.Persistence.LOCAL
+    : firebase.auth.Auth.Persistence.SESSION;
+
+  const doGoogle = () => auth.signInWithPopup(provider);
+
+  const action = (typeof auth.setPersistence === 'function')
+    ? auth.setPersistence(persistence).then(doGoogle)
+    : doGoogle();
   
-  auth.signInWithPopup(provider).then(() => {
+  action.then(() => {
     const authScreen = document.getElementById('auth-screen');
     if (authScreen) authScreen.style.display = 'none';
     toast('Signed in with Google! ☁️', 'success');
@@ -129,6 +151,10 @@ function signInWithGoogle() {
 window.signInWithGoogle = signInWithGoogle;
 
 function handleSignOut() {
+  if (cloudEntriesUnsubscribe) {
+    cloudEntriesUnsubscribe();
+    cloudEntriesUnsubscribe = null;
+  }
   if (currentUser && !currentUser.isGuest) {
     auth.signOut().then(() => {
       currentUser = null;
@@ -179,10 +205,10 @@ function syncEntriesToCloud() {
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
   }, { merge: true }).catch(err => console.warn('Cloud sync parent error:', err));
 
-  // Also sync individual documents to entries subcollection for legacy compatibility
+  // Also sync individual documents to entries subcollection
   list.forEach(e => {
     if (e.id) {
-      db.collection('users').doc(currentUser.uid).collection('entries').doc(e.id).set(e, { merge: true })
+      db.collection('users').doc(currentUser.uid).collection('entries').doc(String(e.id)).set(e, { merge: true })
         .catch(err => console.warn('Cloud entry write error:', err));
     }
   });
@@ -190,41 +216,64 @@ function syncEntriesToCloud() {
 window.syncEntriesToCloud = syncEntriesToCloud;
 window.syncWalletsToCloud = syncEntriesToCloud;
 
+function deleteCloudEntry(id) {
+  if (!id || !currentUser || currentUser.isGuest || typeof db === 'undefined') return;
+  try {
+    db.collection('users').doc(currentUser.uid).collection('entries').doc(String(id)).delete()
+      .catch(err => console.warn('Cloud entry delete error:', err));
+    // Keep parent document array in sync
+    db.collection('users').doc(currentUser.uid).set({
+      entries: window.entries || [],
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true }).catch(() => {});
+  } catch (err) {
+    console.warn('deleteCloudEntry failed:', err);
+  }
+}
+window.deleteCloudEntry = deleteCloudEntry;
+
 function listenToCloudEntries() {
   if (!currentUser || currentUser.isGuest || typeof db === 'undefined') return;
   
-  // 1. Listen to subcollection entries (where all legacy records are stored)
-  db.collection('users').doc(currentUser.uid).collection('entries').onSnapshot(snap => {
-    if (snap && snap.docs && snap.docs.length > 0) {
-      const cloudEntries = snap.docs.map(doc => {
-        const d = doc.data();
-        return typeof normalizeEntry === 'function' ? normalizeEntry({ ...d, id: doc.id }) : { ...d, id: doc.id };
-      }).sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+  if (cloudEntriesUnsubscribe) {
+    cloudEntriesUnsubscribe();
+    cloudEntriesUnsubscribe = null;
+  }
 
-      window.entries = cloudEntries;
-      localStorage.setItem('pocketTrackEntries', JSON.stringify(window.entries));
-      localStorage.setItem('pockettrack_entries', JSON.stringify(window.entries));
-      localStorage.setItem('pockettrack_entries_cache_' + currentUser.uid, JSON.stringify(window.entries));
-      if (typeof updateHeaderStats === 'function') updateHeaderStats();
-    } else {
-      // 2. Check parent document fallback
-      db.collection('users').doc(currentUser.uid).get().then(doc => {
-        if (doc.exists) {
-          const data = doc.data();
-          if (data.entries && Array.isArray(data.entries) && data.entries.length > 0) {
-            window.entries = data.entries.map(normalizeEntry);
-            localStorage.setItem('pocketTrackEntries', JSON.stringify(window.entries));
-            localStorage.setItem('pockettrack_entries', JSON.stringify(window.entries));
-            if (typeof updateHeaderStats === 'function') updateHeaderStats();
+  // 1. Listen to subcollection entries (where all records are stored)
+  cloudEntriesUnsubscribe = db.collection('users').doc(currentUser.uid).collection('entries').onSnapshot(snap => {
+    if (snap && snap.docs) {
+      if (snap.docs.length > 0) {
+        const cloudEntries = snap.docs.map(doc => {
+          const d = doc.data();
+          return typeof normalizeEntry === 'function' ? normalizeEntry({ ...d, id: doc.id }) : { ...d, id: doc.id };
+        }).sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+
+        window.entries = cloudEntries;
+        localStorage.setItem('pocketTrackEntries', JSON.stringify(window.entries));
+        localStorage.setItem('pockettrack_entries', JSON.stringify(window.entries));
+        localStorage.setItem('pockettrack_entries_cache_' + currentUser.uid, JSON.stringify(window.entries));
+        if (typeof updateHeaderStats === 'function') updateHeaderStats();
+      } else {
+        // 2. Subcollection is empty — check parent document fallback only if local state is empty
+        db.collection('users').doc(currentUser.uid).get().then(doc => {
+          if (doc.exists) {
+            const data = doc.data() || {};
+            if (data.entries && Array.isArray(data.entries) && data.entries.length > 0 && (!window.entries || window.entries.length === 0)) {
+              window.entries = data.entries.map(normalizeEntry);
+              localStorage.setItem('pocketTrackEntries', JSON.stringify(window.entries));
+              localStorage.setItem('pockettrack_entries', JSON.stringify(window.entries));
+              if (typeof updateHeaderStats === 'function') updateHeaderStats();
+            }
+            if (data.wallets && Array.isArray(data.wallets)) {
+              window.wallets = data.wallets;
+              localStorage.setItem('pocketTrackWallets', JSON.stringify(window.wallets));
+              localStorage.setItem('pockettrack_wallets', JSON.stringify(window.wallets));
+              if (typeof renderSettingsWallets === 'function') renderSettingsWallets();
+            }
           }
-          if (data.wallets && Array.isArray(data.wallets)) {
-            window.wallets = data.wallets;
-            localStorage.setItem('pocketTrackWallets', JSON.stringify(window.wallets));
-            localStorage.setItem('pockettrack_wallets', JSON.stringify(window.wallets));
-            if (typeof renderSettingsWallets === 'function') renderSettingsWallets();
-          }
-        }
-      }).catch(err => console.warn('Cloud parent read error:', err));
+        }).catch(err => console.warn('Cloud parent read error:', err));
+      }
     }
   }, err => console.warn('Cloud subcollection listen error:', err));
 }
