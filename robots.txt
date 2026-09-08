@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /future/
+Disallow: /.well-known/assetlinks.json
 
 Sitemap: https://ekaanttaparia2-code-pockettrack.vercel.app/sitemap.xml

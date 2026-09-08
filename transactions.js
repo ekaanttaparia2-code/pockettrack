@@ -394,7 +394,7 @@ function updateHeaderStats() {
       targetEl.textContent = `🎯 ₹${savingsTarget.toLocaleString('en-IN')} goal`;
       targetEl.style.color = 'var(--green)';
     } else {
-      targetEl.innerHTML = `<span style="font-size:12px;font-weight:700;color:var(--green);text-decoration:underline;">+ Set goal</span>`;
+      targetEl.innerHTML = `<span style="font-size:12px;font-weight:700;color:var(--green);text-decoration:underline;">Set Goal</span>`;
     }
   }
 

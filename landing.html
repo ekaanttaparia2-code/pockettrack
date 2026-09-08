@@ -5,18 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <title>PocketTrack — Know Where Your Money Goes</title>
 <meta name="description" content="The simplest way to track your money. Free, offline, works on any phone. Stop wondering where your salary went."/>
-<link rel="canonical" href="https://ekaanttaparia2-code-pockettrack.vercel.app/landing.html"/>
+<link rel="canonical" href="https://ekaanttaparia2-code-pockettrack.vercel.app/"/>
 
 <!-- Open Graph Meta Tags -->
 <meta property="og:title" content="PocketTrack — Know Where Your Money Goes"/>
 <meta property="og:description" content="The simplest way to track your money. Free, offline, works on any phone. Stop wondering where your salary went."/>
 <meta property="og:image" content="https://ekaanttaparia2-code-pockettrack.vercel.app/icon-512.png"/>
-<meta property="og:url" content="https://ekaanttaparia2-code-pockettrack.vercel.app/landing.html"/>
+<meta property="og:url" content="https://ekaanttaparia2-code-pockettrack.vercel.app/"/>
 <meta property="og:type" content="website"/>
-<meta name="twitter:card" content="summary"/>
+<meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:title" content="PocketTrack — Know Where Your Money Goes"/>
 <meta name="twitter:description" content="The simplest way to track your money. Free, offline, works on any phone."/>
 <meta name="twitter:image" content="https://ekaanttaparia2-code-pockettrack.vercel.app/icon-512.png"/>
+<link rel="icon" type="image/x-icon" href="favicon.ico"/>
 
 <!-- JSON-LD Structured Data (schema.org Organization) -->
 <script type="application/ld+json">
@@ -108,16 +109,17 @@ function toggleMobileNav(e) {
 
 <div class="container">
   <header class="navbar">
-    <a href="index.html" class="nav-brand">
+    <a href="/" class="nav-brand">
       <img src="icon-192.png" alt="PocketTrack" class="nav-logo">
       <span class="nav-title">PocketTrack</span>
     </a>
     <ul class="nav-links">
-      <li><a href="index.html" class="nav-link active">Home</a></li>
-      <li><a href="website/features.html" class="nav-link">Features</a></li>
-      <li><a href="website/pricing.html" class="nav-link">Pricing &amp; Simulator</a></li>
-      <li><a href="privacy.html" class="nav-link">Privacy</a></li>
-      <li><a href="#" onclick="launchPocketTrackApp(event);return false;" class="btn btn-primary btn-launch-nav" style="padding:10px 22px;font-size:14px;">Launch App →</a></li>
+      <li><a href="#how-it-works" class="nav-link">How It Works</a></li>
+      <li><a href="#features" class="nav-link">Features</a></li>
+      <li><a href="#test-drive" class="nav-link">Simulator</a></li>
+      <li><a href="#faq" class="nav-link">FAQ</a></li>
+      <li><a href="contact.html" class="nav-link">Contact</a></li>
+      <li><a href="/app" class="btn btn-primary btn-launch-nav" style="padding:10px 22px;font-size:14px;">Open App →</a></li>
     </ul>
     <button class="nav-toggle-btn" id="nav-toggle-btn" onclick="toggleMobileNav(event)" aria-label="Toggle Navigation Menu">
       <i class="ti ti-menu-2" id="nav-toggle-icon"></i>
@@ -125,14 +127,16 @@ function toggleMobileNav(e) {
   </header>
 
   <nav class="mobile-menu-drawer" id="mobile-menu-drawer" style="display:none;" aria-label="Mobile Navigation Menu">
-    <a href="index.html" class="active"><span>🏠 Home</span> <i class="ti ti-chevron-right"></i></a>
-    <a href="website/features.html"><span>⚡ Features &amp; Architecture</span> <i class="ti ti-chevron-right"></i></a>
-    <a href="website/pricing.html"><span>💰 Pricing &amp; Simulator</span> <i class="ti ti-chevron-right"></i></a>
+    <a href="#how-it-works" onclick="toggleMobileNav(event)"><span>🚀 How It Works</span> <i class="ti ti-chevron-right"></i></a>
+    <a href="#features" onclick="toggleMobileNav(event)"><span>⚡ Features</span> <i class="ti ti-chevron-right"></i></a>
+    <a href="#test-drive" onclick="toggleMobileNav(event)"><span>🎮 Live Simulator</span> <i class="ti ti-chevron-right"></i></a>
+    <a href="#faq" onclick="toggleMobileNav(event)"><span>❓ FAQ</span> <i class="ti ti-chevron-right"></i></a>
+    <a href="contact.html"><span>📞 Contact Us</span> <i class="ti ti-chevron-right"></i></a>
     <a href="privacy.html"><span>🛡️ Privacy Policy</span> <i class="ti ti-chevron-right"></i></a>
     <a href="terms.html"><span>📜 Terms of Service</span> <i class="ti ti-chevron-right"></i></a>
-    <a href="#" onclick="launchPocketTrackApp(event);return false;" style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-weight:700;"><span>🚀 Launch Web App</span> <i class="ti ti-arrow-right"></i></a>
+    <a href="/app" style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-weight:700;"><span>🚀 Open PocketTrack App</span> <i class="ti ti-arrow-right"></i></a>
     <div style="padding-top:10px;border-top:1px solid rgba(255,255,255,0.1);display:flex;justify-content:space-between;font-size:13px;color:var(--text-muted);">
-      <a href="tel:+916375444595" style="background:none;padding:0;color:var(--accent-green);"><i class="ti ti-phone"></i> +91 63754 44595</a>
+      <a href="contact.html" style="background:none;padding:0;color:var(--accent-green);"><i class="ti ti-message-circle"></i> WhatsApp Support</a>
       <a href="mailto:ekaanttaparia2@gmail.com" style="background:none;padding:0;color:var(--text-muted);"><i class="ti ti-mail"></i> Email</a>
     </div>
   </nav>
@@ -145,8 +149,8 @@ function toggleMobileNav(e) {
       <p class="hero-desc">You spent ₹1,48,000 on food delivery last year without realizing it. PocketTrack shows you exactly where every rupee goes. Log expenses in 2 seconds, calculate your daily safe-to-spend allowance, and keep your financial data 100% private and offline.</p>
       
       <div class="hero-cta-group">
-        <a href="#" onclick="launchPocketTrackApp(event);return false;" class="btn btn-primary" style="padding:18px 40px;font-size:17px;"><i class="ti ti-rocket"></i> Start Tracking — It's Free</a>
-        <a href="#test-drive" class="btn btn-glass" style="padding:18px 30px;font-size:17px;">See How It Works ↓</a>
+        <a href="/app" class="btn btn-primary" style="padding:18px 40px;font-size:17px;"><i class="ti ti-rocket"></i> Start Tracking — It's Free</a>
+        <a href="#test-drive" class="btn btn-glass" style="padding:18px 30px;font-size:17px;">Try Interactive Demo ↓</a>
       </div>
 
       <div class="social-proof">
@@ -156,7 +160,7 @@ function toggleMobileNav(e) {
     </section>
 
     <!-- How It Works Section -->
-    <section class="superpowers-section" style="padding:40px 0;">
+    <section class="superpowers-section" id="how-it-works" style="padding:40px 0;">
       <div class="section-head">
         <div class="pill-badge">🚀 Get Started Fast</div>
         <h2 class="section-title">How It Works</h2>
@@ -165,17 +169,17 @@ function toggleMobileNav(e) {
         <div class="card-glass">
           <div class="card-icon-wrap">📱</div>
           <h3 class="card-title">1. Open PocketTrack</h3>
-          <p class="card-text">No download needed. Works in your browser on any phone.</p>
+          <p class="card-text">No download needed. Works in your browser on any phone or install as a PWA.</p>
         </div>
         <div class="card-glass">
           <div class="card-icon-wrap">⚡</div>
-          <h3 class="card-title">2. Log in 2 Seconds</h3>
-          <p class="card-text">Tap expense, enter amount, done. Or use voice to speak it.</p>
+          <h3 class="card-title">2. Log an Expense in 2 Seconds</h3>
+          <p class="card-text">Tap Expense, enter amount, done. Or speak naturally in Hindi or English.</p>
         </div>
         <div class="card-glass">
           <div class="card-icon-wrap">📊</div>
           <h3 class="card-title">3. See Where Money Goes</h3>
-          <p class="card-text">Charts, categories, and daily safe-to-spend — all automatic.</p>
+          <p class="card-text">Daily safe-to-spend allowance, category summaries, and passbook — all automatic.</p>
         </div>
       </div>
     </section>
@@ -185,7 +189,7 @@ function toggleMobileNav(e) {
       <div class="section-head">
         <div class="pill-badge" style="background:rgba(248,113,113,0.15);color:#f87171;border-color:rgba(248,113,113,0.35);">💀 Do You Know Where Your Money Goes?</div>
         <h2 class="section-title">Slide the bar to your monthly income. See what you're silently losing.</h2>
-        <p class="section-subtitle">Studies show most people can't recall up to 14% of their monthly spending. Small expenses add up.</p>
+        <p class="section-subtitle">Studies show most people can't recall up to 14% of their monthly spending. Small expenses add up. <span style="display:block;font-size:11px;color:var(--text-dim);margin-top:4px;">(Source: RBI Financial Literacy &amp; Consumer Expenditure Studies)</span></p>
       </div>
 
       <div class="calculator-box">
@@ -214,7 +218,7 @@ function toggleMobileNav(e) {
         </div>
 
         <div style="text-align:center;margin-top:28px;">
-          <a href="index.html" class="btn btn-primary"><i class="ti ti-shield-check"></i> Stop the Leak with PocketTrack</a>
+          <a href="/app" class="btn btn-primary"><i class="ti ti-shield-check"></i> Stop the Leak with PocketTrack</a>
         </div>
       </div>
     </section>
@@ -224,7 +228,7 @@ function toggleMobileNav(e) {
       <div class="section-head">
         <div class="pill-badge">🎮 Try It Right Now</div>
         <h2 class="section-title">Try PocketTrack without signing up</h2>
-        <p class="section-subtitle">Add a few sample transactions below. Watch your balance update. See how simple it is.</p>
+        <p class="section-subtitle">Type your own custom expense or income below, or use the quick buttons. See how fast and clean it is.</p>
       </div>
 
       <div class="device-mockup-wrap">
@@ -250,9 +254,19 @@ function toggleMobileNav(e) {
             </div>
           </div>
 
-          <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
-            <button class="btn btn-primary" onclick="simTestAddExpense()" style="flex:1;"><i class="ti ti-coffee"></i> Simulate: Spend ₹350 on Coffee</button>
-            <button class="btn btn-glass" onclick="simTestAddIncome()" style="flex:1;"><i class="ti ti-wallet"></i> Simulate: Receive ₹5,000 Freelance</button>
+          <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:14px;margin-bottom:18px;">
+            <p style="font-size:12px;font-weight:700;color:var(--accent-green);margin:0 0 8px;text-transform:uppercase;letter-spacing:0.5px;">Interactive Test Drive (Type Any Amount)</p>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+              <input type="number" id="sim-custom-amt" placeholder="Amount (₹)" style="flex:1;min-width:110px;padding:9px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.3);color:#fff;font-size:13.5px;" value="150"/>
+              <input type="text" id="sim-custom-note" placeholder="Item (e.g. Chai, Metro, Salary)" style="flex:2;min-width:150px;padding:9px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.3);color:#fff;font-size:13.5px;" value="Chai &amp; Snacks"/>
+              <button class="btn btn-primary" onclick="simCustomAdd('expense')" style="padding:9px 16px;font-size:13px;"><i class="ti ti-minus"></i> Add Expense</button>
+              <button class="btn btn-glass" onclick="simCustomAdd('income')" style="padding:9px 16px;font-size:13px;"><i class="ti ti-plus"></i> Add Income</button>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+            <button class="btn btn-glass" onclick="simTestAddExpense()" style="flex:1;font-size:13px;padding:10px;"><i class="ti ti-coffee"></i> Quick: Spend ₹350 on Coffee</button>
+            <button class="btn btn-glass" onclick="simTestAddIncome()" style="flex:1;font-size:13px;padding:10px;"><i class="ti ti-wallet"></i> Quick: Receive ₹5,000 Freelance</button>
           </div>
 
           <div id="stage-sim-feed" style="max-height:160px;overflow-y:auto;font-size:13px;">
@@ -271,7 +285,7 @@ function toggleMobileNav(e) {
     </section>
 
     <!-- 4. Six Core Features -->
-    <section class="superpowers-section" style="padding:40px 0;">
+    <section class="superpowers-section" id="features" style="padding:40px 0;">
       <div class="section-head">
         <div class="pill-badge">⚡ Core Features</div>
         <h2 class="section-title">What PocketTrack Actually Does</h2>
@@ -317,12 +331,33 @@ function toggleMobileNav(e) {
       </div>
     </section>
 
+    <!-- App UI Showcase Section -->
+    <section class="showcase-section" style="padding:40px 0;">
+      <div class="section-head">
+        <div class="pill-badge">📱 Real App Interface</div>
+        <h2 class="section-title">Clean, WhatsApp-Simple Design</h2>
+        <p class="section-subtitle">No confusing financial jargon or paywalls. Just clear numbers and 1-tap logging.</p>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:24px;max-width:820px;margin:0 auto;">
+        <div class="card-glass" style="text-align:center;padding:18px;">
+          <img src="app-preview-home.png" alt="PocketTrack Home Dashboard" style="width:100%;max-width:360px;margin:0 auto;border-radius:18px;box-shadow:0 12px 32px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);display:block;" loading="lazy">
+          <h4 style="margin:16px 0 6px;font-size:16px;color:#fff;">Home Dashboard</h4>
+          <p style="font-size:12.5px;color:var(--text-muted);margin:0;">Total balance, daily safe-to-spend allowance, and quick speed-dial presets.</p>
+        </div>
+        <div class="card-glass" style="text-align:center;padding:18px;">
+          <img src="app-preview-insights.png" alt="PocketTrack Insights &amp; Analytics" style="width:100%;max-width:360px;margin:0 auto;border-radius:18px;box-shadow:0 12px 32px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);display:block;" loading="lazy">
+          <h4 style="margin:16px 0 6px;font-size:16px;color:#fff;">Monthly Insights</h4>
+          <p style="font-size:12.5px;color:var(--text-muted);margin:0;">Cash flow breakdown, category spending distribution, and savings rate coaching.</p>
+        </div>
+      </div>
+    </section>
+
     <!-- 5. Old Way vs PocketTrack Way Comparison -->
     <section class="comparison-section">
       <div class="section-head">
         <div class="pill-badge">📊 The Upgrade</div>
         <h2 class="section-title">The Old Spreadsheet Way vs. PocketTrack</h2>
-        <p class="section-subtitle">See why thousands of users abandoned traditional budgeting tools.</p>
+        <p class="section-subtitle">See why everyday savers choose PocketTrack over complicated spreadsheets.</p>
       </div>
 
       <div class="comparison-table-wrap">
@@ -359,7 +394,7 @@ function toggleMobileNav(e) {
       </div>
     </section>
 
-    <!-- 6. Early Beta Feedback & Previews -->
+    <!-- 6. Early Beta Feedback -->
     <section class="superpowers-section" style="padding:40px 0;">
       <div class="section-head">
         <div class="pill-badge">✨ Early Beta Feedback</div>
@@ -367,77 +402,41 @@ function toggleMobileNav(e) {
         <p class="section-subtitle">Real feedback from our early beta testing cohort.</p>
       </div>
 
-      <div class="testimonials-marquee-wrap">
-        <div class="testimonials-track">
-          <!-- Card 1 -->
-          <div class="testimonial-card">
-            <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
-            <blockquote class="testimonial-text" style="margin:0;padding:0;border:none;font-style:italic;">"Simple and clean. I finally know where my pocket money goes each month."</blockquote>
-            <div class="testimonial-author">
-              <div class="testimonial-avatar">P</div>
-              <div><div class="testimonial-name">Priya S.</div><div class="testimonial-location">Student, Delhi</div></div>
-            </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));gap:20px;max-width:1100px;margin:0 auto;">
+        <!-- Card 1 -->
+        <div class="testimonial-card">
+          <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
+          <blockquote class="testimonial-text" style="margin:0;padding:0;border:none;font-style:italic;">"I used to run out of my pocket money by the 20th of every month. The Safe-to-Spend formula tells me my exact daily budget so I never run out."</blockquote>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">P</div>
+            <div><div class="testimonial-name">Priya Sharma</div><div class="testimonial-location">College Student, Delhi</div></div>
           </div>
-          <!-- Card 2 -->
-          <div class="testimonial-card">
-            <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
-            <blockquote class="testimonial-text" style="margin:0;padding:0;border:none;font-style:italic;">"The friends ledger saved me from so many awkward money conversations with roommates."</blockquote>
-            <div class="testimonial-author">
-              <div class="testimonial-avatar">R</div>
-              <div><div class="testimonial-name">Rahul V.</div><div class="testimonial-location">Working Professional, Mumbai</div></div>
-            </div>
+        </div>
+        <!-- Card 2 -->
+        <div class="testimonial-card">
+          <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
+          <blockquote class="testimonial-text" style="margin:0;padding:0;border:none;font-style:italic;">"Tracking shared flat expenses and ordering dinner with roommates used to be awkward. The friends debt ledger with 1-tap WhatsApp reminders solved it."</blockquote>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">R</div>
+            <div><div class="testimonial-name">Rahul Verma</div><div class="testimonial-location">Software Engineer, Mumbai</div></div>
           </div>
-          <!-- Card 3 -->
-          <div class="testimonial-card">
-            <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
-            <blockquote class="testimonial-text" style="margin:0;padding:0;border:none;font-style:italic;">"I love that it works offline. I track expenses on the metro and it syncs when I get WiFi."</blockquote>
-            <div class="testimonial-author">
-              <div class="testimonial-avatar">A</div>
-              <div><div class="testimonial-name">Ananya R.</div><div class="testimonial-location">Freelancer, Bangalore</div></div>
-            </div>
+        </div>
+        <!-- Card 3 -->
+        <div class="testimonial-card">
+          <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
+          <blockquote class="testimonial-text" style="margin:0;padding:0;border:none;font-style:italic;">"The fact that it works 100% offline without needing internet is gold. I log rides on the metro and it syncs to the cloud when I'm home."</blockquote>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">A</div>
+            <div><div class="testimonial-name">Ananya Reddy</div><div class="testimonial-location">Freelance Designer, Bengaluru</div></div>
           </div>
-          <!-- Card 4 -->
-          <div class="testimonial-card">
-            <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
-            <blockquote class="testimonial-text" style="margin:0;padding:0;border:none;font-style:italic;">"The voice entry in Hindi is actually useful. Way easier than typing everything."</blockquote>
-            <div class="testimonial-author">
-              <div class="testimonial-avatar">K</div>
-              <div><div class="testimonial-name">Karthik N.</div><div class="testimonial-location">Student, Chennai</div></div>
-            </div>
-          </div>
-          <!-- Duplicate for infinite rolling loop -->
-          <div class="testimonial-card">
-            <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
-            <blockquote class="testimonial-text" style="margin:0;padding:0;border:none;font-style:italic;">"Simple and clean. I finally know where my pocket money goes each month."</blockquote>
-            <div class="testimonial-author">
-              <div class="testimonial-avatar">P</div>
-              <div><div class="testimonial-name">Priya S.</div><div class="testimonial-location">Student, Delhi</div></div>
-            </div>
-          </div>
-          <div class="testimonial-card">
-            <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
-            <blockquote class="testimonial-text" style="margin:0;padding:0;border:none;font-style:italic;">"The friends ledger saved me from so many awkward money conversations with roommates."</blockquote>
-            <div class="testimonial-author">
-              <div class="testimonial-avatar">R</div>
-              <div><div class="testimonial-name">Rahul V.</div><div class="testimonial-location">Working Professional, Mumbai</div></div>
-            </div>
-          </div>
-          <div class="testimonial-card">
-            <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
-            <blockquote class="testimonial-text" style="margin:0;padding:0;border:none;font-style:italic;">"I love that it works offline. I track expenses on the metro and it syncs when I get WiFi."</blockquote>
-            <div class="testimonial-author">
-              <div class="testimonial-avatar">A</div>
-              <div><div class="testimonial-name">Ananya R.</div><div class="testimonial-location">Freelancer, Bangalore</div></div>
-            </div>
-          </div>
-          <div class="testimonial-card">
-            <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
-            <blockquote class="testimonial-text" style="margin:0;padding:0;border:none;font-style:italic;">"The voice entry in Hindi is actually useful. Way easier than typing everything."</blockquote>
-            <div class="testimonial-author">
-              <div class="testimonial-avatar">K</div>
-              <div><div class="testimonial-name">Karthik N.</div><div class="testimonial-location">Student, Chennai</div></div>
-            </div>
-          </div>
+        </div>
+        <!-- Card 4 -->
+        <div class="testimonial-card">
+          <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
+          <blockquote class="testimonial-text" style="margin:0;padding:0;border:none;font-style:italic;">"Voice entry in Hindi and English is a game changer during busy hospital shifts. Just speak what I spent and it gets logged automatically."</blockquote>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">K</div>
+            <div><div class="testimonial-name">Karthik Nair</div><div class="testimonial-location">Medical Resident, Chennai</div></div>
         </div>
       </div>
     </section>
@@ -481,43 +480,56 @@ function toggleMobileNav(e) {
 
       <div class="faq-item">
         <div class="faq-q"><span>How do I contact support?</span><span>+</span></div>
-        <div class="faq-a">Email us at ekaanttaparia2@gmail.com or call +91 63754 44595. You can also open an issue on our GitHub repository.</div>
+        <div class="faq-a">Email us at <a href="mailto:ekaanttaparia2@gmail.com" style="color:var(--accent-green);">ekaanttaparia2@gmail.com</a>, visit our <a href="contact.html" style="color:var(--accent-green);">Contact Page</a>, or open an issue on our <a href="https://github.com/ekaanttaparia2-code/pockettrack/issues" target="_blank" rel="noopener" style="color:var(--accent-green);text-decoration:underline;">GitHub Repository Issues</a>.</div>
+      </div>
+    </section>
+
+    <!-- About PocketTrack / Story Section -->
+    <section class="about-section" style="padding:40px 0;">
+      <div class="card-glass" style="max-width:760px;margin:0 auto;text-align:center;padding:36px 24px;">
+        <div class="pill-badge" style="margin-bottom:12px;">👨‍💻 The Philosophy</div>
+        <h3 style="font-size:26px;font-family:'Space Grotesk',sans-serif;color:#fff;margin:0 0 14px;">Why We Built PocketTrack</h3>
+        <p style="font-size:15px;color:var(--text-muted);line-height:1.7;margin:0 0 20px;">PocketTrack was created by <strong>Ekaant Taparia</strong> out of frustration with bloated personal finance apps that demand your net-banking passwords, spam you with credit card loans, and monetize your private spending habits. PocketTrack does one thing with absolute excellence: <strong>give you WhatsApp-simple money tracking with zero ads, true offline privacy, and zero data selling.</strong></p>
+        <div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;font-size:13px;">
+          <a href="https://github.com/ekaanttaparia2-code/pockettrack" target="_blank" rel="noopener" class="btn btn-glass" style="padding:10px 20px;"><i class="ti ti-brand-github"></i> View GitHub Repository</a>
+          <a href="contact.html" class="btn btn-glass" style="padding:10px 20px;"><i class="ti ti-mail"></i> Contact Support</a>
+        </div>
       </div>
     </section>
 
     <!-- 7. Call To Action Banner -->
     <section class="cta-banner">
       <h2 style="font-size:clamp(32px, 4.5vw, 48px);font-family:'Space Grotesk',sans-serif;margin-bottom:16px;">Take command of your wealth today.</h2>
-      <p style="font-size:18px;color:var(--text-muted);max-width:600px;margin:0 auto 32px;">No credit card required. Start tracking and building your streak in under 30 seconds.</p>
-      <a href="#" onclick="launchPocketTrackApp(event);return false;" class="btn btn-primary" style="padding:18px 44px;font-size:17px;"><i class="ti ti-rocket"></i> Launch Free Web App Now</a>
+      <p style="font-size:18px;color:var(--text-muted);max-width:600px;margin:0 auto 32px;">No credit card or download required. Start tracking and building your streak in under 30 seconds.</p>
+      <a href="/app" class="btn btn-primary" style="padding:18px 44px;font-size:17px;"><i class="ti ti-rocket"></i> Launch Free Web App Now</a>
     </section>
   </main>
 
   <!-- 8. Footer -->
   <footer class="footer-site">
     <div class="footer-links">
-      <a href="index.html">Home</a>
-      <a href="website/features.html">Features</a>
-      <a href="website/pricing.html">Pricing &amp; Simulator</a>
+      <a href="/">Home</a>
+      <a href="#how-it-works">How It Works</a>
+      <a href="#features">Features</a>
+      <a href="#test-drive">Simulator</a>
+      <a href="#faq">FAQ</a>
+      <a href="contact.html">Contact Us</a>
       <a href="privacy.html">Privacy Policy</a>
       <a href="terms.html">Terms of Service</a>
-      <a href="#" onclick="launchPocketTrackApp(event);return false;">Launch App</a>
+      <a href="https://github.com/ekaanttaparia2-code/pockettrack" target="_blank" rel="noopener">GitHub</a>
+      <a href="/app" style="color:var(--accent-green);font-weight:700;">Open App →</a>
     </div>
-    <div style="margin:12px 0 16px;display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;font-size:13.5px;">
-      <a href="tel:+916375444595" style="color:var(--accent-green);font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:5px;">
-        <i class="ti ti-phone"></i> +91 63754 44595
+    <div style="margin:16px 0;display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;font-size:13.5px;">
+      <a href="contact.html" style="color:var(--accent-green);font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:5px;">
+        <i class="ti ti-message-circle"></i> Community &amp; WhatsApp Support
       </a>
       <span style="color:rgba(255,255,255,0.2);">•</span>
       <a href="mailto:ekaanttaparia2@gmail.com" style="color:var(--text-muted);text-decoration:none;font-weight:600;display:inline-flex;align-items:center;gap:5px;">
         <i class="ti ti-mail"></i> ekaanttaparia2@gmail.com
       </a>
       <span style="color:rgba(255,255,255,0.2);">•</span>
-      <a href="privacy.html" style="color:var(--text-muted);text-decoration:underline;">
-        Privacy Policy
-      </a>
-      <span style="color:rgba(255,255,255,0.2);">•</span>
-      <a href="terms.html" style="color:var(--text-muted);text-decoration:underline;">
-        Terms of Service
+      <a href="https://github.com/ekaanttaparia2-code/pockettrack" target="_blank" rel="noopener" style="color:var(--text-muted);text-decoration:none;display:inline-flex;align-items:center;gap:5px;">
+        <i class="ti ti-brand-github"></i> Open Source
       </a>
     </div>
     <p>© 2026 PocketTrack. Built for financial freedom. Synced securely to Google Cloud.</p>
@@ -526,6 +538,45 @@ function toggleMobileNav(e) {
 
 <script src="website/main.js"></script>
 <script>
+function simCustomAdd(type) {
+  var amtInput = document.getElementById('sim-custom-amt');
+  var noteInput = document.getElementById('sim-custom-note');
+  var amt = Math.abs(parseInt(amtInput ? amtInput.value : 0, 10)) || (type === 'income' ? 1000 : 150);
+  var note = (noteInput && noteInput.value.trim()) || (type === 'income' ? 'Custom Income' : 'Custom Expense');
+  
+  if (typeof playSound === 'function') {
+    playSound(type === 'income' ? 'chime' : 'click');
+  }
+  
+  if (type === 'expense') {
+    simSpent += amt;
+    simBalance -= amt;
+  } else {
+    simIncome += amt;
+    simBalance += amt;
+  }
+  
+  var balEl = document.getElementById('stage-sim-balance');
+  var spentEl = document.getElementById('stage-sim-spent');
+  var incEl = document.getElementById('stage-sim-income');
+  var feedEl = document.getElementById('stage-sim-feed');
+  
+  if (balEl) balEl.textContent = '₹' + simBalance.toLocaleString('en-IN');
+  if (spentEl) spentEl.textContent = '-₹' + simSpent.toLocaleString('en-IN') + ' Spent';
+  if (incEl) incEl.textContent = '+₹' + simIncome.toLocaleString('en-IN') + ' Income';
+  
+  if (feedEl) {
+    var isExp = (type === 'expense');
+    feedEl.insertAdjacentHTML('afterbegin', 
+      '<div style="background:' + (isExp ? 'rgba(248,113,113,0.12)' : 'rgba(52,211,153,0.12)') + ';padding:10px 14px;border-radius:12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;border:1px solid ' + (isExp ? 'rgba(248,113,113,0.3)' : 'rgba(52,211,153,0.3)') + ';animation:popIn 0.2s ease;">' +
+        '<div><b>' + note + '</b> · <i>' + (isExp ? 'Custom Expense' : 'Custom Income') + '</i></div>' +
+        '<div style="font-weight:700;color:' + (isExp ? '#f87171' : 'var(--accent-green)') + '">' + (isExp ? '-' : '+') + '₹' + amt.toLocaleString('en-IN') + '</div>' +
+      '</div>'
+    );
+  }
+}
+window.simCustomAdd = simCustomAdd;
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
     navigator.serviceWorker.register('./sw.js').catch(function() {});

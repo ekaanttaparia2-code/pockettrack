@@ -262,13 +262,21 @@ window.forgotPassword = forgotPassword;
 
 function togglePasswordVisibility() {
   const passInput = document.getElementById('auth-pass');
+  const toggleIcon = document.getElementById('auth-pass-toggle-icon');
+  const toggleText = document.getElementById('auth-pass-toggle-text');
   const toggleBtn = document.getElementById('auth-pass-toggle');
+  if (!passInput) return;
+
   if (passInput.type === 'password') {
     passInput.type = 'text';
-    toggleBtn.textContent = '🙈';
+    if (toggleIcon) toggleIcon.textContent = '🙈';
+    if (toggleText) toggleText.textContent = 'Hide';
+    if (!toggleIcon && toggleBtn) toggleBtn.textContent = '🙈 Hide';
   } else {
     passInput.type = 'password';
-    toggleBtn.textContent = '👁️';
+    if (toggleIcon) toggleIcon.textContent = '👁️';
+    if (toggleText) toggleText.textContent = 'Show';
+    if (!toggleIcon && toggleBtn) toggleBtn.textContent = '👁️ Show';
   }
 }
 window.togglePasswordVisibility = togglePasswordVisibility;

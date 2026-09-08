@@ -193,78 +193,42 @@ function toggleMobileNav(e) {
         <p class="section-subtitle">No hidden ads, no data selling, no forced subscription locks.</p>
       </div>
 
-      <div class="grid-features" style="max-width:1100px;margin:0 auto;grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));gap:20px;">
-        <!-- Free Plan -->
-        <div class="card-glass">
-          <div class="pill-badge" style="margin-bottom:12px;">Standard</div>
-          <h3 class="card-title" style="font-size:24px;">Free Forever</h3>
-          <p style="font-size:38px;font-family:'Space Grotesk',sans-serif;font-weight:800;color:#fff;margin:10px 0;">₹0</p>
-          <p class="card-text" style="margin-bottom:20px;font-size:13.5px;">Essential tools to track and split your everyday money.</p>
+      <div style="max-width:680px;margin:0 auto;text-align:center;">
+        <div class="card-glass" style="border-color:rgba(52,211,153,0.4);background:rgba(52,211,153,0.06);padding:36px 28px;">
+          <div class="pill-badge" style="background:rgba(52,211,153,0.2);color:var(--accent-green);border-color:rgba(52,211,153,0.4);margin-bottom:12px;">🎉 100% Free Forever</div>
+          <h3 class="card-title" style="font-size:32px;">Zero Fees. Zero Subscriptions.</h3>
+          <p style="font-size:48px;font-family:'Space Grotesk',sans-serif;font-weight:800;color:#fff;margin:12px 0;">₹0 <span style="font-size:16px;color:var(--text-dim);font-weight:400;">forever</span></p>
+          <p class="card-text" style="margin-bottom:24px;font-size:15px;">Every single feature in PocketTrack is 100% free with zero paywalls, zero ads, and zero locked tiers.</p>
           
-          <ul style="list-style:none;display:flex;flex-direction:column;gap:10px;font-size:13px;color:var(--text-muted);margin-bottom:28px;">
-            <li><b style="color:#fff;">✓</b> <b>Unlimited</b> Income &amp; Expense Logging</li>
-            <li><b style="color:#fff;">✓</b> <b>100 Voice</b> Speech Entries</li>
-            <li><b style="color:#fff;">✓</b> <b>5 Ledger</b> Contacts &amp; Accounts</li>
-            <li><b style="color:#fff;">✓</b> <b>2 Shared</b> Splitwise Spaces</li>
-            <li><b style="color:#fff;">✓</b> 100% Offline Persistence &amp; Sync</li>
-            <li><b style="color:#fff;">✓</b> Cyberpunk Neo Dark Theme</li>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:12px;font-size:14px;color:var(--text-muted);margin-bottom:32px;text-align:left;max-width:420px;margin-left:auto;margin-right:auto;">
+            <li><b style="color:var(--accent-green);">✓ Unlimited</b> Income &amp; Expense Logging</li>
+            <li><b style="color:var(--accent-green);">✓ Unlimited</b> Voice Entry in Hindi &amp; English</li>
+            <li><b style="color:var(--accent-green);">✓ Multi-Wallet</b> Accounts &amp; Instant Transfers</li>
+            <li><b style="color:var(--accent-green);">✓ Friends Debt Ledger</b> with 1-Tap Reminders</li>
+            <li><b style="color:var(--accent-green);">✓ 100% Offline Persistence</b> &amp; Optional Cloud Sync</li>
+            <li><b style="color:var(--accent-green);">✓ Zero Ads</b> &amp; Zero Personal Data Selling</li>
           </ul>
 
-          <a href="#" onclick="launchPocketTrackApp(event);return false;" class="btn btn-glass" style="width:100%;font-size:13.5px;">Get Started Free</a>
+          <a href="/app" class="btn btn-primary" style="padding:16px 36px;font-size:16px;">Launch Free App Now →</a>
         </div>
+      </div>
+    </section>
 
-        <!-- Starter Plan: ₹50/mo -->
-        <div class="card-glass" style="border-color:rgba(52,211,153,0.4);background:rgba(52,211,153,0.04);">
-          <div class="pill-badge" style="background:rgba(52,211,153,0.2);color:var(--accent-green);border-color:rgba(52,211,153,0.4);margin-bottom:12px;">🌱 Starter</div>
-          <h3 class="card-title" style="font-size:24px;">Monthly Starter</h3>
-          <p style="font-size:38px;font-family:'Space Grotesk',sans-serif;font-weight:800;color:#fff;margin:10px 0;">₹50 <span style="font-size:14px;color:var(--text-dim);font-weight:400;">/ mo</span></p>
-          <p class="card-text" style="margin-bottom:20px;font-size:13.5px;">Very minimal charge to remove all limits on everyday features.</p>
+    <!-- Pricing FAQ -->
+    <section class="faq-section">
+      <div class="section-head">
+        <div class="pill-badge">❓ Pricing FAQ</div>
+        <h2 class="section-title">Common Questions</h2>
+      </div>
 
-          <ul style="list-style:none;display:flex;flex-direction:column;gap:10px;font-size:13px;color:var(--text-muted);margin-bottom:28px;">
-            <li><b style="color:var(--accent-green);">✓ Everything in Free tier</b></li>
-            <li><b style="color:var(--accent-green);">✓ Unlimited</b> Voice Transactions</li>
-            <li><b style="color:var(--accent-green);">✓ Unlimited</b> Ledger Accounts</li>
-            <li><b style="color:var(--accent-green);">✓ Unlimited</b> Splitwise Spaces</li>
-            <li><b style="color:var(--accent-green);">✓ Priority</b> Cloud Sync Engine</li>
-          </ul>
+      <div class="faq-item">
+        <div class="faq-q"><span>Will PocketTrack always stay free?</span><span>+</span></div>
+        <div class="faq-a">Yes! PocketTrack is designed as an independent utility for students and everyday savers. All core features will remain free forever with no hidden paywalls.</div>
+      </div>
 
-          <a href="#" onclick="launchPocketTrackApp(event);return false;" class="btn btn-primary" style="width:100%;background:linear-gradient(135deg,#10b981,#059669);font-size:13.5px;">Get Starter Plan</a>
-        </div>
-
-        <!-- Pro Plus Plan: ₹100/mo -->
-        <div class="card-glass" style="border-color:var(--border-glow);box-shadow:0 15px 45px rgba(139,92,246,0.35);background:rgba(139,92,246,0.06);">
-          <div class="pill-badge" style="background:rgba(236,72,153,0.2);color:#f472b6;border-color:rgba(236,72,153,0.4);margin-bottom:12px;">👑 Most Popular</div>
-          <h3 class="card-title" style="font-size:24px;">Pro Plus</h3>
-          <p style="font-size:38px;font-family:'Space Grotesk',sans-serif;font-weight:800;color:#fff;margin:10px 0;">₹100 <span style="font-size:14px;color:var(--text-dim);font-weight:400;">/ mo</span></p>
-          <p class="card-text" style="margin-bottom:20px;font-size:13.5px;">Full wealth simulator &amp; aesthetic luxury themes suite.</p>
-
-          <ul style="list-style:none;display:flex;flex-direction:column;gap:10px;font-size:13px;color:var(--text-muted);margin-bottom:28px;">
-            <li><b style="color:var(--primary-bright);">✓ Everything in Starter</b></li>
-            <li><b style="color:var(--primary-bright);">✓ All 4 Luxury Themes</b> (Emerald, Sunset, Midnight)</li>
-            <li><b style="color:var(--primary-bright);">✓ Future Wealth Simulator</b> 12-mo forecasting</li>
-            <li><b style="color:var(--primary-bright);">✓ PDF Statement Export</b> with custom branding</li>
-            <li><b style="color:var(--primary-bright);">✓ 10,000 Entry</b> Cloud Capacity</li>
-          </ul>
-
-          <a href="#" onclick="launchPocketTrackApp(event);return false;" class="btn btn-primary" style="width:100%;font-size:13.5px;"><i class="ti ti-crown"></i> Unlock Pro Plus</a>
-        </div>
-
-        <!-- Lifetime Plan: ₹999 -->
-        <div class="card-glass" style="border-color:rgba(251,191,36,0.4);background:rgba(251,191,36,0.03);">
-          <div class="pill-badge" style="background:rgba(251,191,36,0.2);color:var(--accent-amber);border-color:rgba(251,191,36,0.4);margin-bottom:12px;">⭐ Lifetime</div>
-          <h3 class="card-title" style="font-size:24px;">Lifetime</h3>
-          <p style="font-size:38px;font-family:'Space Grotesk',sans-serif;font-weight:800;color:#fff;margin:10px 0;">₹999 <span style="font-size:14px;color:var(--text-dim);font-weight:400;">one-time</span></p>
-          <p class="card-text" style="margin-bottom:20px;font-size:13.5px;">Pay once. Own every Pro feature and future upgrade forever.</p>
-
-          <ul style="list-style:none;display:flex;flex-direction:column;gap:10px;font-size:13px;color:var(--text-muted);margin-bottom:28px;">
-            <li><b style="color:var(--accent-amber);">✓ All Pro Plus Features</b></li>
-            <li><b style="color:var(--accent-amber);">✓ Lifetime</b> Cloud Backup &amp; Access</li>
-            <li><b style="color:var(--accent-amber);">✓ Zero</b> Recurring Charges Ever</li>
-            <li><b style="color:var(--accent-amber);">✓ Early Access</b> to New Intelligence Phases</li>
-          </ul>
-
-          <a href="#" onclick="launchPocketTrackApp(event);return false;" class="btn btn-glass" style="width:100%;border-color:rgba(251,191,36,0.4);color:var(--accent-amber);font-size:13.5px;">Own It Forever</a>
-        </div>
+      <div class="faq-item">
+        <div class="faq-q"><span>How do you protect my data?</span><span>+</span></div>
+        <div class="faq-a">Your data stays stored locally on your device by default in IndexedDB. If you choose to enable cloud backup, it is encrypted and sent to your private Firebase account partition. We never sell data to banks or advertisers.</div>
       </div>
     </section>
 
